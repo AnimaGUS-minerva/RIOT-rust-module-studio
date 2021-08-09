@@ -1,0 +1,8 @@
+[target.xtensa-esp32-none-elf]
+rustflags = [
+#---- Keep these as is, otherwise the custom compiler-builtins setting gets broken.
+  "-C", "target-cpu=esp32",
+  "-C", "save-temps",
+#----
+  "-C", "link-arg=-nostdlib",
+]

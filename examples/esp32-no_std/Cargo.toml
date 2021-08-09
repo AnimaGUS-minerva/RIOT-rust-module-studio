@@ -1,6 +1,6 @@
 [package]
 name = "esp32-no_std"
-version = "0.0.1"
+version = "0.1.0"
 edition = "2018"
 authors = ["ANIMA Minerva toolkit"]
 
@@ -9,5 +9,5 @@ name = "rustmod"
 crate-type = ["staticlib"]
 
 [build-dependencies]
-mcu-emu = { path = "../../crates/mcu-emu" }
+##mcu-emu = { path = "../../crates/mcu-emu" }
 
