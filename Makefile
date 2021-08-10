@@ -7,6 +7,7 @@ ci:
 
 init:
 	make init-rust-xtensa
+	make init-riot
 
 TOOLCHAIN_XTENSA := toolchain/xtensa
 init-rust-xtensa:
@@ -24,6 +25,10 @@ init-rust-xtensa:
 	@echo "[4/4] Testing rustc xtensa ..."
 	@RUST_MODULE_STUDIO=$(CURDIR) source ./examples/xtensa.setup && \
 		if [[ `rustc +xtensa --version` =~ rustc.* ]]; then echo rustc xtensa version LGTM; else false; fi
+
+init-riot:
+	git submodule init RIOT
+	git submodule update
 
 NAMES := esp32-no_std
 test:
