@@ -29,5 +29,9 @@ jobs:
         rustup default ${{ matrix.rust }}
     - name: make init-rust-xtensa
       run: make init-rust-xtensa
+    - name: make init-esp-idf
+      run: make init-esp-idf
+    - name: make init-riot
+      run: make init-riot
     - name: Run test
       run: make ci
