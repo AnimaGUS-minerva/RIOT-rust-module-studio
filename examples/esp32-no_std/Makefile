@@ -2,7 +2,9 @@ all: build
 
 include ../xtensa.mk
 
-build: build-xtensa
+build:
+	make build-module
+	make build-riot
 
 test: build
 

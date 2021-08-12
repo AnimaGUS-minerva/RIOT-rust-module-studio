@@ -4,3 +4,5 @@ export LIBCLANG_PATH=$RUST_MODULE_STUDIO/toolchain/xtensa/llvm/llvm_install/lib
 export XARGO_RUST_SRC=$RUST_MODULE_STUDIO/toolchain/xtensa/rustc/rust_xtensa/src
 
 export CARGO_HOME=$RUST_MODULE_STUDIO/target/cargo
+
+export IDF_PATH=$RUST_MODULE_STUDIO/toolchain/xtensa/esp-idf
