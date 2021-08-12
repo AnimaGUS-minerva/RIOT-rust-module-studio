@@ -37,10 +37,17 @@ XTENSA_ESP32_ELF_RIOT_TGZ := xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.t
 init-riot:
 	git submodule init RIOT
 	git submodule update
+	@echo "Setting up xtensa-esp32-elf for RIOT per https://github.com/espressif/esp-at/issues/215#issuecomment-508597652"
 	@if [ ! -e "$(TOOLCHAIN_XTENSA)/riot/$(XTENSA_ESP32_ELF_RIOT_TGZ)" ]; then \
         echo "Setting up xtensa/riot/xtensa-esp32-elf ..."; \
         (cd $(TOOLCHAIN_XTENSA)/riot; curl -O -L https://github.com/AnimaGUS-minerva/RIOT-rust-module-studio/releases/download/assets-0.1/$(XTENSA_ESP32_ELF_RIOT_TGZ); tar xfz $(XTENSA_ESP32_ELF_RIOT_TGZ)); \
     fi
+	@echo "Setting up esp-idf (f198339ec; v3.1) for RIOT per https://github.com/gschorcht/riotdocker-Xtensa-ESP/blob/master/Dockerfile"
+	git clone $(IDF_MODULE) $(TOOLCHAIN_XTENSA)/riot/esp-idf
+	cd $(TOOLCHAIN_XTENSA)/riot/esp-idf && \
+        git checkout -q f198339ec09e90666150672884535802304d23ec && \
+        git submodule update --init --recursive
+
 
 NAMES := esp32-no_std
 test:
