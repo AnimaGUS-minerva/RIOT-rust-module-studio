@@ -1,5 +1,18 @@
 # RIOT-rust-module-studio
 
+Robust IoT development with Rust and RIOT-OS
+
+## Getting started
+
+```
+$ make init  # set up toolchain
+$ make test  # perform all tests for apps under example/* 
+```
+
+## Environments
+
+Ubuntu 20.04 is being used for CI.
+
 ## Repository map (planned)
 
 ```
