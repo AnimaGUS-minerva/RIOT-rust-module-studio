@@ -2,7 +2,7 @@ APPLICATION = riot
 BOARD ?= native
 RIOTBASE ?= $(CURDIR)/../../../RIOT
 
-#INCLUDES += -I$(CURDIR)/../../libfoo-rs/include
-#ARCHIVES += $(CURDIR)/../../libfoo-rs/libfoo.a
+INCLUDES += -I$(CURDIR)/../include
+ARCHIVES += $(CURDIR)/../target/xtensa-esp32-none-elf/release/librustmod.a
 
 include $(RIOTBASE)/Makefile.include

@@ -22,5 +22,6 @@ make WERROR=0 \
 "$IDF_PATH/components/esptool_py/esptool/esptool.py" \
     --chip esp32 \
     elf2image \
-    -o esp-app.riot.bin \
-    bin/esp32-wroom-32/*.elf  # e.g. tests_shell.elf
+    -o ../riot.esp32.bin \
+    bin/esp32-wroom-32/*.elf  # e.g. riot.elf
+ls -l ../riot.esp32.bin
