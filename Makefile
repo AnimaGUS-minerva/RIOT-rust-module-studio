@@ -30,7 +30,8 @@ init-rust-xtensa:
 IDF_MODULE := $(TOOLCHAIN_XTENSA)/esp-idf
 init-esp-idf:
 	git submodule init $(IDF_MODULE)
-	git submodule update --recursive
+	git submodule update
+	cd $(IDF_MODULE) && git submodule update --init --recursive
 	$(IDF_MODULE)/install.sh
 
 XTENSA_ESP32_ELF_RIOT_TGZ := xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
@@ -42,11 +43,10 @@ init-riot:
         echo "Setting up xtensa/riot/xtensa-esp32-elf ..."; \
         (cd $(TOOLCHAIN_XTENSA)/riot; curl -O -L https://github.com/AnimaGUS-minerva/RIOT-rust-module-studio/releases/download/assets-0.1/$(XTENSA_ESP32_ELF_RIOT_TGZ); tar xfz $(XTENSA_ESP32_ELF_RIOT_TGZ)); \
     fi
-	@echo "Setting up esp-idf (f198339ec; v3.1) for RIOT per https://github.com/gschorcht/riotdocker-Xtensa-ESP/blob/master/Dockerfile"
+	@echo "Setting up esp-idf (f198339ec; v3.1) headers for RIOT per https://github.com/gschorcht/riotdocker-Xtensa-ESP/blob/master/Dockerfile"
 	git clone $(IDF_MODULE) $(TOOLCHAIN_XTENSA)/riot/esp-idf
 	cd $(TOOLCHAIN_XTENSA)/riot/esp-idf && \
-        git checkout -q f198339ec09e90666150672884535802304d23ec && \
-        git submodule update --init --recursive
+        git checkout -q f198339ec09e90666150672884535802304d23ec
 
 
 NAMES := esp32-no_std
