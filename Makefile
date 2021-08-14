@@ -39,9 +39,9 @@ init-esp-idf:
 	git submodule init $(IDF_MODULE)
 	git submodule update
 	@#cd $(IDF_MODULE) && git submodule update --init --recursive
-	@#$(IDF_MODULE)/install.sh
 	@#====
 	cd $(IDF_MODULE) && git submodule update --init components/esptool_py/esptool
+	$(IDF_MODULE)/install.sh
 
 XTENSA_ESP32_ELF_RIOT_TGZ := xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
 init-riot:
