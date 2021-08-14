@@ -1,12 +1,20 @@
 # RIOT-rust-module-studio
 
+[![MIT licensed][mit-badge]][mit-url]
+[![CI][actions-badge]][actions-url]
+
+[mit-badge]: https://img.shields.io/badge/license-MIT-blue.svg
+[mit-url]: https://github.com/AnimaGUS-minerva/RIOT-rust-module-studio/blob/main/LICENSE
+[actions-badge]: https://github.com/AnimaGUS-minerva/RIOT-rust-module-studio/workflows/CI/badge.svg
+[actions-url]: https://github.com/AnimaGUS-minerva/RIOT-rust-module-studio/actions
+
 Robust IoT development with Rust and RIOT-OS
 
 ## Getting started
 
 ```
 $ make init  # set up toolchain
-$ make test  # perform all tests for apps under example/* 
+$ make test  # perform all tests for apps under examples/* 
 ```
 
 ## Environments
