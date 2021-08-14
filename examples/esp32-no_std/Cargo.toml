@@ -9,5 +9,6 @@ name = "rustmod"
 crate-type = ["staticlib"]
 
 [build-dependencies]
+##riot-build = { path = "../../crates/riot-build" }
 ##mcu-emu = { path = "../../crates/mcu-emu" }
 
