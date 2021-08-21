@@ -3,17 +3,13 @@
 
 int main(void)
 {
-    printf("riot: hello\n");
-
-    int input = 21;
+    int input = 4;
 
     printf("riot: before calling rustmod\n");
-    int output = double_input(input);
+    int output = square(input);
     printf("riot: after calling rustmod\n");
 
-    printf("riot: %d * 2 = %d\n", input, output);
-
-    printf("riot: done\n");
+    printf("riot: square(%d) -> %d\n", input, output);
 
     return 0;
 }
