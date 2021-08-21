@@ -14,7 +14,7 @@ build-module:
         ln -sf $(TOOLCHAIN_XTENSA)/xtensa-esp32-none-elf .
 	@#==== end: compiler-builtins workaround
 	RUST_MODULE_STUDIO=$(RUST_MODULE_STUDIO) source ../xtensa.setup && \
-        cargo +xtensa xbuild --release --target xtensa-esp32-none-elf
+        cargo +xtensa xbuild --lib --release --target xtensa-esp32-none-elf
 	ls -lrt target/xtensa-esp32-none-elf/release/*.a
 
 RIOT_PATH := $(TOOLCHAIN_XTENSA)/riot

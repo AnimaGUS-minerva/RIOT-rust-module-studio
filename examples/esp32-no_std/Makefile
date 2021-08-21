@@ -6,6 +6,9 @@ build:
 	make build-module
 	make build-riot
 
+run:
+	cargo run --bin emu
+
 test: build
 
 clean:
