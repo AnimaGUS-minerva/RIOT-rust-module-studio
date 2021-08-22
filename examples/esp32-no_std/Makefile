@@ -9,7 +9,9 @@ build:
 run:
 	cargo run --bin emu
 
-test: build
+test:
+	make build
+	make run || true
 
 clean:
 	rm -rf target

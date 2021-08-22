@@ -8,7 +8,8 @@ ci:
 init:
 	make init-rust-xtensa
 	make init-esp-idf
-	make init-riot
+	make init-riot-xtensa
+	make init-qemu-xtensa
 
 TOOLCHAIN_XTENSA := toolchain/xtensa
 
@@ -44,7 +45,7 @@ init-esp-idf:
 	$(IDF_MODULE)/install.sh
 
 XTENSA_ESP32_ELF_RIOT_TGZ := xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
-init-riot:
+init-riot-xtensa:
 	git submodule init RIOT
 	git submodule update
 	@echo "Setting up xtensa-esp32-elf for RIOT per https://github.com/espressif/esp-at/issues/215#issuecomment-508597652"
@@ -57,6 +58,8 @@ init-riot:
 	cd $(TOOLCHAIN_XTENSA)/riot/esp-idf && \
         git checkout -q f198339ec09e90666150672884535802304d23ec
 
+init-qemu-xtensa:
+	@echo todo
 
 NAMES := esp32-no_std
 test:
