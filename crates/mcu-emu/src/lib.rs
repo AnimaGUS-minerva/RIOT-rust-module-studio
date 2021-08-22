@@ -2,11 +2,50 @@ use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
+use std::process::Command;
+
+static FLASH_BIN: &str = "esp32flash.bin";
+
+pub fn run_with_qemu(app_bin: &str) -> std::io::Result<()> {
+    generate_esp32flash(app_bin, FLASH_BIN)?;
+
+    println!("Running qemu... ('Ctrl-a x' to exit)");
+    run_qemu(FLASH_BIN)?;
+
+    { // WIP
+        use std::{thread, time};
+
+        thread::sleep(time::Duration::from_millis(4_000));
+
+        Command::new("killall")
+            .args(&["qemu-system-xtensa"])
+            .status()?;
+        println!("done.");
+    }
+
+    Ok(())
+}
+
+pub fn run_qemu(flash_bin: &str) -> std::io::Result<()> {
+    let nic = "user,model=open_eth,id=lo0"; // SLIRP
+    // let nic = "user,model=open_eth,id=lo0,hostfwd=tcp:127.0.0.1:60080-:80"; // SLIRP_HOSTFWD
+
+    Command::new("../../toolchain/xtensa/qemu/qemu/bin/qemu-system-xtensa")
+        .args(&["-nographic",
+            "-machine", "esp32",
+            "-drive", &format!("file={},if=mtd,format=raw", flash_bin),
+            "-nic", nic,
+            "-global", "driver=timer.esp32.timg,property=wdt_disable,value=true"])
+        // .status()?;
+        .spawn()?; // !!!!
+
+    Ok(())
+}
 
 pub fn generate_esp32flash<P: AsRef<Path>>(app_bin: P, flash_bin: P) -> std::io::Result<()> {
     let mut flash = vec![0xff; 4194304]; // 4 * 1024 * 1024 (4 MiB)
-    merge(&mut flash, 0x1000, "build-dio-riot/bootloader/bootloader.bin")?;
-    merge(&mut flash, 0x8000, "build-dio-riot/partition_table/partition-table.bin")?;
+    merge(&mut flash, 0x1000, "../../toolchain/xtensa/qemu/build-dio-riot/bootloader/bootloader.bin")?;
+    merge(&mut flash, 0x8000, "../../toolchain/xtensa/qemu/build-dio-riot/partition_table/partition-table.bin")?;
     merge(&mut flash, 0x10000, app_bin)?;
     fs::write(flash_bin, &flash)?;
 
