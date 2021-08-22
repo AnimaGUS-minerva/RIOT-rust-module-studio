@@ -1,9 +1,9 @@
 use mcu_emu::generate_esp32flash;
 
 fn main() -> std::io::Result<()> {
-    println!("hi from src/bin/emu.rs");
+    println!("src/bin/emu.rs::main(): ^^");
 
-    generate_esp32flash()?;
+    generate_esp32flash("riot.esp32.bin", "esp32flash.bin")?;
 
     Ok(())
 }
