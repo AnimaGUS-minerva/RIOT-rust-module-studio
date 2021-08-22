@@ -58,8 +58,13 @@ init-riot-xtensa:
 	cd $(TOOLCHAIN_XTENSA)/riot/esp-idf && \
         git checkout -q f198339ec09e90666150672884535802304d23ec
 
+QEMU_XTENSA_TGZ := qemu-d558d21678-20210520.tgz
 init-qemu-xtensa:
-	@echo todo
+	@if [ ! -e "$(TOOLCHAIN_XTENSA)/qemu/$(QEMU_XTENSA_TGZ)" ]; then \
+        echo "Setting up xtensa/qemu/qemu ..."; \
+        (cd $(TOOLCHAIN_XTENSA)/qemu; curl -O -L $(DL_ASSETS)/$(QEMU_XTENSA_TGZ); tar xfz $(QEMU_XTENSA_TGZ)); \
+        fi
+	find $(TOOLCHAIN_XTENSA)/qemu
 
 NAMES := esp32-no_std
 test:
