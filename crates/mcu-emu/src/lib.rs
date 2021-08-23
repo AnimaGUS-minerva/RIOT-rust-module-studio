@@ -2,47 +2,69 @@ use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
-use std::process::Command;
+
+use std::process::{Command, ExitStatus, Stdio};
+use std::{thread, time};
 
 static QEMU_RES_DIR: &str = "../../toolchain/xtensa/qemu";
 static FLASH_BIN: &str = "esp32flash.bin";
 
-pub fn run_with_qemu_xtensa(app_bin: &str) -> std::io::Result<()> {
+//
+
+pub fn run_qemu_xtensa(app_bin: &str, timeout_ms: Option<u64>) -> std::io::Result<()> {
     generate_esp32flash(app_bin, FLASH_BIN)?;
 
-    println!("Running qemu... ('Ctrl-a x' to exit)");
-    run_qemu_xtensa(FLASH_BIN)?;
-
-    { // WIP
-        use std::{thread, time};
-
-        thread::sleep(time::Duration::from_millis(4_000));
-
-        // FIXME terminal malformatted later??!!
-        Command::new("killall")
-            .args(&["qemu-system-xtensa"])
-            .status()?;
-        println!("done.");
+    if let Some(ms) = timeout_ms {
+        Qemu::new().run_with_timeout(ms)?;
+    } else {
+        Qemu::new().run()?;
     }
 
     Ok(())
 }
 
-pub fn run_qemu_xtensa(flash_bin: &str) -> std::io::Result<()> {
-    let nic = "user,model=open_eth,id=lo0"; // SLIRP
-    // let nic = "user,model=open_eth,id=lo0,hostfwd=tcp:127.0.0.1:60080-:80"; // SLIRP_HOSTFWD
+pub struct Qemu(Command);
 
-    Command::new(&format!("{}/qemu/bin/qemu-system-xtensa", QEMU_RES_DIR))
-        .args(&["-nographic",
+impl Qemu {
+    pub fn new() -> Self {
+        let nic = "user,model=open_eth,id=lo0"; // SLIRP
+        // let nic = "user,model=open_eth,id=lo0,hostfwd=tcp:127.0.0.1:60080-:80"; // SLIRP_HOSTFWD
+
+        let mut cmd = Command::new(&format!("{}/qemu/bin/qemu-system-xtensa", QEMU_RES_DIR));
+        cmd.args(&["-nographic",
             "-machine", "esp32",
-            "-drive", &format!("file={},if=mtd,format=raw", flash_bin),
+            "-drive", &format!("file={},if=mtd,format=raw", FLASH_BIN),
             "-nic", nic,
-            "-global", "driver=timer.esp32.timg,property=wdt_disable,value=true"])
-        // .status()?;
-        .spawn()?; // !!!!
+            "-global", "driver=timer.esp32.timg,property=wdt_disable,value=true"]);
 
-    Ok(())
+        Self(cmd)
+    }
+
+    pub fn run(&mut self) -> std::io::Result<ExitStatus> {
+        println!("Running qemu... ('Ctrl-a x' to exit)");
+
+        self.0.status()
+    }
+
+    pub fn run_with_timeout(&mut self, ms: u64) -> std::io::Result<()> {
+        println!("Running qemu... (timeout {} ms)", ms);
+        let process = self.0
+            .stdin(Stdio::piped())
+            .spawn()?;
+
+        thread::sleep(time::Duration::from_millis(ms));
+
+        println!("Quiting qemu...");
+        // $ echo $'\cax' | hexdump -C
+        // 00000000  01 78 0a                                          |.x.|
+        // 00000003
+        process.stdin.unwrap().write_all(&[0x01, 0x78, 0x0a])?;
+
+        Ok(())
+    }
 }
+
+//
 
 pub fn generate_esp32flash<P: AsRef<Path>>(app_bin: P, flash_bin: P) -> std::io::Result<()> {
     Flash::new(4194304) // 4 * 1024 * 1024 (4 MiB)
