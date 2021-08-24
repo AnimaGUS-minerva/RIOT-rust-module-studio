@@ -83,14 +83,14 @@ impl Flash {
         Self(vec![0xff; size])
     }
 
-    pub fn merge<P: AsRef<Path>>(mut self, offset: usize, path: P) -> std::io::Result<Self> {
+    pub fn merge<P: AsRef<Path>>(&mut self, offset: usize, path: P) -> std::io::Result<&mut Self> {
         let mut f = File::open(path)?;
         let len = f.metadata()?.len() as usize;
         f.read_exact(&mut self.0[offset .. (offset + len)])?;
 
         Ok(self)
     }
-    pub fn write<P: AsRef<Path>>(self, path: P) -> std::io::Result<Self> {
+    pub fn write<P: AsRef<Path>>(&self, path: P) -> std::io::Result<&Self> {
         fs::write(path, &self.0)?;
 
         Ok(self)
@@ -106,13 +106,14 @@ fn test_flash() -> std::io::Result<()> {
     fs::write(bin8, &vec![22; 8])?;
 
     let binflash = "flash.bin";
-    let flash = Flash::new(16)
-        .merge(1, bin4)?
-        .merge(6, bin8)?
-        .write(binflash)?;
 
     let gt = [255, 11, 11, 11, 11, 255, 22, 22, 22, 22, 22, 22, 22, 22, 255, 255];
-    assert_eq!(flash.0, gt);
+    assert_eq!(
+        Flash::new(16)
+            .merge(1, bin4)?
+            .merge(6, bin8)?
+            .write(binflash)?
+            .0, gt);
 
     let mut f = File::open(binflash)?;
     let mut buf = Vec::new();
