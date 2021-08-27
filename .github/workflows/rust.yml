@@ -36,4 +36,6 @@ jobs:
     - name: make init-qemu-xtensa
       run: make init-qemu-xtensa
     - name: Run test
-      run: make ci
+      run: |
+          apt install gcc-multilib
+          make ci
