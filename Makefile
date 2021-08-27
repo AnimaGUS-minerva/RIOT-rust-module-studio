@@ -66,7 +66,7 @@ init-qemu-xtensa:
         fi
 	find $(TOOLCHAIN_XTENSA)/qemu
 
-NAMES := esp32-no_std
+NAMES := esp32-no_std native-sockets
 test:
 	for name in $(NAMES); do \
         make -C ./examples/$$name test; \
