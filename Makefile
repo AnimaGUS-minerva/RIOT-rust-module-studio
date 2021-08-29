@@ -10,6 +10,7 @@ init:
 	make init-esp-idf
 	make init-riot-xtensa
 	make init-qemu-xtensa
+	make init-rust-i686
 
 TOOLCHAIN_XTENSA := toolchain/xtensa
 
@@ -65,6 +66,10 @@ init-qemu-xtensa:
         (cd $(TOOLCHAIN_XTENSA)/qemu; curl -O -L $(DL_ASSETS)/$(QEMU_XTENSA_TGZ); tar xfz $(QEMU_XTENSA_TGZ)); \
         fi
 	find $(TOOLCHAIN_XTENSA)/qemu
+
+init-rust-i686:
+	rustup toolchain install stable-i686-unknown-linux-gnu
+	rustup target add i686-unknown-linux-gnu
 
 NAMES := esp32-no_std native-sockets
 test:
