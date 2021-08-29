@@ -12,7 +12,7 @@ build-native:
 	file $(RIOT_ELF)
 
 run-native: build-native
-	$(RIOT_ELF)
+	timeout 4 $(RIOT_ELF) || true
 
 # esp32
 
@@ -21,13 +21,13 @@ build-esp32:
 	make build-riot
 
 run-esp32: build-esp32
-	cargo run --bin emu
+	cargo run --bin emu || true
 
 #
 
 test:
 	make build-native
-	#make run-native || true
+	make run-native
 	make run-esp32
 
 clean:
