@@ -35,6 +35,8 @@ jobs:
       run: make init-riot-xtensa
     - name: make init-qemu-xtensa
       run: make init-qemu-xtensa
+    - name: make init-rust-i686
+      run: make init-rust-i686
     - name: Run test
       run: |
           sudo apt install gcc-multilib

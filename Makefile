@@ -71,7 +71,7 @@ init-rust-i686:
 	rustup toolchain install stable-i686-unknown-linux-gnu
 	rustup target add i686-unknown-linux-gnu
 
-NAMES := esp32-no_std native-sockets
+NAMES := esp32-no_std native-sockets xbd-base
 test:
 	for name in $(NAMES); do \
         make -C ./examples/$$name test; \
