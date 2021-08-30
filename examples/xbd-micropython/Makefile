@@ -1,4 +1,6 @@
-all: build-micropython
+all: build-native
+
+include ../xtensa.mk
 
 get-submodule:
 	[ -e "micropython/.git" ] || \
@@ -19,8 +21,11 @@ build-dir: get-submodule
 		touch $(MP_GENHDR_DIR)/qstrdefs.generated.h; \
 	fi
 
-build-micropython: build-dir
-	#CUSTOM_BOARD=ESP32  CONTINUE_ON_EXPECTED_ERRORS=1  make riot.bin
+build-esp32: build-dir
+	CUSTOM_BOARD=ESP32  CONTINUE_ON_EXPECTED_ERRORS=1  make build-riot
+
+test:
+	make build-esp32
 
 clean:
 	rm -rf ./riot/bin
