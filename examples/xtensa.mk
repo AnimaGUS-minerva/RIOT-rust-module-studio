@@ -21,7 +21,8 @@ RIOT_PATH := $(TOOLCHAIN_XTENSA)/riot
 RIOT_BASE ?= $(RUST_MODULE_STUDIO)/RIOT
 build-riot:
 	RUST_MODULE_STUDIO=$(RUST_MODULE_STUDIO) source ../xtensa.setup && cd ./riot && \
-		RIOT_PATH=${RIOT_PATH} RIOT_BASE=${RIOT_BASE} $(TOOLCHAIN_XTENSA)/riot/riot-build
+		RIOT_PATH=${RIOT_PATH} RIOT_BASE=${RIOT_BASE} CONTINUE_ON_EXPECTED_ERRORS=1 \
+		$(TOOLCHAIN_XTENSA)/riot/riot-build
 
 clean-xtensa:
 	rm -rf $(TOOLCHAIN_XTENSA)/xtensa-esp32-none-elf

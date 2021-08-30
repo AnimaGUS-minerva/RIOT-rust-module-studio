@@ -15,9 +15,9 @@ ifeq ($(CUSTOM_BOARD),ESP32)
 CFLAGS += -DCUSTOM_BOARD_ESP32
 endif
 
-#CFLAGS += -DCUSTOM_USE_LIBFOO
-#INCLUDES += -I$(CURDIR)/../../libfoo-rs/include
-#ARCHIVES += $(CURDIR)/../../libfoo-rs/libfoo.a
+CFLAGS += -DCUSTOM_USE_LIBFOO
+INCLUDES += -I$(CURDIR)/../include
+ARCHIVES += $(CURDIR)/../target/xtensa-esp32-none-elf/release/libfoo.a
 #====
 
 # include boot.py as header

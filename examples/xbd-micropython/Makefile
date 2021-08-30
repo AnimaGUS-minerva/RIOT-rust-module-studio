@@ -22,10 +22,14 @@ build-dir: get-submodule
 	fi
 
 build-esp32: build-dir
-	CUSTOM_BOARD=ESP32  CONTINUE_ON_EXPECTED_ERRORS=1  make build-riot
+	make build-module
+	CUSTOM_BOARD=ESP32 make build-riot
+
+run-esp32: build-esp32
+	cargo run --bin emu || true
 
 test:
-	make build-esp32
+	make run-esp32
 
 clean:
 	rm -rf ./riot/bin

@@ -1,0 +1,12 @@
+[package]
+name = "xbd-micropython"
+version = "0.1.0"
+edition = "2018"
+authors = ["ANIMA Minerva toolkit"]
+
+[lib]
+name = "foo"
+crate-type = ["staticlib"]
+
+[target.'cfg(unix)'.dependencies]
+mcu-emu = { path = "../../crates/mcu-emu" }
