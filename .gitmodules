@@ -4,3 +4,6 @@
 [submodule "toolchain/xtensa/esp-idf"]
 	path = toolchain/xtensa/esp-idf
 	url = https://github.com/espressif/esp-idf
+[submodule "examples/xbd-micropython/micropython"]
+	path = examples/xbd-micropython/micropython
+	url = https://github.com/AnimaGUS-minerva/micropython
