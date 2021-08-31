@@ -1,7 +1,7 @@
 all: build-native
 
 include ../native.mk
-include ../xtensa.mk
+include ../esp32.mk
 
 get-submodule:
 	[ -e "micropython/.git" ] || \

@@ -13,14 +13,14 @@ esp32-build-module:
         cd target/sysroot/lib/rustlib && \
         ln -sf $(TOOLCHAIN_XTENSA)/xtensa-esp32-none-elf .
 	@#==== end: compiler-builtins workaround
-	RUST_MODULE_STUDIO=$(RUST_MODULE_STUDIO) source ../xtensa.setup && \
+	RUST_MODULE_STUDIO=$(RUST_MODULE_STUDIO) source ../esp32.setup && \
         cargo +xtensa xbuild --lib --release --target xtensa-esp32-none-elf
 	ls -lrt target/xtensa-esp32-none-elf/release/*.a
 
 RIOT_PATH := $(TOOLCHAIN_XTENSA)/riot
 RIOT_BASE ?= $(RUST_MODULE_STUDIO)/RIOT
 esp32-build-riot:
-	RUST_MODULE_STUDIO=$(RUST_MODULE_STUDIO) source ../xtensa.setup && cd ./riot && \
+	RUST_MODULE_STUDIO=$(RUST_MODULE_STUDIO) source ../esp32.setup && cd ./riot && \
 		RIOT_PATH=${RIOT_PATH} RIOT_BASE=${RIOT_BASE} CONTINUE_ON_EXPECTED_ERRORS=1 \
 		$(TOOLCHAIN_XTENSA)/riot/riot-build
 

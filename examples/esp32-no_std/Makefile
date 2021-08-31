@@ -1,6 +1,6 @@
 all: build
 
-include ../xtensa.mk
+include ../esp32.mk
 
 build:
 	make esp32-build-module
