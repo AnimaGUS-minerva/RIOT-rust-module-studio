@@ -9,19 +9,44 @@ sync-submodule:
 	git submodule update --remote micropython && \
 		cd micropython && git checkout 1.16-minerva && git pull
 
-MP_BUILD_DIR = ./riot/bin/esp32-wroom-32/pkg/micropython
+# build directory
+
+CUSTOM_BOARD ?= NATIVE
+ifeq ($(CUSTOM_BOARD),ESP32)
+    MP_BUILD_DIR := ./riot/bin/esp32-wroom-32/pkg/micropython
+else ifeq ($(CUSTOM_BOARD),NATIVE)
+	MP_BUILD_DIR := ./riot/bin/native/pkg/micropython
+endif
+
 MP_GENHDR_DIR = $(MP_BUILD_DIR)/genhdr
-build-dir: get-submodule
+mp-build-dir: get-submodule
 	mkdir -p $(MP_BUILD_DIR)
 	[ -e $(MP_BUILD_DIR)/.git ] || \
 		git -c advice.detachedHead=false clone micropython $(MP_BUILD_DIR)
-	@# HACK: Prevent missing 'qstrdefs.generated.h' from stopping build
+	@# Kludge: prevent missing 'qstrdefs.generated.h' from breaking build
 	if [ ! -d $(MP_GENHDR_DIR) ]; then \
 		mkdir -p $(MP_GENHDR_DIR) && \
 		touch $(MP_GENHDR_DIR)/qstrdefs.generated.h; \
 	fi
 
-build-esp32: build-dir
+# native
+
+RIOT_ELF := ./riot/bin/native/riot.elf
+build-native:
+	CUSTOM_BOARD=NATIVE make mp-build-dir
+	cargo +stable-i686-unknown-linux-gnu build --lib --release --target i686-unknown-linux-gnu
+	cd ./riot && CUSTOM_BOARD=NATIVE BOARD=native RIOTBASE=$(CURDIR)/../../RIOT make
+	ldd $(RIOT_ELF)
+	file $(RIOT_ELF)
+
+run-native: build-native
+	#timeout 4 $(RIOT_ELF) || true # processing hangs unless; sudo kill -9 zzzz
+	$(RIOT_ELF) || true
+
+# esp32
+
+build-esp32:
+	CUSTOM_BOARD=ESP32 make mp-build-dir
 	make build-module
 	CUSTOM_BOARD=ESP32 make build-riot
 
@@ -29,6 +54,8 @@ run-esp32: build-esp32
 	cargo run --bin emu || true
 
 test:
+	make build-native
+	make run-native
 	make run-esp32
 
 clean:
