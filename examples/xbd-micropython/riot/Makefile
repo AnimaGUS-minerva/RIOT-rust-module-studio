@@ -12,12 +12,18 @@ USEMODULE += micropython
 EXTERNAL_MODULE_DIRS += $(CURDIR)/micropython
 
 ifeq ($(CUSTOM_BOARD),ESP32)
-CFLAGS += -DCUSTOM_BOARD_ESP32
+    CFLAGS += -DCUSTOM_BOARD_ESP32
 endif
 
 CFLAGS += -DCUSTOM_USE_LIBFOO
 INCLUDES += -I$(CURDIR)/../include
-ARCHIVES += $(CURDIR)/../target/xtensa-esp32-none-elf/release/libfoo.a
+ifeq ($(CUSTOM_BOARD),ESP32)
+    ARCHIVES += $(CURDIR)/../target/xtensa-esp32-none-elf/release/libfoo.a
+else ifeq ($(CUSTOM_BOARD),NATIVE)
+    ARCHIVES += $(CURDIR)/../target/i686-unknown-linux-gnu/release/libfoo.a
+else
+    ARCHIVES += $(CURDIR)/../target/i686-unknown-linux-gnu/release/libfoo.a
+endif
 #====
 
 # include boot.py as header
