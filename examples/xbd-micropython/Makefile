@@ -32,16 +32,14 @@ mp-build-dir: get-submodule
 
 # native
 
-RIOT_ELF := ./riot/bin/native/riot.elf
 build-native:
 	CUSTOM_BOARD=NATIVE make mp-build-dir
 	make native-build-module
 	CUSTOM_BOARD=NATIVE make native-build-riot
-	ldd $(RIOT_ELF) && file $(RIOT_ELF)
 
 run-native: build-native
-	# !!!!!!!! timeout 4 $(RIOT_ELF) || true # processing hangs unless; sudo kill -9 zzzz
-	$(RIOT_ELF) || true
+	# !!!!!!!! timeout 4 ./riot/bin/native/riot.elf || true # processing hangs unless; sudo kill -9 zzzz
+	./riot/bin/native/riot.elf || true
 
 # esp32
 

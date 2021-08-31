@@ -5,14 +5,12 @@ include ../esp32.mk
 
 # native
 
-RIOT_ELF := ./riot/bin/native/riot.elf
 build-native:
 	make native-build-module
 	make native-build-riot
-	ldd $(RIOT_ELF) && file $(RIOT_ELF)
 
 run-native: build-native
-	timeout 4 $(RIOT_ELF) || true
+	timeout 4 ./riot/bin/native/riot.elf || true
 
 # esp32
 
