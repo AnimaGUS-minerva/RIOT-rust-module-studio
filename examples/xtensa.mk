@@ -3,7 +3,7 @@ RUST_MODULE_STUDIO := $(shell realpath ../..)
 
 TOOLCHAIN_XTENSA := $(RUST_MODULE_STUDIO)/toolchain/xtensa
 
-build-module:
+esp32-build-module:
 	@#==== begin: compiler-builtins workaround
 	@if [ ! -d "$(TOOLCHAIN_XTENSA)/xtensa-esp32-none-elf" ]; then \
         echo "Setting up pre-built xtensa-esp32-none-elf to workaround build errors of the compiler_builtins crate"; \
@@ -19,10 +19,10 @@ build-module:
 
 RIOT_PATH := $(TOOLCHAIN_XTENSA)/riot
 RIOT_BASE ?= $(RUST_MODULE_STUDIO)/RIOT
-build-riot:
+esp32-build-riot:
 	RUST_MODULE_STUDIO=$(RUST_MODULE_STUDIO) source ../xtensa.setup && cd ./riot && \
 		RIOT_PATH=${RIOT_PATH} RIOT_BASE=${RIOT_BASE} CONTINUE_ON_EXPECTED_ERRORS=1 \
 		$(TOOLCHAIN_XTENSA)/riot/riot-build
 
-clean-xtensa:
+esp32-clean:
 	rm -rf $(TOOLCHAIN_XTENSA)/xtensa-esp32-none-elf

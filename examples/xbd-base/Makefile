@@ -1,15 +1,15 @@
 all: build-native
 
+include ../native.mk
 include ../xtensa.mk
 
 # native
 
 RIOT_ELF := ./riot/bin/native/riot.elf
 build-native:
-	cargo +stable-i686-unknown-linux-gnu build --lib --release --target i686-unknown-linux-gnu
-	cd ./riot && BOARD=native RIOTBASE=$(CURDIR)/../../RIOT make
-	ldd $(RIOT_ELF)
-	file $(RIOT_ELF)
+	make native-build-module
+	make native-build-riot
+	ldd $(RIOT_ELF) && file $(RIOT_ELF)
 
 run-native: build-native
 	timeout 4 $(RIOT_ELF) || true
@@ -17,8 +17,8 @@ run-native: build-native
 # esp32
 
 build-esp32:
-	make build-module
-	make build-riot
+	make esp32-build-module
+	make esp32-build-riot
 
 run-esp32: build-esp32
 	cargo run --bin emu || true

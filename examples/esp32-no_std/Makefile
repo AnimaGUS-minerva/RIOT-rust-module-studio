@@ -3,8 +3,8 @@ all: build
 include ../xtensa.mk
 
 build:
-	make build-module
-	make build-riot
+	make esp32-build-module
+	make esp32-build-riot
 
 run:
 	cargo run --bin emu

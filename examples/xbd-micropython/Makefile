@@ -1,5 +1,6 @@
 all: build-native
 
+include ../native.mk
 include ../xtensa.mk
 
 get-submodule:
@@ -34,28 +35,27 @@ mp-build-dir: get-submodule
 RIOT_ELF := ./riot/bin/native/riot.elf
 build-native:
 	CUSTOM_BOARD=NATIVE make mp-build-dir
-	cargo +stable-i686-unknown-linux-gnu build --lib --release --target i686-unknown-linux-gnu
-	cd ./riot && CUSTOM_BOARD=NATIVE BOARD=native RIOTBASE=$(CURDIR)/../../RIOT make
-	ldd $(RIOT_ELF)
-	file $(RIOT_ELF)
+	make native-build-module
+	CUSTOM_BOARD=NATIVE make native-build-riot
+	ldd $(RIOT_ELF) && file $(RIOT_ELF)
 
 run-native: build-native
-	#timeout 4 $(RIOT_ELF) || true # processing hangs unless; sudo kill -9 zzzz
+	# !!!!!!!! timeout 4 $(RIOT_ELF) || true # processing hangs unless; sudo kill -9 zzzz
 	$(RIOT_ELF) || true
 
 # esp32
 
 build-esp32:
 	CUSTOM_BOARD=ESP32 make mp-build-dir
-	make build-module
-	CUSTOM_BOARD=ESP32 make build-riot
+	make esp32-build-module
+	CUSTOM_BOARD=ESP32 make esp32-build-riot
 
 run-esp32: build-esp32
 	cargo run --bin emu || true
 
 test:
+	#make run-native
 	make build-native
-	make run-native
 	make run-esp32
 
 clean:
