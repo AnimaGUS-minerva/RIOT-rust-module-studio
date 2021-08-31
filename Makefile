@@ -31,7 +31,7 @@ init-rust-xtensa:
         cargo install cargo-xbuild; \
         fi
 	@echo "[4/4] Testing rustc xtensa ..."
-	@RUST_MODULE_STUDIO=$(CURDIR) source ./examples/xtensa.setup && \
+	@RUST_MODULE_STUDIO=$(CURDIR) source ./examples/esp32.setup && \
         if [[ `rustc +xtensa --version` =~ rustc.* ]]; then \
             echo rustc xtensa version LGTM; else false; \
             fi
