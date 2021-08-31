@@ -11,6 +11,14 @@ static FLASH_BIN: &str = "esp32flash.bin";
 
 //
 
+pub fn run_native(app_bin: &str, timeout_ms: Option<u64>) -> std::io::Result<()> {
+    println!("WIP run native...");
+
+    Ok(())
+}
+
+//
+
 pub fn run_qemu_xtensa(app_bin: &str, timeout_ms: Option<u64>) -> std::io::Result<()> {
     generate_esp32flash(app_bin, FLASH_BIN)?;
 
