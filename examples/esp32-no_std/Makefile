@@ -6,12 +6,11 @@ build:
 	make esp32-build-module
 	make esp32-build-riot
 
-run:
-	cargo run --bin emu
+run: build
+	cargo run --bin runner esp32
 
-test:
-	make build
-	make run || true
+test: build
+	cargo run --bin runner esp32 4000
 
 clean:
 	rm -rf target
