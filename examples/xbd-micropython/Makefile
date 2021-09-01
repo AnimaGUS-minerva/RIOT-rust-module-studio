@@ -3,9 +3,12 @@ all: build-native
 include ../native.mk
 include ../esp32.mk
 
+# submodule
+
 get-submodule:
 	[ -e "micropython/.git" ] || \
 		(git submodule init micropython && git submodule update)
+
 sync-submodule:
 	git submodule update --remote micropython && \
 		cd micropython && git checkout 1.16-minerva && git pull
@@ -38,8 +41,10 @@ build-native:
 	CUSTOM_BOARD=NATIVE make native-build-riot
 
 run-native: build-native
-	# !!!!!!!! timeout 4 ./riot/bin/native/riot.elf || true # processing hangs unless; sudo kill -9 zzzz
-	./riot/bin/native/riot.elf || true
+	cargo run --bin runner native
+
+test-native: build-native
+	cargo run --bin runner native 4000
 
 # esp32
 
@@ -49,12 +54,16 @@ build-esp32:
 	CUSTOM_BOARD=ESP32 make esp32-build-riot
 
 run-esp32: build-esp32
-	cargo run --bin emu || true
+	cargo run --bin runner esp32
+
+test-esp32: build-esp32
+	cargo run --bin runner esp32 4000
+
+#
 
 test:
-	#make run-native
-	make build-native
-	make run-esp32
+	make test-native
+	make test-esp32
 
 clean:
-	rm -rf ./riot/bin
+	rm -rf target ./riot/bin
