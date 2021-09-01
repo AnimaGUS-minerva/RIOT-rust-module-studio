@@ -1,6 +1,6 @@
 import voucher
 print('dir(voucher):', dir(voucher))
-voucher.demo()
+print('voucher.demo():', voucher.demo())
 
 masa_cert = """
 -----BEGIN CERTIFICATE-----

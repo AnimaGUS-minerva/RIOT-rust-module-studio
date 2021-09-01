@@ -5,7 +5,7 @@ edition = "2018"
 authors = ["ANIMA Minerva toolkit"]
 
 [lib]
-name = "foo"
+name = "voucher"
 crate-type = ["staticlib"]
 
 [target.'cfg(unix)'.dependencies]
