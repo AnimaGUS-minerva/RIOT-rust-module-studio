@@ -8,37 +8,36 @@
 [actions-badge]: https://github.com/AnimaGUS-minerva/RIOT-rust-module-studio/workflows/CI/badge.svg
 [actions-url]: https://github.com/AnimaGUS-minerva/RIOT-rust-module-studio/actions
 
-Robust IoT development with Rust and RIOT-OS
+Robust IoT development with Rust and RIOT-OS.
+
+### Repository map
+
+```
+/
+  README.md
+  crates/              .... 💡 currently supports mcu's specific to esp32 (and Linux native) only
+    mcu-emu            .... emulator runner (`qemu-system-xtensa` or RIOT native board binary)
+    mcu-if             .... "semi_std" interface on top of bare `no_std`
+  examples/
+    esp32-no_std       .... bare `no_std` firmware with a Rust module
+    xbd-base           .... cross-`BOARD` (esp32/native) firmware with minimal 'librustmod.a'
+    xbd-micropython    .... cross-`BOARD` firmware featuring MicroPython with 'libvoucher.a'
+    ...
+```
+
+### Environments
+
+Ubuntu 20.04 is supported and also being used for CI.
 
 ## Getting started
 
 After cloning the repo, first, set up the pre-configured RIOT/ESP32 toolchain:
 
 ```
-$ make init  # set up toolchain
+$ make init
 ```
 
 ### examples/xbd-base
 
 
 ### examples/xbd-micropython
-
-
-## Environments
-
-Ubuntu 20.04 is being used for CI.
-
-## Repository map
-
-```
-/
-  README.md
-  crates/              .... 💡 currently supports mcu's specific to esp32 (and Linux native) only
-    mcu-emu            .... emulator runner (`qemu-system-xtensa` or native RIOT binary)
-    mcu-if             .... "semi_std" interface on top of bare `no_std`
-  examples/
-    esp32-no_std       .... `no_std` hello world from RIOT & Rust module
-    xbd-base           .... cross-`BOARD` (esp32/native) RIOT firmware with minimal 'librustmod.a'
-    xbd-micropython    .... cross-`BOARD` RIOT firmware featuring MicroPython
-    ...
-```
