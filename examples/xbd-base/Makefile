@@ -13,7 +13,7 @@ run-native: build-native
 	cargo run --bin runner native
 
 test-native: build-native
-	cargo run --bin runner native 4000 || true
+	cargo run --bin runner native 4000
 
 # esp32
 
@@ -25,7 +25,7 @@ run-esp32: build-esp32
 	cargo run --bin runner esp32
 
 test-esp32: build-esp32
-	cargo run --bin runner esp32 4000 || true
+	cargo run --bin runner esp32 4000
 
 #
 

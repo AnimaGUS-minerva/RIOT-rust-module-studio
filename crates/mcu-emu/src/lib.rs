@@ -2,25 +2,56 @@ use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
-
 use std::process::{Command, ExitStatus, Stdio};
 use std::{thread, time};
 
-static QEMU_RES_DIR: &str = "../../toolchain/xtensa/qemu";
-static FLASH_BIN: &str = "esp32flash.bin";
-
 //
 
-pub fn run_native(app_bin: &str, timeout_ms: Option<u64>) -> std::io::Result<()> {
-    println!("WIP run native...");
+static RIOT_NATIVE_ELF: &str = "./riot/bin/native/riot.elf";
+static RIOT_ESP32_BIN: &str = "riot.esp32.bin";
+
+pub fn run(args: &Vec<String>) -> std::io::Result<()> {
+    let board = args[1].as_str();
+    let timeout = if args.len() > 2 { Some(args[2].parse::<u64>().unwrap()) } else { None };
+
+    match board {
+        "native" => run_native(RIOT_NATIVE_ELF, timeout)?,
+        "esp32" => run_qemu_xtensa(RIOT_ESP32_BIN, timeout)?,
+        _ => panic!("Unsupported board: {}", board),
+    }
 
     Ok(())
 }
 
 //
 
-pub fn run_qemu_xtensa(app_bin: &str, timeout_ms: Option<u64>) -> std::io::Result<()> {
-    generate_esp32flash(app_bin, FLASH_BIN)?;
+pub fn run_native(riot_elf: &str, timeout_ms: Option<u64>) -> std::io::Result<()> {
+    let mut cmd = Command::new(riot_elf);
+
+    if let Some(ms) = timeout_ms {
+        println!("Running native... (timeout {} ms)", ms);
+        let mut process = cmd
+            .stdin(Stdio::piped())
+            .spawn()?;
+
+        thread::sleep(time::Duration::from_millis(ms));
+
+        println!("Quiting native...");
+        process.kill()?;
+    } else {
+        cmd.status()?;
+    }
+
+    Ok(())
+}
+
+//
+
+static QEMU_RES_DIR: &str = "../../toolchain/xtensa/qemu";
+static FLASH_BIN: &str = "esp32flash.bin";
+
+pub fn run_qemu_xtensa(riot_bin: &str, timeout_ms: Option<u64>) -> std::io::Result<()> {
+    generate_esp32flash(riot_bin, FLASH_BIN)?;
 
     if let Some(ms) = timeout_ms {
         Qemu::new().run_with_timeout(ms)?;
@@ -30,6 +61,8 @@ pub fn run_qemu_xtensa(app_bin: &str, timeout_ms: Option<u64>) -> std::io::Resul
 
     Ok(())
 }
+
+//
 
 pub struct Qemu(Command);
 
@@ -74,11 +107,11 @@ impl Qemu {
 
 //
 
-pub fn generate_esp32flash<P: AsRef<Path>>(app_bin: P, flash_bin: P) -> std::io::Result<()> {
+pub fn generate_esp32flash<P: AsRef<Path>>(riot_bin: P, flash_bin: P) -> std::io::Result<()> {
     Flash::new(4194304) // 4 * 1024 * 1024 (4 MiB)
         .merge(0x1000, &format!("{}/build-dio-riot/bootloader/bootloader.bin", QEMU_RES_DIR))?
         .merge(0x8000, &format!("{}/build-dio-riot/partition_table/partition-table.bin", QEMU_RES_DIR))?
-        .merge(0x10000, app_bin)?
+        .merge(0x10000, riot_bin)?
         .write(flash_bin)?;
 
     Ok(())
