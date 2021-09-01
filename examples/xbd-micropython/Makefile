@@ -61,6 +61,8 @@ test-esp32: build-esp32
 
 #
 
+run: run-native
+
 test:
 	make test-native
 	make test-esp32
