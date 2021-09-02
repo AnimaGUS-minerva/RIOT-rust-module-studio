@@ -1,21 +1,27 @@
 import voucher
+
 print('dir(voucher):', dir(voucher))
+
 print('voucher.demo():', voucher.demo())
 
-masa_cert = """
------BEGIN CERTIFICATE-----
-MIIByzCCAVKgAwIBAgIESltVuTAKBggqhkjOPQQDAjBTMRIwEAYKCZImiZPyLGQB
-GRYCY2ExGTAXBgoJkiaJk/IsZAEZFglzYW5kZWxtYW4xIjAgBgNVBAMMGWhpZ2h3
-YXktdGVzdC5zYW5kZWxtYW4uY2EwHhcNMTgxMTIyMTg1MjAxWhcNMjAxMTIxMTg1
-MjAxWjBXMRIwEAYKCZImiZPyLGQBGRYCY2ExGTAXBgoJkiaJk/IsZAEZFglzYW5k
-ZWxtYW4xJjAkBgNVBAMMHWhpZ2h3YXktdGVzdC5leGFtcGxlLmNvbSBNQVNBMFkw
-EwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEqgQVo0S54kT4yfkbBxumdHOcHrpsqbOp
-MKmiMln3oB1HAW25MJV+gqi4tMFfSJ0iEwt8kszfWXK4rLgJS2mnpaMQMA4wDAYD
-VR0TAQH/BAIwADAKBggqhkjOPQQDAgNnADBkAjBkuTwpIGSZTJ3cDNv3RkZ9xR5F
-F+msNgl8HH50lTF47uRVn/FrY3S8GS1TjP9RGhoCMC8lEKi0zeSya9yYDdXuxUVy
-G5/TRupdVlCjPz1+tm/iA9ykx/sazZsuPgw14YulLw==
------END CERTIFICATE-----
-"""
-print(masa_cert)
 
+def test_eq(title, left, right):
+    result = left == right
+    print('[test]', title, ':', '✅' if result else '❌')
 
+if 1:
+    tpl = voucher.test_ffi()
+    test_eq('voucher.test_ffi', tpl, (42, False, None, True, False, b'\xa0\xb1\xc2\xd3\xe4\xf5', False))
+    # print(tpl)
+
+    bs = voucher.get_voucher_jada()
+    test_eq('voucher.get_voucher_jada', len(bs), 328)
+    # print(len(bs), bs, list(bs))
+
+    bs = voucher.get_voucher_F2_00_02()
+    test_eq('voucher.get_voucher_F2_00_02', len(bs), 771)
+    # print(len(bs), bs)
+
+    bs = voucher.get_masa_pem_F2_00_02()
+    test_eq('voucher.get_masa_pem_F2_00_02', len(bs), 684)
+    # print(len(bs), bs)
