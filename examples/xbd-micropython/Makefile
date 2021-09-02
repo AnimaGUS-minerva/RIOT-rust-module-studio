@@ -32,6 +32,8 @@ mp-build-dir: get-submodule
 		mkdir -p $(MP_GENHDR_DIR) && \
 		touch $(MP_GENHDR_DIR)/qstrdefs.generated.h; \
 	fi
+	@# Kludge: crudely include custom modules...
+	cp ./riot/custom/* $(MP_BUILD_DIR)/ports/riot/
 
 # native
 
