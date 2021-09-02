@@ -1,9 +1,9 @@
 CFLAGS += -Wno-unused-parameter -Wno-error
 
-CUSTOM_BOARD ?= NATIVE
-ifeq ($(CUSTOM_BOARD),ESP32)
+CUSTOM_BOARD ?= native
+ifeq ($(CUSTOM_BOARD),esp32)
     PKG_BUILD_DIR = $(CURDIR)/../bin/esp32-wroom-32/pkg/micropython
-else ifeq ($(CUSTOM_BOARD),NATIVE)
+else ifeq ($(CUSTOM_BOARD),native)
     PKG_BUILD_DIR = $(CURDIR)/../bin/native/pkg/micropython
 endif
 
