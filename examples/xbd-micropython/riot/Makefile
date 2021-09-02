@@ -11,16 +11,17 @@ RIOTBASE ?= $(CURDIR)/../..
 USEMODULE += micropython
 EXTERNAL_MODULE_DIRS += $(CURDIR)/micropython
 
-ifeq ($(CUSTOM_BOARD),ESP32)
-    CFLAGS += -DCUSTOM_BOARD_ESP32
+CUSTOM_BOARD ?= native
+ifeq ($(CUSTOM_BOARD),esp32)
+    CFLAGS += -DCUSTOM_BOARD -DCUSTOM_BOARD_ESP32
+else ifeq ($(CUSTOM_BOARD),native)
+    CFLAGS += -DCUSTOM_BOARD -DCUSTOM_BOARD_NATIVE
 endif
 
 INCLUDES += -I$(CURDIR)/../include
-ifeq ($(CUSTOM_BOARD),ESP32)
+ifeq ($(CUSTOM_BOARD),esp32)
     ARCHIVES += $(CURDIR)/../target/xtensa-esp32-none-elf/release/libvoucher.a
-else ifeq ($(CUSTOM_BOARD),NATIVE)
-    ARCHIVES += $(CURDIR)/../target/i686-unknown-linux-gnu/release/libvoucher.a
-else
+else ifeq ($(CUSTOM_BOARD),native)
     ARCHIVES += $(CURDIR)/../target/i686-unknown-linux-gnu/release/libvoucher.a
 endif
 #====

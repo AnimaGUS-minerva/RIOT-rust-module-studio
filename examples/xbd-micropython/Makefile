@@ -15,10 +15,10 @@ sync-submodule:
 
 # build directory
 
-CUSTOM_BOARD ?= NATIVE
-ifeq ($(CUSTOM_BOARD),ESP32)
+CUSTOM_BOARD ?= native
+ifeq ($(CUSTOM_BOARD),esp32)
     MP_BUILD_DIR := ./riot/bin/esp32-wroom-32/pkg/micropython
-else ifeq ($(CUSTOM_BOARD),NATIVE)
+else ifeq ($(CUSTOM_BOARD),native)
 	MP_BUILD_DIR := ./riot/bin/native/pkg/micropython
 endif
 
@@ -36,9 +36,9 @@ mp-build-dir: get-submodule
 # native
 
 build-native:
-	CUSTOM_BOARD=NATIVE make mp-build-dir
+	CUSTOM_BOARD=native make mp-build-dir
 	make native-build-module
-	CUSTOM_BOARD=NATIVE make native-build-riot
+	CUSTOM_BOARD=native make native-build-riot
 
 run-native: build-native
 	cargo run --bin runner native
@@ -49,9 +49,9 @@ test-native: build-native
 # esp32
 
 build-esp32:
-	CUSTOM_BOARD=ESP32 make mp-build-dir
+	CUSTOM_BOARD=esp32 make mp-build-dir
 	make esp32-build-module
-	CUSTOM_BOARD=ESP32 make esp32-build-riot
+	CUSTOM_BOARD=esp32 make esp32-build-riot
 
 run-esp32: build-esp32
 	cargo run --bin runner esp32
