@@ -35,9 +35,11 @@
 #include "voucher.h"
 
 STATIC mp_obj_t mod_demo(void) {
-    printf("[xbd-micropython/riot/custom/modvoucher.c] mod_demo(): ^^\n");
+    printf("[custom/modvoucher.c] mod_demo(): ^^\n");
 
-    return mp_const_false;
+    // ...
+
+    return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(mod_demo_obj, mod_demo);
 
@@ -98,13 +100,21 @@ STATIC mp_obj_t mod_get_masa_pem_F2_00_02(void) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(mod_get_masa_pem_F2_00_02_obj, mod_get_masa_pem_F2_00_02);
 
-//STATIC mp_obj_t mod_validate(/* TODO */) {
-//    // !!!!
-//
-//
-//    return mp_obj_new_bool(false);
-//}
-//STATIC MP_DEFINE_CONST_FUN_OBJ_0!!!!!!!!(mod_validate_obj, mod_validate);
+STATIC mp_obj_t mod_validate(size_t n_args, const mp_obj_t *args) {
+    printf("mod_validate(): n_args: %d\n", n_args);
+
+    printf("mod_validate(): mp_obj_is_type(args[0], &mp_type_bytes): %d\n", mp_obj_is_type(args[0], &mp_type_bytes));
+    if (n_args == 1) {
+        // TODO
+
+        return mp_obj_new_bool(false);
+    } else {
+        // TODO
+
+        return mp_obj_new_bool(false);
+    }
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_validate_obj, 1, 2, mod_validate);
 
 STATIC const mp_rom_map_elem_t mp_module_voucher_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_voucher) },
@@ -113,7 +123,7 @@ STATIC const mp_rom_map_elem_t mp_module_voucher_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_get_voucher_jada), MP_ROM_PTR(&mod_get_voucher_jada_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_voucher_F2_00_02), MP_ROM_PTR(&mod_get_voucher_F2_00_02_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_masa_pem_F2_00_02), MP_ROM_PTR(&mod_get_masa_pem_F2_00_02_obj) },
-//    { MP_ROM_QSTR(MP_QSTR_validate), MP_ROM_PTR(&mod_validate_obj) },
+    { MP_ROM_QSTR(MP_QSTR_validate), MP_ROM_PTR(&mod_validate_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(mp_module_voucher_globals, mp_module_voucher_globals_table);
