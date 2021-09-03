@@ -103,15 +103,24 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_0(mod_get_masa_pem_F2_00_02_obj, mod_get_masa_pem
 STATIC mp_obj_t mod_validate(size_t n_args, const mp_obj_t *args) {
     printf("mod_validate(): n_args: %d\n", n_args);
 
-    printf("mod_validate(): mp_obj_is_type(args[0], &mp_type_bytes): %d\n", mp_obj_is_type(args[0], &mp_type_bytes));
     if (n_args == 1) {
-        // TODO
+        if (mp_obj_is_type(args[0], &mp_type_bytes)) {
 
-        return mp_obj_new_bool(false);
-    } else {
-        // TODO
 
-        return mp_obj_new_bool(false);
+
+
+            return mp_obj_new_bool(false); // TODO
+        } else {
+            mp_raise_ValueError(MP_ERROR_TEXT("'voucher' arg must be <class 'bytes'>"));
+        }
+    } else { // with MASA pem
+        if (mp_obj_is_type(args[0], &mp_type_bytes) &&
+            mp_obj_is_type(args[1], &mp_type_bytes)) {
+
+            return mp_obj_new_bool(false); // TODO
+        } else {
+            mp_raise_ValueError(MP_ERROR_TEXT("both 'voucher' and 'pem' args must be <class 'bytes'>"));
+        }
     }
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_validate_obj, 1, 2, mod_validate);
