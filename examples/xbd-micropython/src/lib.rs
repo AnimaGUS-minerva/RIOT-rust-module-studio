@@ -1,5 +1,7 @@
 #![no_std]
 
+use core::slice;
+
 static VOUCHER_JADA: &[u8] = core::include_bytes!(
     concat!(env!("CARGO_MANIFEST_DIR"), "/files/voucher_jada123456789.vch"));
 static VOUCHER_F2_00_02: &[u8] = core::include_bytes!(
@@ -28,9 +30,38 @@ fn set_bytes(bytes: &[u8], ptr: *mut *const u8) -> usize {
     bytes.len()
 }
 
-//
+#[no_mangle]
+pub extern fn vch_validate(ptr: *const u8, sz: usize) -> bool {
+    let raw_voucher = u8_slice_from(ptr, sz);
 
+    // println!("raw_voucher: {:?}", raw_voucher); // TODO
 
+    if 1 == 1 { // TODO TEMP: hardcoded !!
+        assert_eq!(raw_voucher.len(), 328);
+        assert_eq!(raw_voucher, VOUCHER_JADA);
+    }
+
+    false // TODO
+}
+
+#[no_mangle]
+pub extern fn vch_validate_with_pem(ptr: *const u8, sz: usize, ptr_pem: *const u8, sz_pem: usize) -> bool {
+    let raw_voucher = u8_slice_from(ptr, sz);
+    let pem = u8_slice_from(ptr_pem, sz_pem);
+
+    if 1 == 1 { // TODO TEMP: hardcoded !!
+        assert_eq!(raw_voucher.len(), 771);
+        assert_eq!(raw_voucher, VOUCHER_F2_00_02);
+        assert_eq!(pem.len(), 684);
+        assert_eq!(pem, MASA_PEM_F2_00_02);
+    }
+
+    false // TODO
+}
+
+fn u8_slice_from(ptr: *const u8, sz: usize) -> &'static [u8] {
+    unsafe { slice::from_raw_parts(ptr, sz) }
+}
 
 //
 

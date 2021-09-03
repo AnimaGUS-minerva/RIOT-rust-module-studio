@@ -28,6 +28,7 @@
 #include "py/mpconfig.h"
 #if MICROPY_PY_VOUCHER
 
+#include "py/objstr.h"
 #include "py/runtime.h"
 
 #include "stdio.h"
@@ -105,19 +106,30 @@ STATIC mp_obj_t mod_validate(size_t n_args, const mp_obj_t *args) {
 
     if (n_args == 1) {
         if (mp_obj_is_type(args[0], &mp_type_bytes)) {
-
-
-
-
-            return mp_obj_new_bool(false); // TODO
+            GET_STR_DATA_LEN(args[0], str_data, str_len);
+            return mp_obj_new_bool(vch_validate(str_data, str_len));
         } else {
             mp_raise_ValueError(MP_ERROR_TEXT("'voucher' arg must be <class 'bytes'>"));
         }
     } else { // with MASA pem
         if (mp_obj_is_type(args[0], &mp_type_bytes) &&
             mp_obj_is_type(args[1], &mp_type_bytes)) {
+            uint8_t *ptr, *ptr_pem;
+            size_t sz, sz_pem;
 
-            return mp_obj_new_bool(false); // TODO
+            {
+                GET_STR_DATA_LEN(args[0], str_data, str_len);
+                ptr = (uint8_t *)str_data;
+                sz = str_len;
+            }
+
+            {
+                GET_STR_DATA_LEN(args[1], str_data, str_len);
+                ptr_pem = (uint8_t *)str_data;
+                sz_pem = str_len;
+            }
+
+            return mp_obj_new_bool(vch_validate_with_pem(ptr, sz, ptr_pem, sz_pem));
         } else {
             mp_raise_ValueError(MP_ERROR_TEXT("both 'voucher' and 'pem' args must be <class 'bytes'>"));
         }
