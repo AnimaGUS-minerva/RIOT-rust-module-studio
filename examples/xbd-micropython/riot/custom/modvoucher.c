@@ -102,7 +102,7 @@ STATIC mp_obj_t mod_get_masa_pem_F2_00_02(void) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(mod_get_masa_pem_F2_00_02_obj, mod_get_masa_pem_F2_00_02);
 
 STATIC mp_obj_t mod_validate(size_t n_args, const mp_obj_t *args) {
-    printf("mod_validate(): n_args: %d\n", n_args);
+    // printf("mod_validate(): n_args: %d\n", n_args);
 
     if (n_args == 1) {
         if (mp_obj_is_type(args[0], &mp_type_bytes)) {
