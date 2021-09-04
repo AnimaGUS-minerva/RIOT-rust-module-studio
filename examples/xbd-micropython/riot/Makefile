@@ -24,6 +24,8 @@ ifeq ($(CUSTOM_BOARD),esp32)
 else ifeq ($(CUSTOM_BOARD),native)
     ARCHIVES += $(CURDIR)/../target/i686-unknown-linux-gnu/release/libvoucher.a
 endif
+
+MP_RIOT_HEAPSIZE = 131072U
 #====
 
 # include boot.py as header

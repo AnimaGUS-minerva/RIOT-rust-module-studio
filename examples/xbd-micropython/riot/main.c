@@ -43,6 +43,7 @@ int main(void)
 
     while (1) {
         /* configure MicroPython's heap */
+        printf("sizeof(mp_heap)2: %d\n", sizeof(mp_heap));
         mp_riot_init(mp_heap, sizeof(mp_heap));
 
         /* execute boot.py
