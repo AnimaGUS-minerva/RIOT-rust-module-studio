@@ -9,7 +9,7 @@ name = "voucher"
 crate-type = ["staticlib"]
 
 [dependencies]
-libc-print = { git = "https://github.com/AnimaGUS-minerva/rust-libc-print", branch = "minerva" }
+mcu-if = { path = "../../crates/mcu-if" }
 
 [target.'cfg(unix)'.dependencies]
 mcu-emu = { path = "../../crates/mcu-emu" }

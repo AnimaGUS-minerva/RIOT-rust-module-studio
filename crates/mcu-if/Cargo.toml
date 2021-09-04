@@ -1,0 +1,11 @@
+[package]
+name = "mcu-if"
+version = "0.1.0"
+edition = "2018"
+authors = ["ANIMA Minerva toolkit"]
+
+[lib]
+name = "mcu_if"
+
+[dependencies]
+libc-print = { git = "https://github.com/AnimaGUS-minerva/rust-libc-print", branch = "minerva" }

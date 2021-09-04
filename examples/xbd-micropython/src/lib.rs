@@ -1,7 +1,7 @@
 #![no_std]
 
+use mcu_if::println;
 use core::slice;
-use libc_print::libc_println as println;
 
 static VOUCHER_JADA: &[u8] = core::include_bytes!(
     concat!(env!("CARGO_MANIFEST_DIR"), "/files/voucher_jada123456789.vch"));
@@ -54,18 +54,7 @@ fn u8_slice_from(ptr: *const u8, sz: usize) -> &'static [u8] {
     unsafe { slice::from_raw_parts(ptr, sz) }
 }
 
-//
-
 #[no_mangle]
 pub extern fn vch_square(input: i32) -> i32 {
     input * input
-}
-
-extern "C" {
-    fn abort() -> !;
-}
-
-#[panic_handler]
-fn panic(_info: &core::panic::PanicInfo) -> ! {
-    unsafe { abort(); }
 }
