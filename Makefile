@@ -68,7 +68,7 @@ init-qemu-xtensa:
 	find $(TOOLCHAIN_XTENSA)/qemu
 
 init-rust-i686:
-	rustup toolchain install stable-i686-unknown-linux-gnu
+	rustup toolchain install nightly-i686-unknown-linux-gnu
 	rustup target add i686-unknown-linux-gnu
 
 NAMES := esp32-no_std native-sockets xbd-base xbd-micropython
