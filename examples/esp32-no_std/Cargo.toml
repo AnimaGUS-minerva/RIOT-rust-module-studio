@@ -8,9 +8,6 @@ authors = ["ANIMA Minerva toolkit"]
 name = "rustmod"
 crate-type = ["staticlib"]
 
-[target.'cfg(unix)'.build-dependencies]
-##riot-build = { path = "../../crates/riot-build" }
-
 [target.'cfg(unix)'.dependencies]
 mcu-emu = { path = "../../crates/mcu-emu" }
 

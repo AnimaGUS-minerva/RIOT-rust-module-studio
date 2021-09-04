@@ -38,12 +38,13 @@ if 1:  # test `voucher` module
     test_assert_eq('voucher.get_masa_pem_F2_00_02', len(bs_pem_f2), 684)
     # print(len(bs_pem_f2), bs_pem_f2)
 
-    test_assert('voucher.validate - jada', voucher.validate(bs_jada))
-    test_assert('voucher.validate - F2_00_02', voucher.validate(bs_f2, bs_pem_f2))
-
     # The default `MP_RIOT_HEAPSIZE ?= 8192U` set in Makefile is not enough
     try:
         n = len(list(bs_jada))
     except MemoryError:
         n = -1
     test_assert_eq('no MemoryError for simple ops', n, 328)
+
+    test_assert('voucher.validate - jada', voucher.validate(bs_jada))
+    test_assert('voucher.validate - F2_00_02', voucher.validate(bs_f2, bs_pem_f2))
+
