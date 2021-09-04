@@ -1,6 +1,7 @@
 #![no_std]
 
 use core::slice;
+use libc_print::libc_println as println;
 
 static VOUCHER_JADA: &[u8] = core::include_bytes!(
     concat!(env!("CARGO_MANIFEST_DIR"), "/files/voucher_jada123456789.vch"));
@@ -34,7 +35,7 @@ fn set_bytes(bytes: &[u8], ptr: *mut *const u8) -> usize {
 pub extern fn vch_validate(ptr: *const u8, sz: usize) -> bool {
     let raw_voucher = u8_slice_from(ptr, sz);
 
-    libc_print::libc_println!("raw_voucher: {:?}", raw_voucher);
+    println!("@@ raw_voucher: {:?}", raw_voucher);
 
     if 1 == 1 { // TODO TEMP: hardcoded !!
         assert_eq!(raw_voucher.len(), 328);
