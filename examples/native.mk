@@ -9,3 +9,6 @@ RIOT_ELF := ./riot/bin/native/riot.elf
 native-build-riot:
 	cd ./riot && BOARD=native RIOTBASE=$(RUST_MODULE_STUDIO)/RIOT make
 	ldd $(RIOT_ELF) && file $(RIOT_ELF)
+
+native-run-riot:
+	cargo run --manifest-path ../runner/Cargo.toml native $(EMU_TIMEOUT)

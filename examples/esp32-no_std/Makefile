@@ -7,10 +7,10 @@ build:
 	make esp32-build-riot
 
 run: build
-	cargo run --manifest-path ../runner/Cargo.toml esp32
+	make esp32-run-riot
 
 test: build
-	cargo run --manifest-path ../runner/Cargo.toml esp32 4000
+	EMU_TIMEOUT=4000  make esp32-run-riot
 
 clean:
 	rm -rf target

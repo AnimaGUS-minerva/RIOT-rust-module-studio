@@ -10,10 +10,10 @@ build-native:
 	make native-build-riot
 
 run-native: build-native
-	cargo run --manifest-path ../runner/Cargo.toml native
+	make native-run-riot
 
 test-native: build-native
-	cargo run --manifest-path ../runner/Cargo.toml native 4000
+	EMU_TIMEOUT=4000  make native-run-riot
 
 # esp32
 
@@ -22,10 +22,10 @@ build-esp32:
 	make esp32-build-riot
 
 run-esp32: build-esp32
-	cargo run --manifest-path ../runner/Cargo.toml esp32
+	make esp32-run-riot
 
 test-esp32: build-esp32
-	cargo run --manifest-path ../runner/Cargo.toml esp32 4000
+	EMU_TIMEOUT=4000  make esp32-run-riot
 
 #
 
