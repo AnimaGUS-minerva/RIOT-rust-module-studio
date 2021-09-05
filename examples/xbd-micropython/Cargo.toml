@@ -11,3 +11,9 @@ crate-type = ["staticlib"]
 [dependencies]
 mcu-if = { path = "../../crates/mcu-if" }
 cose = { git = "https://github.com/j-devel/cose-rust", rev = "9907d61", default-features = false }
+
+mbedtls = { version = "0.8.1", optional = true }
+
+[features]
+default = []
+std = ["mbedtls"]
