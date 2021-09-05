@@ -48,3 +48,4 @@ if 1:  # test `voucher` module
     test_assert('voucher.validate - jada', voucher.validate(bs_jada))
     test_assert('voucher.validate - F2_00_02', voucher.validate(bs_f2, bs_pem_f2))
 
+    # voucher.debug(bs_jada)  # TODO handle panic on decode failure

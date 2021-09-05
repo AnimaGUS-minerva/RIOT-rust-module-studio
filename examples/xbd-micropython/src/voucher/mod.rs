@@ -30,8 +30,6 @@ impl Voucher {
     }
 
     pub fn validate(&self, masa_pem: Option<&[u8]>) -> bool {
-        if 0 == 1 { self.dump(); } // debug
-
         #[cfg(feature = "std")]
         {
             validate_std::validate(masa_pem, self.to_validate()).is_ok()
@@ -58,7 +56,7 @@ impl Voucher {
         if signer_cert.len() > 0 { Some(signer_cert) } else { None }
     }
 
-    fn dump(&self) {
+    pub fn dump(&self) {
         CoseData::dump(&self.0);
     }
 }

@@ -17,10 +17,10 @@ impl CoseData {
     pub fn decode(bytes: &[u8]) -> Result<Self, CoseError> {
         let (tag, array) = get_cose_sign_array(bytes)?;
 
-        println!("@@ decode():");
-        array.iter().enumerate().for_each(|(i, cbor)| {
-            println!("  array[{}]: {:?}", i, cbor);
-        });
+        // println!("@@ decode():");
+        // array.iter().enumerate().for_each(|(i, cbor)| {
+        //     println!("  array[{}]: {:?}", i, cbor);
+        // });
 
         Ok(match tag {
             COSE_SIGN_TAG => Self::CoseSign(Self::decode_cose_sign(&array)?),

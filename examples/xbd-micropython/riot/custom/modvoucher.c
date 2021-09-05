@@ -101,6 +101,16 @@ STATIC mp_obj_t mod_get_masa_pem_F2_00_02(void) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(mod_get_masa_pem_F2_00_02_obj, mod_get_masa_pem_F2_00_02);
 
+STATIC mp_obj_t mod_debug(mp_obj_t self_in) {
+    if (mp_obj_is_type(self_in, &mp_type_bytes)) {
+        GET_STR_DATA_LEN(self_in, str_data, str_len);
+        vch_debug(str_data, str_len);
+    } else {
+        mp_raise_ValueError(MP_ERROR_TEXT("'voucher' arg must be <class 'bytes'>"));
+    }
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(mod_debug_obj, mod_debug);
+
 STATIC mp_obj_t mod_validate(size_t n_args, const mp_obj_t *args) {
     // printf("mod_validate(): n_args: %d\n", n_args);
 
@@ -144,6 +154,7 @@ STATIC const mp_rom_map_elem_t mp_module_voucher_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_get_voucher_jada), MP_ROM_PTR(&mod_get_voucher_jada_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_voucher_F2_00_02), MP_ROM_PTR(&mod_get_voucher_F2_00_02_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_masa_pem_F2_00_02), MP_ROM_PTR(&mod_get_masa_pem_F2_00_02_obj) },
+    { MP_ROM_QSTR(MP_QSTR_debug), MP_ROM_PTR(&mod_debug_obj) },
     { MP_ROM_QSTR(MP_QSTR_validate), MP_ROM_PTR(&mod_validate_obj) },
 };
 
