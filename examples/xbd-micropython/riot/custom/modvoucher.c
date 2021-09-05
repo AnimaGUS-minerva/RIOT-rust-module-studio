@@ -105,6 +105,7 @@ STATIC mp_obj_t mod_debug(mp_obj_t self_in) {
     if (mp_obj_is_type(self_in, &mp_type_bytes)) {
         GET_STR_DATA_LEN(self_in, str_data, str_len);
         vch_debug(str_data, str_len);
+        return mp_const_none;
     } else {
         mp_raise_ValueError(MP_ERROR_TEXT("'voucher' arg must be <class 'bytes'>"));
     }
