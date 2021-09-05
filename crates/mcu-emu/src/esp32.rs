@@ -40,7 +40,7 @@ impl Qemu {
     }
 
     pub fn run(&mut self) -> std::io::Result<ExitStatus> {
-        println!("Running qemu... ('Ctrl-a x' to exit)");
+        println!("Running qemu... (⚠️ 'Ctrl-a x' to exit)");
 
         self.0.status()
     }
