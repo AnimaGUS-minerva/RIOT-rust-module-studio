@@ -67,7 +67,7 @@ test-esp32: build-esp32
 # std
 
 test-std-debug:
-	cargo test --features std
+	cargo +nightly-x86_64-unknown-linux-gnu test --features std
 
 #
 

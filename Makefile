@@ -10,7 +10,8 @@ init:
 	make init-esp-idf
 	make init-riot-xtensa
 	make init-qemu-xtensa
-	make init-rust-i686
+	make init-rust-i686-nightly
+	make init-rust-x86_64-nightly
 
 TOOLCHAIN_XTENSA := toolchain/xtensa
 
@@ -67,9 +68,12 @@ init-qemu-xtensa:
         fi
 	find $(TOOLCHAIN_XTENSA)/qemu
 
-init-rust-i686:
+init-rust-i686-nightly:
 	rustup toolchain install nightly-i686-unknown-linux-gnu
 	rustup target add i686-unknown-linux-gnu
+init-rust-x86_64-nightly:
+	rustup toolchain install nightly-x86_64-unknown-linux-gnu
+	rustup target add x86_64-unknown-linux-gnu
 
 NAMES := esp32-no_std native-sockets xbd-base xbd-micropython
 test:
