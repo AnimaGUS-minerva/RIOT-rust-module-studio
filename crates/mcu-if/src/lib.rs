@@ -3,6 +3,7 @@
 #![feature(alloc_error_handler)]
 
 pub use libc_print::libc_println as println;
+pub use core2;
 
 extern "C" {
     fn abort() -> !;
@@ -32,9 +33,7 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
 
 //
 
-extern crate alloc;
-
-pub use alloc::{*, vec::Vec};
+pub extern crate alloc;
 
 #[alloc_error_handler]
 fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {

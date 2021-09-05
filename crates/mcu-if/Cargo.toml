@@ -9,3 +9,4 @@ name = "mcu_if"
 
 [dependencies]
 libc-print = { git = "https://github.com/AnimaGUS-minerva/rust-libc-print", branch = "minerva" }
+core2 = { git = "https://github.com/AnimaGUS-minerva/core2", rev = "d235b52", default-features = false, features=["compat"] }
