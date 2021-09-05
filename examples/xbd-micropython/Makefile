@@ -46,10 +46,10 @@ build-native:
 	CUSTOM_BOARD=native make native-build-riot
 
 run-native: build-native
-	cargo run --bin runner native
+	cargo run --manifest-path ../runner/Cargo.toml native
 
 test-native: build-native
-	cargo run --bin runner native 4000
+	cargo run --manifest-path ../runner/Cargo.toml native 4000
 
 # esp32
 
@@ -59,10 +59,10 @@ build-esp32:
 	CUSTOM_BOARD=esp32 make esp32-build-riot
 
 run-esp32: build-esp32
-	cargo run --bin runner esp32
+	cargo run --manifest-path ../runner/Cargo.toml esp32
 
 test-esp32: build-esp32
-	cargo run --bin runner esp32 4000
+	cargo run --manifest-path ../runner/Cargo.toml esp32 4000
 
 #
 

@@ -10,6 +10,3 @@ crate-type = ["staticlib"]
 
 [dependencies]
 mcu-if = { path = "../../crates/mcu-if" }
-
-[target.'cfg(unix)'.dependencies]
-mcu-emu = { path = "../../crates/mcu-emu" }
