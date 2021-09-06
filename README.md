@@ -14,7 +14,7 @@ Robust IoT development with Rust and RIOT-OS.
 
 ```
 /
-  README.md
+  Makefile
   crates/              .... 💡 currently supports mcu's specific to esp32 (and Linux native) only
     mcu-emu            .... emulator runner (`qemu-system-xtensa` or RIOT native board binary)
     mcu-if             .... "semi_std" interface on top of bare `no_std`
