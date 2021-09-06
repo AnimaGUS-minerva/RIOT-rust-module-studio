@@ -39,17 +39,19 @@ $ make init
 
 ## examples/[esp32-no_std](https://github.com/AnimaGUS-minerva/iot-rust-module-studio/tree/main/examples/esp32-no_std)
 
-A bare `no_std` [ESP32 firmware](https://github.com/AnimaGUS-minerva/iot-rust-module-studio/blob/main/examples/esp32-no_std/riot/main.c) with [a Rust module](https://github.com/AnimaGUS-minerva/iot-rust-module-studio/blob/main/examples/esp32-no_std/src/lib.rs).  Use `make run` to (build and) run the firmware. To exit from the qemu-xtensa based runner, type `Ctrl-a x`.
+A bare `no_std` [ESP32 firmware](https://github.com/AnimaGUS-minerva/iot-rust-module-studio/blob/main/examples/esp32-no_std/riot/main.c) with [a minimal Rust module](https://github.com/AnimaGUS-minerva/iot-rust-module-studio/blob/main/examples/esp32-no_std/src/lib.rs).  Use `make run` to (build and) run the firmware. To exit the `qemu-system-xtensa` based runner, type `Ctrl-a x`.
 
 ```
 $ make run
 ```
 
+Upon running the firmware, a binary file called 'riot.esp32.bin' is generated.  For test on the real ESP32 device, you can flash this image onto the device by following [the Espressif's manual](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/).
+
 ## examples/[xbd-base](https://github.com/AnimaGUS-minerva/iot-rust-module-studio/tree/main/examples/xbd-base)
 
-A [cross-`BOARD` (esp32/native) firmware](https://github.com/AnimaGUS-minerva/iot-rust-module-studio/blob/main/examples/xbd-base/riot/main.c) with a [demo Rust module with "`semi_std`" support](https://github.com/AnimaGUS-minerva/iot-rust-module-studio/blob/main/examples/xbd-base/src/lib.rs) (`println!()`, `vec::*`, `Box`, `core2::io::*`, etc.). This would be a convenient template to start developing your new RIOT-OS firmware in Rust.
+A [cross-`BOARD` firmware](https://github.com/AnimaGUS-minerva/iot-rust-module-studio/blob/main/examples/xbd-base/riot/main.c) with [a demo Rust module](https://github.com/AnimaGUS-minerva/iot-rust-module-studio/blob/main/examples/xbd-base/src/lib.rs) featuring the "`semi_std`" support (`println!()`, `vec::*`, `Box`, `core2::io::*`, etc.). This example would be a convenient template for you to start developing a new RIOT-OS firmware in Rust.
 
-Use `make run-native` (or `make run` as default) to (build and) run it as RIOT `native` firmware; or use `make run-esp32` for ESP32.
+Use `make run-native` (or `make run` as default) to run it as RIOT `native` firmware; or use `make run-esp32` for ESP32.
 
 ```
 $ make run-native
