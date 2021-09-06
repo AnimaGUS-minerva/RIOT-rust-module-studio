@@ -37,7 +37,34 @@ After cloning the repo, first, set up the pre-configured RIOT/ESP32 toolchain:
 $ make init
 ```
 
-### examples/xbd-base
+## examples/[esp32-no_std](https://github.com/AnimaGUS-minerva/iot-rust-module-studio/tree/main/examples/esp32-no_std)
 
+A bare `no_std` [ESP32 firmware](https://github.com/AnimaGUS-minerva/iot-rust-module-studio/blob/main/examples/esp32-no_std/riot/main.c) with [a Rust module](https://github.com/AnimaGUS-minerva/iot-rust-module-studio/blob/main/examples/esp32-no_std/src/lib.rs).  Use `make run` to (build and) run the firmware. To exit from the qemu-xtensa based runner, type `Ctrl-a x`.
 
-### examples/xbd-micropython
+```
+$ make run
+```
+
+## examples/[xbd-base](https://github.com/AnimaGUS-minerva/iot-rust-module-studio/tree/main/examples/xbd-base)
+
+A [cross-`BOARD` (esp32/native) firmware](https://github.com/AnimaGUS-minerva/iot-rust-module-studio/blob/main/examples/xbd-base/riot/main.c) with a [demo Rust module with "`semi_std`" support](https://github.com/AnimaGUS-minerva/iot-rust-module-studio/blob/main/examples/xbd-base/src/lib.rs) (`println!()`, `vec::*`, `Box`, `core2::io::*`, etc.). This would be a convenient template to start developing your new RIOT-OS firmware in Rust.
+
+Use `make run-native` (or `make run` as default) to (build and) run it as RIOT `native` firmware; or use `make run-esp32` for ESP32.
+
+```
+$ make run-native
+```
+
+```
+$ make run-esp32
+```
+
+## examples/[xbd-micropython](https://github.com/AnimaGUS-minerva/iot-rust-module-studio/tree/main/examples/xbd-micropython)
+
+```
+$ make run-native
+```
+
+```
+$ make run-esp32
+```
