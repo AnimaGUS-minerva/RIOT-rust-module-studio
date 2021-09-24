@@ -64,11 +64,6 @@ run-esp32: build-esp32
 test-esp32: build-esp32
 	EMU_TIMEOUT=4000  make esp32-run-riot
 
-# std
-
-test-std-debug:
-	cargo +nightly-x86_64-unknown-linux-gnu test --features std
-
 #
 
 run: run-native
@@ -76,7 +71,6 @@ run: run-native
 test:
 	make test-native
 	make test-esp32
-	make test-std-debug
 
 clean:
 	rm -rf target ./riot/bin

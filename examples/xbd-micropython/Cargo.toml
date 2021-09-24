@@ -9,11 +9,8 @@ name = "voucher"
 crate-type = ["staticlib"]
 
 [dependencies]
-mcu-if = { path = "../../crates/mcu-if" }
+mcu-if = { git = "https://github.com/AnimaGUS-minerva/mcu-if", rev = "6543b39" }
 cose = { git = "https://github.com/j-devel/cose-rust", rev = "9907d61", default-features = false }
-
-mbedtls = { version = "0.8.1", optional = true }
 
 [features]
 default = []
-std = ["mbedtls"]
