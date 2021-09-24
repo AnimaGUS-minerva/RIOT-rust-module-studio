@@ -1,4 +1,13 @@
 #![no_std]
+#![feature(alloc_error_handler)]
+
+#[panic_handler]
+fn panic(info: &core::panic::PanicInfo) -> ! { mcu_if::panic(info) }
+
+#[alloc_error_handler]
+fn alloc_error(layout: mcu_if::alloc::alloc::Layout) -> ! { mcu_if::alloc_error(layout) }
+
+//
 
 use mcu_if::println;
 use mcu_if::alloc::{boxed::Box, vec, vec::Vec};
