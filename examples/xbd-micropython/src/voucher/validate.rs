@@ -9,7 +9,7 @@ pub fn validate(
     (signer_cert, signature, alg, msg): (Option<&[u8]>, &[u8], &SignatureAlgorithm, &[u8])
 ) -> bool {
 
-    println!("⚠️ ECDSA verification under `no_std` is WIP!  It's `std` prototype (validate_std.rs) works though; try `make test-std-debug`.");
+    println!("⚠️ ECDSA verification under `no_std` is WIP!");
 
     false
 }

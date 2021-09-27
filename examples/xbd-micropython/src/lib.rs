@@ -27,8 +27,7 @@ mod tests;
 
 mod voucher;
 use crate::voucher::{Voucher, VOUCHER_JADA, VOUCHER_F2_00_02, MASA_PEM_F2_00_02};
-
-use core::slice;
+use mcu_if::utils::u8_slice_from;
 
 #[no_mangle]
 pub extern fn vch_get_voucher_jada(ptr: *mut *const u8) -> usize {
@@ -75,28 +74,7 @@ pub extern fn vch_validate_with_pem(ptr: *const u8, sz: usize, ptr_pem: *const u
     Voucher::from(raw_voucher).validate(Some(pem))
 }
 
-fn u8_slice_from(ptr: *const u8, sz: usize) -> &'static [u8] {
-    unsafe { slice::from_raw_parts(ptr, sz) }
-}
-
 #[no_mangle]
 pub extern fn vch_square(input: i32) -> i32 {
     input * input
 }
-
-//
-
-#[macro_export]
-macro_rules! null_terminate_bytes {
-    ($bytes:expr) => ({
-        let mut v = ($bytes).to_vec();
-        v.push(0x00);
-        v
-    });
-}
-
-#[macro_export]
-macro_rules! null_terminate_str { ($str:expr) => (crate::null_terminate_bytes!(($str).as_bytes())); }
-
-#[macro_export]
-macro_rules! cstr_from { ($str:expr) => (crate::null_terminate_str!($str).as_ptr() as *const i8); }
