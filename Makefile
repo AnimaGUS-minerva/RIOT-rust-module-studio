@@ -78,6 +78,6 @@ init-rust-x86_64-nightly:
 NAMES := esp32-no_std native-sockets xbd-base xbd-micropython
 test:
 	for name in $(NAMES); do \
-        make -C ./examples/$$name test; \
+        make -C ./examples/$$name test || exit 1; \
         done
 
