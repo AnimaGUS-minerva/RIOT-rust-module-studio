@@ -8,10 +8,10 @@ authors = ["ANIMA Minerva toolkit"]
 name = "voucher"
 crate-type = ["staticlib"]
 
+[features]
+default = []
+std = ["minerva-voucher/minerva-voucher-validate"]
+
 [dependencies]
 mcu-if = { git = "https://github.com/AnimaGUS-minerva/mcu-if", rev = "6543b39" }
 minerva-voucher = { git = "https://github.com/AnimaGUS-minerva/voucher", rev = "c6ed76c", default-features = false }
-
-[features]
-default = []
-std = []

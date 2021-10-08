@@ -76,6 +76,7 @@ run: run-native
 test:
 	make test-native
 	make test-esp32
+	make test-std
 
 clean:
 	rm -rf target ./riot/bin
