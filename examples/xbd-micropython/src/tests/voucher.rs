@@ -1,5 +1,5 @@
-use crate::voucher::{Voucher, SignatureAlgorithm};
-use crate::voucher::{VOUCHER_JADA, VOUCHER_F2_00_02, MASA_PEM_F2_00_02};
+use crate::{Voucher, Validate, VOUCHER_JADA, VOUCHER_F2_00_02, MASA_PEM_F2_00_02};
+use minerva_voucher::SignatureAlgorithm;
 
 #[test]
 fn test_voucher_decode_jada() {

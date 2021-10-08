@@ -1,9 +1,11 @@
 #![no_std]
 #![feature(alloc_error_handler)]
 
+#[cfg(not(feature = "std"))]
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! { mcu_if::panic(info) }
 
+#[cfg(not(feature = "std"))]
 #[alloc_error_handler]
 fn alloc_error(layout: mcu_if::alloc::alloc::Layout) -> ! { mcu_if::alloc_error(layout) }
 
@@ -25,9 +27,32 @@ mod tests;
 
 //
 
-mod voucher;
-use crate::voucher::{Voucher, VOUCHER_JADA, VOUCHER_F2_00_02, MASA_PEM_F2_00_02};
+use minerva_voucher::{Voucher as BaseVoucher, Validate};
+pub struct Voucher(BaseVoucher); // dummy `Voucher` without validation capability
+impl Voucher {
+    pub fn from(raw: &[u8]) -> Self { Voucher(BaseVoucher::from(raw)) }
+}
+impl core::ops::Deref for Voucher {
+    type Target = BaseVoucher;
+    fn deref(&self) -> &Self::Target { &self.0 }
+}
+impl Validate for Voucher {
+    fn validate(&self, _masa_pem: Option<&[u8]>) -> bool {
+        println!("⚠️ WIP porting `minerva_mbedtls` against `x86` and `xtensa`; validation fails for now!!");
+        false
+    }
+}
+
+//
+
 use mcu_if::utils::u8_slice_from;
+
+static VOUCHER_JADA: &[u8] = core::include_bytes!(
+    concat!(env!("CARGO_MANIFEST_DIR"), "/files/voucher_jada123456789.vch"));
+static VOUCHER_F2_00_02: &[u8] = core::include_bytes!(
+    concat!(env!("CARGO_MANIFEST_DIR"), "/files/voucher_00-D0-E5-F2-00-02.vch"));
+static MASA_PEM_F2_00_02: &[u8] = core::include_bytes!(
+    concat!(env!("CARGO_MANIFEST_DIR"), "/files/masa_00-D0-E5-F2-00-02.crt"));
 
 #[no_mangle]
 pub extern fn vch_get_voucher_jada(ptr: *mut *const u8) -> usize {
