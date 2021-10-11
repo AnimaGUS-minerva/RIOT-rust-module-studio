@@ -8,7 +8,6 @@ BOARD ?= native
 RIOTBASE ?= $(CURDIR)/../..
 
 #==== @@
-USEMODULE += micropython
 EXTERNAL_MODULE_DIRS += $(CURDIR)/micropython
 
 CUSTOM_BOARD ?= native
