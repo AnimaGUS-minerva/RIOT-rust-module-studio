@@ -10,8 +10,8 @@ crate-type = ["staticlib"]
 
 [features]
 default = []
-std = ["minerva-voucher/minerva-voucher-validate"]
+std = ["minerva-voucher/validate"]
 
 [dependencies]
 mcu-if = { git = "https://github.com/AnimaGUS-minerva/mcu-if", rev = "6543b39" }
-minerva-voucher = { git = "https://github.com/AnimaGUS-minerva/voucher", rev = "c6ed76c", default-features = false }
+minerva-voucher = { git = "https://github.com/AnimaGUS-minerva/voucher", rev = "57b57f2", default-features = false }
