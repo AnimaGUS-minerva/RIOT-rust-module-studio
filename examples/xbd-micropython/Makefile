@@ -42,7 +42,7 @@ mp-build-dir: get-submodule
 
 build-native:
 	CUSTOM_BOARD=native make mp-build-dir
-	make native-build-module
+	CARGO_FEATURES="--features 'x86-validate-lts'"  make native-build-module
 	CUSTOM_BOARD=native make native-build-riot
 
 run-native: build-native

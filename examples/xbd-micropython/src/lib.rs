@@ -27,21 +27,34 @@ mod tests;
 
 //
 
-use minerva_voucher::{Voucher as BaseVoucher, Validate};
-pub struct Voucher(BaseVoucher); // dummy `Voucher` without validation capability
-impl Voucher {
-    pub fn from(raw: &[u8]) -> Self { Voucher(BaseVoucher::from(raw)) }
-}
-impl core::ops::Deref for Voucher {
-    type Target = BaseVoucher;
-    fn deref(&self) -> &Self::Target { &self.0 }
-}
-impl Validate for Voucher {
-    fn validate(&self, _masa_pem: Option<&[u8]>) -> bool {
-        println!("⚠️ WIP porting `minerva_mbedtls` against `x86` and `xtensa`; validation fails for now!!");
-        false
+use minerva_voucher::Validate;
+
+#[cfg(feature = "x86-validate-lts")]
+use minerva_voucher::Voucher;
+
+#[cfg(not(feature = "x86-validate-lts"))]
+mod wip {
+    use super::*;
+    use minerva_voucher::Voucher as BaseVoucher;
+
+    pub struct Voucher(BaseVoucher); // dummy `Voucher` without validation capability
+    impl Voucher {
+        pub fn from(raw: &[u8]) -> Self { Voucher(BaseVoucher::from(raw)) }
+    }
+    impl core::ops::Deref for Voucher {
+        type Target = BaseVoucher;
+        fn deref(&self) -> &Self::Target { &self.0 }
+    }
+    impl Validate for Voucher {
+        fn validate(&self, _masa_pem: Option<&[u8]>) -> bool {
+            println!("⚠️ WIP -- `xtensa-validate-lts`, `x86-validate`, `xtensa-validate`; validation fails for now!!");
+            false
+        }
     }
 }
+
+#[cfg(not(feature = "x86-validate-lts"))]
+use wip::Voucher;
 
 //
 
