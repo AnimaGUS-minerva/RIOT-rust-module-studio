@@ -42,7 +42,7 @@ mp-build-dir: get-submodule
 
 build-native:
 	CUSTOM_BOARD=native make mp-build-dir
-	CARGO_FEATURES="--features 'x86-validate-lts'"  make native-build-module
+	CARGO_FEATURES="--features 'x86-lts'"  make native-build-module
 	CUSTOM_BOARD=native make native-build-riot
 
 run-native: build-native
@@ -55,7 +55,7 @@ test-native: build-native
 
 build-esp32:
 	CUSTOM_BOARD=esp32 make mp-build-dir
-	make esp32-build-module
+	CARGO_FEATURES="--features 'xtensa-lts'"  make esp32-build-module
 	CUSTOM_BOARD=esp32 make esp32-build-riot
 
 run-esp32: build-esp32
@@ -66,8 +66,10 @@ test-esp32: build-esp32
 
 # std
 
+test-std-lts:
+	cargo +nightly-x86_64-unknown-linux-gnu test --features x86_64-lts
 test-std:
-	cargo +nightly-x86_64-unknown-linux-gnu test --features std
+	cargo +nightly-x86_64-unknown-linux-gnu test --features x86_64
 
 #
 
@@ -76,6 +78,7 @@ run: run-native
 test:
 	make test-native
 	make test-esp32
+	make test-std-lts
 	make test-std
 
 clean:

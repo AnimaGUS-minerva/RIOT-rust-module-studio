@@ -10,12 +10,19 @@ crate-type = ["staticlib"]
 
 [features]
 default = []
-x86-validate-lts = ["minerva-voucher/validate-lts"]
-#xtensa-validate-lts = ["minerva-voucher/validate-lts"]  # TODO
-#x86-validate = ["minerva-voucher/validate"]  # TODO
-#xtensa-validate = ["minerva-voucher/validate"]  # TODO
-std = ["minerva-voucher/validate"]
+
+x86_64 = ["std", "v3"]
+x86_64-lts = ["std", "lts"]
+x86 = []         # <-- shim TODO x86 = ["v3"]
+x86-lts = ["lts"]
+xtensa = []      # <-- shim TODO xtensa = ["v3"]
+xtensa-lts = []  # <-- shim TODO xtensa-lts = ["lts"]
+
+std = []
+v3 = ["minerva-voucher/validate", "minerva-mbedtls/v3"]
+lts = ["minerva-voucher/validate-lts"]
 
 [dependencies]
 mcu-if = { git = "https://github.com/AnimaGUS-minerva/mcu-if", rev = "6543b39" }
 minerva-voucher = { git = "https://github.com/AnimaGUS-minerva/voucher", rev = "a97f670", default-features = false }
+minerva-mbedtls = { git = "https://github.com/AnimaGUS-minerva/minerva-mbedtls", rev = "9c0090a", default-features = false, optional = true }

@@ -3,6 +3,9 @@ use minerva_voucher::{Voucher, Validate, SignatureAlgorithm};
 
 #[test]
 fn test_voucher_decode_jada() {
+    #[cfg(feature = "v3")]
+    crate::init_psa_crypto();
+
     let vch = Voucher::from(VOUCHER_JADA);
 
     let (sig, alg) = vch.get_signature();
@@ -14,6 +17,9 @@ fn test_voucher_decode_jada() {
 
 #[test]
 fn test_voucher_validate_jada() {
+    #[cfg(feature = "v3")]
+    crate::init_psa_crypto();
+
     let vch = Voucher::from(VOUCHER_JADA);
 
     // No external masa cert; use `signer_cert` embedded in COSE unprotected
@@ -22,6 +28,9 @@ fn test_voucher_validate_jada() {
 
 #[test]
 fn test_voucher_decode_f2_00_02() {
+    #[cfg(feature = "v3")]
+    crate::init_psa_crypto();
+
     let vch = Voucher::from(VOUCHER_F2_00_02);
 
     let (sig, alg) = vch.get_signature();
@@ -33,6 +42,9 @@ fn test_voucher_decode_f2_00_02() {
 
 #[test]
 fn test_voucher_validate_f2_00_02() {
+    #[cfg(feature = "v3")]
+    crate::init_psa_crypto();
+
     let vch = Voucher::from(VOUCHER_F2_00_02);
 
     let masa_pem = MASA_PEM_F2_00_02;
