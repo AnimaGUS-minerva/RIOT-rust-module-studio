@@ -35,9 +35,6 @@ mp-build-dir: get-submodule
 	@# Kludge: crudely include custom modules...
 	rsync -av ./riot/custom/* $(MP_BUILD_DIR)/ports/riot/
 
-# FIXME wrong version tag is shown on starting repl...
-# sed -i -E 's/(MICROPY_GIT_.*) (.*)/\1 "CUSTOM"/g' $(MP_GENHDR_DIR)/mpversion.h
-
 # native
 
 build-native:
