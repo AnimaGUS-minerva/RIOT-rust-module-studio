@@ -14,7 +14,8 @@ esp32-build-module:
         ln -sf $(TOOLCHAIN_XTENSA)/xtensa-esp32-none-elf .
 	@#==== end: compiler-builtins workaround
 	RUST_MODULE_STUDIO=$(RUST_MODULE_STUDIO) source ../esp32.setup && \
-        cargo +xtensa xbuild --lib --release --target xtensa-esp32-none-elf $(CARGO_FEATURES)
+        XTENSA_GCC=$(TOOLCHAIN_XTENSA)/riot/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc \
+		cargo +xtensa xbuild --lib --release --target xtensa-esp32-none-elf $(CARGO_FEATURES)
 	ls -lrt target/xtensa-esp32-none-elf/release/*.a
 
 RIOT_PATH := $(TOOLCHAIN_XTENSA)/riot

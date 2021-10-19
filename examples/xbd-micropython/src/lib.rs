@@ -39,12 +39,12 @@ fn init_psa_crypto() {
 
 use minerva_voucher::Validate;
 
-#[cfg(not(any(feature = "xtensa-lts", feature = "x86", feature = "xtensa")))]
+#[cfg(not(any(feature = "x86", feature = "xtensa")))]
 use minerva_voucher::Voucher;
-#[cfg(any(feature = "xtensa-lts", feature = "x86", feature = "xtensa"))]
+#[cfg(any(feature = "x86", feature = "xtensa"))]
 use wip::Voucher;
 
-#[cfg(any(feature = "xtensa-lts", feature = "x86", feature = "xtensa"))]
+#[cfg(any(feature = "x86", feature = "xtensa"))]
 mod wip {
     use super::*;
     use minerva_voucher::Voucher as BaseVoucher;
@@ -59,7 +59,7 @@ mod wip {
     }
     impl Validate for Voucher {
         fn validate(&self, _masa_pem: Option<&[u8]>) -> bool {
-            println!("⚠️ WIP -- `xtensa-lts`, `x86`, `xtensa`; validation fails for now!!");
+            println!("⚠️ WIP -- `x86`, `xtensa` (v3 with PSA); validation fails for now!!");
             false
         }
     }

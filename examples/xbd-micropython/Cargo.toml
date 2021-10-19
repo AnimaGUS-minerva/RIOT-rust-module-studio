@@ -16,13 +16,18 @@ x86_64-lts = ["std", "lts"]
 x86 = []         # <-- shim TODO x86 = ["v3"]
 x86-lts = ["lts"]
 xtensa = []      # <-- shim TODO xtensa = ["v3"]
-xtensa-lts = []  # <-- shim TODO xtensa-lts = ["lts"]
+xtensa-lts = ["lts-xtensa-kludge"]
 
 std = []
 v3 = ["minerva-voucher/validate", "minerva-mbedtls/v3"]
 lts = ["minerva-voucher/validate-lts"]
+lts-xtensa-kludge = ["minerva-voucher/validate-lts-xtensa-kludge"]
 
 [dependencies]
 mcu-if = { git = "https://github.com/AnimaGUS-minerva/mcu-if", rev = "6543b39" }
-minerva-voucher = { git = "https://github.com/AnimaGUS-minerva/voucher", rev = "a97f670", default-features = false }
-minerva-mbedtls = { git = "https://github.com/AnimaGUS-minerva/minerva-mbedtls", rev = "9c0090a", default-features = false, optional = true }
+
+minerva-voucher = { git = "https://github.com/AnimaGUS-minerva/voucher", rev = "a90ea7f", default-features = false }
+#minerva-voucher = { path = "../../../voucher--xtensa", default-features = false }
+
+minerva-mbedtls = { git = "https://github.com/AnimaGUS-minerva/minerva-mbedtls", rev = "0acc840", default-features = false, optional = true }
+#minerva-mbedtls = { path = "../../../minerva-mbedtls--x86", default-features = false, optional = true }
