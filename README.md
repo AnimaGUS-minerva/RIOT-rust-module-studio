@@ -64,8 +64,38 @@ $ make run-esp32
 
 ```
 $ make run-native
+
+[test] voucher.test_ffi : ✅
+[test] voucher.get_voucher_jada : ✅
+[test] voucher.get_voucher_F2_00_02 : ✅
+[test] voucher.get_masa_pem_F2_00_02 : ✅
+[test] no MemoryError for simple ops : ✅
+@@ validating raw_voucher: [len=328]
+⚠️ debug_permissive: missing `signature_type` patched with `SignatureAlgorithm::ES256`
+[test] voucher.validate - jada : ✅
+@@ validating raw_voucher with pem: [len=771] [len=684]
+[test] voucher.validate - F2_00_02 : ✅
+-- boot.py exited. Starting REPL..
+MicroPython v1.16-39-g503c0d317 on 2021-10-20; riot-native with native
+Type "help()" for more information.
+>>> Quiting native...
 ```
 
 ```
 $ make run-esp32
+
+[test] voucher.test_ffi : ✅
+[test] voucher.get_voucher_jada : ✅
+[test] voucher.get_voucher_F2_00_02 : ✅
+[test] voucher.get_masa_pem_F2_00_02 : ✅
+[test] no MemoryError for simple ops : ✅
+@@ validating raw_voucher: [len=328]
+⚠️ debug_permissive: missing `signature_type` patched with `SignatureAlgorithm::ES256`
+[test] voucher.validate - jada : ✅
+@@ validating raw_voucher with pem: [len=771] [len=684]
+[test] voucher.validate - F2_00_02 : ✅
+-- boot.py exited. Starting REPL..
+MicroPython v1.16-39-g503c0d317 on 2021-10-20; riot-esp32-wroom-32 with esp32
+Type "help()" for more information.
+>>> Quiting qemu...
 ```
