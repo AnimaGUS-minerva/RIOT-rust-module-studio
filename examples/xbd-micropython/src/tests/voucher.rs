@@ -6,7 +6,7 @@ fn test_voucher_decode_jada() {
     #[cfg(feature = "v3")]
     crate::init_psa_crypto();
 
-    let vch = Voucher::from(VOUCHER_JADA);
+    let vch = Voucher::from(VOUCHER_JADA).unwrap();
 
     let (sig, alg) = vch.get_signature();
     assert_eq!(sig.len(), 64);
@@ -20,7 +20,7 @@ fn test_voucher_validate_jada() {
     #[cfg(feature = "v3")]
     crate::init_psa_crypto();
 
-    let vch = Voucher::from(VOUCHER_JADA);
+    let vch = Voucher::from(VOUCHER_JADA).unwrap();
 
     // No external masa cert; use `signer_cert` embedded in COSE unprotected
     assert!(vch.validate(None));
@@ -31,7 +31,7 @@ fn test_voucher_decode_f2_00_02() {
     #[cfg(feature = "v3")]
     crate::init_psa_crypto();
 
-    let vch = Voucher::from(VOUCHER_F2_00_02);
+    let vch = Voucher::from(VOUCHER_F2_00_02).unwrap();
 
     let (sig, alg) = vch.get_signature();
     assert_eq!(sig.len(), 64);
@@ -45,7 +45,7 @@ fn test_voucher_validate_f2_00_02() {
     #[cfg(feature = "v3")]
     crate::init_psa_crypto();
 
-    let vch = Voucher::from(VOUCHER_F2_00_02);
+    let vch = Voucher::from(VOUCHER_F2_00_02).unwrap();
 
     let masa_pem = MASA_PEM_F2_00_02;
     assert_eq!(masa_pem.len(), 684);

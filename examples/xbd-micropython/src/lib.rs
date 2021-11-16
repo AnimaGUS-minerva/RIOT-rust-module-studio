@@ -51,7 +51,7 @@ mod wip {
 
     pub struct Voucher(BaseVoucher); // dummy `Voucher` without validation capability
     impl Voucher {
-        pub fn from(raw: &[u8]) -> Self { Voucher(BaseVoucher::from(raw)) }
+        pub fn from(raw: &[u8]) -> Self { Voucher(BaseVoucher::from(raw).unwrap()) }
     }
     impl core::ops::Deref for Voucher {
         type Target = BaseVoucher;
@@ -101,7 +101,7 @@ fn set_bytes(bytes: &[u8], ptr: *mut *const u8) -> usize {
 pub extern fn vch_debug(ptr: *const u8, sz: usize) {
     let raw_voucher = u8_slice_from(ptr, sz);
 
-    Voucher::from(raw_voucher).dump()
+    Voucher::from(raw_voucher).unwrap().dump()
 }
 
 #[no_mangle]
@@ -109,7 +109,7 @@ pub extern fn vch_validate(ptr: *const u8, sz: usize) -> bool {
     let raw_voucher = u8_slice_from(ptr, sz);
     println!("@@ validating raw_voucher: [len={}]", raw_voucher.len());
 
-    Voucher::from(raw_voucher).validate(None)
+    Voucher::from(raw_voucher).unwrap().validate(None)
 }
 
 #[no_mangle]
@@ -118,7 +118,7 @@ pub extern fn vch_validate_with_pem(ptr: *const u8, sz: usize, ptr_pem: *const u
     let pem = u8_slice_from(ptr_pem, sz_pem);
     println!("@@ validating raw_voucher with pem: [len={}] [len={}]", raw_voucher.len(), pem.len());
 
-    Voucher::from(raw_voucher).validate(Some(pem))
+    Voucher::from(raw_voucher).unwrap().validate(Some(pem))
 }
 
 #[no_mangle]
