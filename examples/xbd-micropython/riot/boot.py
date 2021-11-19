@@ -49,3 +49,21 @@ if 1:  # test `voucher` module
     test_assert('voucher.validate - F2_00_02', voucher.validate(bs_f2, bs_pem_f2))
 
     # voucher.debug(bs_jada)  # TODO handle panic on decode failure
+
+    #
+
+    bs_key_pem_02 = voucher.get_key_pem_02_00_2E()
+    test_assert_eq('voucher.get_key_pem_02_00_2E', len(bs_key_pem_02), 227)
+
+    bs_device_crt_02 = voucher.get_device_crt_02_00_2E()
+    test_assert_eq('voucher.get_device_crt_02_00_2E', len(bs_device_crt_02), 761)
+
+    bs_vrq = voucher.create_vrq_02_00_2E(bs_key_pem_02)
+    bs_vrq_signed = voucher.sign(bs_vrq, bs_key_pem_02)
+
+    test_assert('voucher.{sign,validate} - 02_00_2E via pubkey',
+        voucher.validate(bs_vrq_signed, bs_device_crt_02))
+    test_assert('voucher.{sign,validate} - 02_00_2E via privkey',
+        voucher.validate(bs_vrq_signed, bs_key_pem_02))
+
+    #
