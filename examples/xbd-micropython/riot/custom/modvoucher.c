@@ -83,6 +83,8 @@ STATIC mp_obj_t mod_get_voucher_jada(void) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(mod_get_voucher_jada_obj, mod_get_voucher_jada);
 
+//
+
 STATIC mp_obj_t mod_get_voucher_F2_00_02(void) {
     uint8_t *data;
     size_t sz;
@@ -100,6 +102,28 @@ STATIC mp_obj_t mod_get_masa_pem_F2_00_02(void) {
     return mp_obj_new_bytes(data, sz);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(mod_get_masa_pem_F2_00_02_obj, mod_get_masa_pem_F2_00_02);
+
+//
+
+STATIC mp_obj_t mod_get_key_pem_02_00_2E(void) {
+    uint8_t *data;
+    size_t sz;
+
+    sz = vch_get_key_pem_02_00_2E(&data);
+    return mp_obj_new_bytes(data, sz);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(mod_get_key_pem_02_00_2E_obj, mod_get_key_pem_02_00_2E);
+
+STATIC mp_obj_t mod_get_device_crt_02_00_2E(void) {
+    uint8_t *data;
+    size_t sz;
+
+    sz = vch_get_device_crt_02_00_2E(&data);
+    return mp_obj_new_bytes(data, sz);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(mod_get_device_crt_02_00_2E_obj, mod_get_device_crt_02_00_2E);
+
+//
 
 STATIC mp_obj_t mod_debug(mp_obj_t self_in) {
     if (mp_obj_is_type(self_in, &mp_type_bytes)) {
@@ -155,6 +179,8 @@ STATIC const mp_rom_map_elem_t mp_module_voucher_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_get_voucher_jada), MP_ROM_PTR(&mod_get_voucher_jada_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_voucher_F2_00_02), MP_ROM_PTR(&mod_get_voucher_F2_00_02_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_masa_pem_F2_00_02), MP_ROM_PTR(&mod_get_masa_pem_F2_00_02_obj) },
+    { MP_ROM_QSTR(MP_QSTR_get_key_pem_02_00_2E), MP_ROM_PTR(&mod_get_key_pem_02_00_2E_obj) },
+    { MP_ROM_QSTR(MP_QSTR_get_device_crt_02_00_2E), MP_ROM_PTR(&mod_get_device_crt_02_00_2E_obj) },
     { MP_ROM_QSTR(MP_QSTR_debug), MP_ROM_PTR(&mod_debug_obj) },
     { MP_ROM_QSTR(MP_QSTR_validate), MP_ROM_PTR(&mod_validate_obj) },
 };

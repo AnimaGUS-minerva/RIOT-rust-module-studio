@@ -40,7 +40,7 @@ fn init_psa_crypto() {
 use minerva_voucher::Validate;
 
 #[cfg(not(any(feature = "x86", feature = "xtensa")))]
-use minerva_voucher::Voucher;
+use minerva_voucher::Voucher; // for x86_64{,-lts}, {x86,xtensa}-lts
 #[cfg(any(feature = "x86", feature = "xtensa"))]
 use wip::Voucher;
 
@@ -75,6 +75,11 @@ static VOUCHER_F2_00_02: &[u8] = core::include_bytes!(
     concat!(env!("CARGO_MANIFEST_DIR"), "/files/voucher_00-D0-E5-F2-00-02.vch"));
 static MASA_PEM_F2_00_02: &[u8] = core::include_bytes!(
     concat!(env!("CARGO_MANIFEST_DIR"), "/files/masa_00-D0-E5-F2-00-02.crt"));
+static KEY_PEM_02_00_2E: &[u8] = core::include_bytes!(
+    concat!(env!("CARGO_MANIFEST_DIR"), "/files/key_00-D0-E5-02-00-2E.pem"));
+static DEVICE_CRT_02_00_2E: &[u8] = core::include_bytes!(
+    concat!(env!("CARGO_MANIFEST_DIR"), "/files/device_00-D0-E5-02-00-2E.crt"));
+
 
 #[no_mangle]
 pub extern fn vch_get_voucher_jada(ptr: *mut *const u8) -> usize {
@@ -89,6 +94,16 @@ pub extern fn vch_get_voucher_F2_00_02(ptr: *mut *const u8) -> usize {
 #[no_mangle]
 pub extern fn vch_get_masa_pem_F2_00_02(ptr: *mut *const u8) -> usize {
     set_bytes(MASA_PEM_F2_00_02, ptr)
+}
+
+#[no_mangle]
+pub extern fn vch_get_key_pem_02_00_2E(ptr: *mut *const u8) -> usize {
+    set_bytes(KEY_PEM_02_00_2E, ptr)
+}
+
+#[no_mangle]
+pub extern fn vch_get_device_crt_02_00_2E(ptr: *mut *const u8) -> usize {
+    set_bytes(DEVICE_CRT_02_00_2E, ptr)
 }
 
 fn set_bytes(bytes: &[u8], ptr: *mut *const u8) -> usize {
