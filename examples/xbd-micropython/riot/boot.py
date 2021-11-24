@@ -60,11 +60,13 @@ if 1:  # test `voucher` module
 
     bs_vrq = voucher.create_vrq_02_00_2E()
     print('bs_vrq', list(bs_vrq))
-    bs_vrq_signed = voucher.sign(bs_vrq, bs_key_pem_02)
-    print('bs_vrq_signed', list(bs_vrq_signed))
 
     test_assert('voucher.{sign,validate} - validating an unsigned voucher should fail',
         not voucher.validate(bs_vrq, bs_device_crt_02))
+
+    bs_vrq_signed = voucher.sign(bs_vrq, bs_key_pem_02)
+    print('bs_vrq_signed', list(bs_vrq_signed))
+
     test_assert('voucher.{sign,validate} - 02_00_2E via pubkey',
         voucher.validate(bs_vrq_signed, bs_device_crt_02))
     test_assert('voucher.{sign,validate} - 02_00_2E via privkey',
