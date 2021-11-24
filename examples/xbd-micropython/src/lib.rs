@@ -16,9 +16,9 @@ fn alloc_error(layout: mcu_if::alloc::alloc::Layout) -> ! { mcu_if::alloc_error(
 extern crate std;
 
 #[cfg(feature = "std")]
-use std::println;
+use std::{println, vec::Vec};
 #[cfg(not(feature = "std"))]
-use mcu_if::println;
+use mcu_if::{println, alloc::vec::Vec};
 
 //
 
@@ -37,7 +37,7 @@ fn init_psa_crypto() {
 
 //
 
-use minerva_voucher::Validate;
+use minerva_voucher::{Sign, Validate, SignatureAlgorithm};
 
 #[cfg(not(any(feature = "x86", feature = "xtensa")))]
 use minerva_voucher::Voucher; // for x86_64{,-lts}, {x86,xtensa}-lts
@@ -82,35 +82,47 @@ static DEVICE_CRT_02_00_2E: &[u8] = core::include_bytes!(
 
 
 #[no_mangle]
-pub extern fn vch_get_voucher_jada(ptr: *mut *const u8) -> usize {
-    set_bytes(VOUCHER_JADA, ptr)
+pub extern fn vch_get_voucher_jada(pp: *mut *const u8) -> usize {
+    set_bytes_static(VOUCHER_JADA, pp)
 }
 
 #[no_mangle]
-pub extern fn vch_get_voucher_F2_00_02(ptr: *mut *const u8) -> usize {
-    set_bytes(VOUCHER_F2_00_02, ptr)
+pub extern fn vch_get_voucher_F2_00_02(pp: *mut *const u8) -> usize {
+    set_bytes_static(VOUCHER_F2_00_02, pp)
 }
 
 #[no_mangle]
-pub extern fn vch_get_masa_pem_F2_00_02(ptr: *mut *const u8) -> usize {
-    set_bytes(MASA_PEM_F2_00_02, ptr)
+pub extern fn vch_get_masa_pem_F2_00_02(pp: *mut *const u8) -> usize {
+    set_bytes_static(MASA_PEM_F2_00_02, pp)
 }
 
 #[no_mangle]
-pub extern fn vch_get_key_pem_02_00_2E(ptr: *mut *const u8) -> usize {
-    set_bytes(KEY_PEM_02_00_2E, ptr)
+pub extern fn vch_get_key_pem_02_00_2E(pp: *mut *const u8) -> usize {
+    set_bytes_static(KEY_PEM_02_00_2E, pp)
 }
 
 #[no_mangle]
-pub extern fn vch_get_device_crt_02_00_2E(ptr: *mut *const u8) -> usize {
-    set_bytes(DEVICE_CRT_02_00_2E, ptr)
+pub extern fn vch_get_device_crt_02_00_2E(pp: *mut *const u8) -> usize {
+    set_bytes_static(DEVICE_CRT_02_00_2E, pp)
 }
 
-fn set_bytes(bytes: &[u8], ptr: *mut *const u8) -> usize {
-    unsafe { *ptr = bytes.as_ptr(); }
+fn set_bytes_static(bytes: &[u8], pp: *mut *const u8) -> usize {
+    let sz = bytes.len();
+    unsafe { *pp = bytes.as_ptr(); }
 
-    bytes.len()
+    sz
 }
+
+fn set_bytes_heap(bytes: Vec<u8>, pp: *mut *const u8) -> usize {
+    let sz = bytes.len();
+    unsafe { *pp = bytes.as_ptr(); }
+
+    core::mem::forget(bytes);
+
+    sz
+}
+
+//
 
 #[no_mangle]
 pub extern fn vch_debug(ptr: *const u8, sz: usize) {
@@ -118,6 +130,8 @@ pub extern fn vch_debug(ptr: *const u8, sz: usize) {
 
     Voucher::from(raw_voucher).unwrap().dump()
 }
+
+//
 
 #[no_mangle]
 pub extern fn vch_validate(ptr: *const u8, sz: usize) -> bool {
@@ -135,6 +149,33 @@ pub extern fn vch_validate_with_pem(ptr: *const u8, sz: usize, ptr_pem: *const u
 
     Voucher::from(raw_voucher).unwrap().validate(Some(pem))
 }
+
+//
+
+#[no_mangle]
+pub extern fn vch_create_vrq_02_00_2E(pp: *mut *const u8) -> usize {
+    let mut vch = Voucher::new();
+    vch.set_content(&minerva_voucher::wip_vrhash_sidhash_content());
+
+    set_bytes_heap(vch.serialize().unwrap(), pp)
+}
+
+#[no_mangle]
+pub extern fn vch_sign(
+    ptr_raw: *const u8, sz_raw: usize, ptr_key: *const u8, sz_key: usize,
+    pp: *mut *const u8
+) -> usize {
+    let raw = u8_slice_from(ptr_raw, sz_raw);
+    let key = u8_slice_from(ptr_key, sz_key);
+    println!("@@ vch_sign(): [len_raw={}] [len_key={}]", raw.len(), key.len());
+
+    let mut vch = Voucher::from(raw).unwrap();
+    vch.sign(key, SignatureAlgorithm::ES256);
+
+    set_bytes_heap(vch.serialize().unwrap(), pp)
+}
+
+//
 
 #[no_mangle]
 pub extern fn vch_square(input: i32) -> i32 {
