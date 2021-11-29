@@ -59,7 +59,7 @@ run-esp32: build-esp32
 	make esp32-run-riot
 
 test-esp32: build-esp32
-	EMU_TIMEOUT=12000  make esp32-run-riot
+	EMU_TIMEOUT=16000  make esp32-run-riot
 
 # std
 
