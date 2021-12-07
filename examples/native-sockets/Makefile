@@ -1,8 +1,8 @@
 all: build
 
-RIOT_ELF := ./riot/bin/native/riot.elf
+RIOT_ELF := ./main/bin/native/main.elf
 build:
-	cd ./riot && BOARD=native RIOTBASE=$(CURDIR)/../../RIOT make
+	cd ./main && BOARD=native RIOTBASE=$(CURDIR)/../../RIOT make
 	ldd $(RIOT_ELF)
 	file $(RIOT_ELF)
 
@@ -22,4 +22,4 @@ demo: build
 	sudo $(RIOT_ELF) tap0
 
 clean:
-	rm -rf ./riot/bin
+	rm -rf ./main/bin
