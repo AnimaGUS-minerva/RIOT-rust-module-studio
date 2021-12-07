@@ -1,4 +1,12 @@
-include ../Makefile.tests_common
+#include ../Makefile.tests_common
+#==== @@
+APPLICATION ?= main
+BOARD ?= native
+RIOTBASE ?= $(CURDIR)/../..
+QUIET ?= 1
+# DEVELHELP enabled by default for all tests, set 0 to disable
+DEVELHELP ?= 1
+
 
 LWIP_IPV4 ?= 0
 
