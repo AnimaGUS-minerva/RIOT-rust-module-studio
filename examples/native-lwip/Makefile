@@ -22,13 +22,14 @@ demo: build
 	@echo "> help"
 	@echo "> ifconfig"
 	@echo "> udp server start 1333"
-	@echo "> udp send fe80:0:0:0:4012:67ff:fefe:4130:1333 00"
-	@echo "      ^---- FIXME: Error: unable to parse destination address"
+	@echo "> udp send fe80:0:0:0:4012:67ff:fefe:4130:1333 00  # FIXME: Error: unable to parse destination address"
 	@echo "==== end example"
 	@echo "==== begin new shell"
+	@echo "\$$ # https://github.com/RIOT-OS/RIOT/blob/2021.10/examples/gnrc_networking/README.md"
 	@echo "\$$ sudo ip tuntap add tap0 mode tap user \$${USER}"
 	@echo "\$$ sudo ip link set tap0 up"
-	@echo "\$$ ping6 fe80:0:0:0:4012:67ff:fefe:4130%tap0"
+	@echo "\$$ ping6 fe80:0:0:0:4012:67ff:fefe:4130%tap0  # ok"
+	@echo "\$$ nc -6uv fe80:0:0:0:4012:67ff:fefe:4130%tap0 1333  # ok"
 	@echo "==== end new shell"
 	sudo $(RIOT_ELF) tap0
 
