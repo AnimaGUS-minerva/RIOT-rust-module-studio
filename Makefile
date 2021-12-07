@@ -75,7 +75,8 @@ init-rust-x86_64-nightly:
 	rustup toolchain install nightly-x86_64-unknown-linux-gnu
 	rustup target add x86_64-unknown-linux-gnu
 
-NAMES := esp32-no_std native-sockets xbd-base xbd-micropython
+NAMES := esp32-no_std xbd-base xbd-micropython \
+	native-sockets native-lwip
 test:
 	for name in $(NAMES); do \
         make -C ./examples/$$name test || exit 1; \
