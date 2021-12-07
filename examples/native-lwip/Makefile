@@ -1,21 +1,26 @@
 all: build
 
 RIOT_TAG := 2021.10
-RIOT_ELF := ./main/bin/native/main.elf
-build:
+clone-RIOT:
 	@if [ ! -e RIOT ]; then \
 		git clone https://github.com/RIOT-OS/RIOT RIOT; \
 		cd RIOT && git checkout -q $(RIOT_TAG); \
 	fi
+
+MAIN_ELF := ./main/bin/native/main.elf
+build: clone-RIOT
 	cd ./main && BOARD=native RIOTBASE=$(CURDIR)/RIOT make
-	ldd $(RIOT_ELF)
-	file $(RIOT_ELF)
+	ldd $(MAIN_ELF)
+	file $(MAIN_ELF)
 
 run: build
-	$(RIOT_ELF)
+	$(MAIN_ELF)
 
-test:
-	make build  # test `build` only
+test: clone-RIOT
+	cd ./RIOT/tests/lwip_sock_ip && make && make test
+	cd ./RIOT/tests/lwip_sock_udp && make && make test
+	cd ./RIOT/tests/lwip_sock_tcp && make && make test
+	make build  # main: test `build` only
 
 demo: build
 	@echo "==== begin example"
@@ -31,7 +36,7 @@ demo: build
 	@echo "\$$ ping6 fe80:0:0:0:4012:67ff:fefe:4130%tap0  # ok"
 	@echo "\$$ nc -6uv fe80:0:0:0:4012:67ff:fefe:4130%tap0 1333  # ok"
 	@echo "==== end new shell"
-	sudo $(RIOT_ELF) tap0
+	sudo $(MAIN_ELF) tap0
 
 clean:
 	rm -rf ./main/bin
