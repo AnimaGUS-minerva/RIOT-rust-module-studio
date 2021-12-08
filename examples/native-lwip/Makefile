@@ -7,6 +7,18 @@ clone-RIOT:
 		cd RIOT && git checkout -q $(RIOT_TAG); \
 	fi
 
+MP_REPO := https://github.com/AnimaGUS-minerva/micropython
+MP_REV := 4bf34ac9b  # v1.17-riot-lwip
+clone-mp: clone-RIOT
+	@if [ ! -e micropython ]; then \
+		git clone $(MP_REPO) micropython; \
+		(cd micropython; git checkout -q $(MP_REV); ln -s ../../../RIOT ports/riot/); \
+	fi
+
+build-mp: clone-mp
+	make -C micropython/ports/riot
+	cp micropython/ports/riot/main/bin/native/main.elf .
+
 MAIN_ELF := ./main/bin/native/main.elf
 build: clone-RIOT
 	cd ./main && BOARD=native RIOTBASE=$(CURDIR)/RIOT make
