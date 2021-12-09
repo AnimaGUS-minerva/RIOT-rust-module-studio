@@ -7,8 +7,11 @@ clone-RIOT:
 		cd RIOT && git checkout -q $(RIOT_TAG); \
 	fi
 
+#
+
 MP_REPO := https://github.com/AnimaGUS-minerva/micropython
 MP_REV := 4bf34ac9b  # v1.17-riot-lwip
+MP_ELF := ./micropython/ports/riot/main/bin/native/main.elf
 clone-mp: clone-RIOT
 	@if [ ! -e micropython ]; then \
 		git clone $(MP_REPO) micropython; \
@@ -17,22 +20,19 @@ clone-mp: clone-RIOT
 
 build-mp: clone-mp
 	make -C micropython/ports/riot
-	cp micropython/ports/riot/main/bin/native/main.elf .
+	ldd $(MAIN_ELF) && file $(MAIN_ELF)
+run-mp: build-mp
+	$(MP_ELF)
+
+#
 
 MAIN_ELF := ./main/bin/native/main.elf
 build: clone-RIOT
 	cd ./main && BOARD=native RIOTBASE=$(CURDIR)/RIOT make
-	ldd $(MAIN_ELF)
-	file $(MAIN_ELF)
+	ldd $(MAIN_ELF) && file $(MAIN_ELF)
 
 run: build
 	$(MAIN_ELF)
-
-test: clone-RIOT
-	cd ./RIOT/tests/lwip_sock_ip && make && make test
-	cd ./RIOT/tests/lwip_sock_udp && make && make test
-	cd ./RIOT/tests/lwip_sock_tcp && make && make test
-	make build  # main: test `build` only
 
 demo: build
 	@echo "==== begin example"
@@ -52,3 +52,10 @@ demo: build
 
 clean:
 	rm -rf ./main/bin
+
+test: clone-RIOT
+	cd ./RIOT/tests/lwip_sock_ip && make && make test
+	cd ./RIOT/tests/lwip_sock_udp && make && make test
+	cd ./RIOT/tests/lwip_sock_tcp && make && make test
+	make build     # main.elf; test `build` only
+	make build-mp  # mp.elf; test `build` only
