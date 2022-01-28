@@ -44,6 +44,7 @@ demo: build
 	@echo "==== begin new shell"
 	@echo "\$$ # https://github.com/RIOT-OS/RIOT/blob/2021.10/examples/gnrc_networking/README.md"
 	@echo "\$$ sudo ip tuntap add tap0 mode tap user \$${USER}"
+	@echo "\$$ sudo ip link set tap0 down  # (in case - Temporary failure in name resolution)"
 	@echo "\$$ sudo ip link set tap0 up"
 	@echo "\$$ ping6 fe80:0:0:0:4012:67ff:fefe:4130%tap0  # ok"
 	@echo "\$$ nc -6uv fe80:0:0:0:4012:67ff:fefe:4130%tap0 1333  # ok"
@@ -57,5 +58,5 @@ test: clone-RIOT
 	cd ./RIOT/tests/lwip_sock_ip && make && make test
 	cd ./RIOT/tests/lwip_sock_udp && make && make test
 	cd ./RIOT/tests/lwip_sock_tcp && make && make test
-	make build     # main.elf; test `build` only
-	make build-mp  # mp.elf; test `build` only
+	make build     # test build only
+	make build-mp  # test build only
