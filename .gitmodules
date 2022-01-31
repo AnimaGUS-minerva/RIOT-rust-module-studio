@@ -7,3 +7,6 @@
 [submodule "examples/xbd-micropython/micropython"]
 	path = examples/xbd-micropython/micropython
 	url = https://github.com/AnimaGUS-minerva/micropython
+[submodule "toolchain/xtensa/rust-build"]
+	path = toolchain/xtensa/rust-build
+	url = https://github.com/AnimaGUS-minerva/rust-build
