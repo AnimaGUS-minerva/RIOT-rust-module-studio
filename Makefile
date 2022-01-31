@@ -50,6 +50,8 @@ init-riot-xtensa:
 	cd $(TOOLCHAIN_XTENSA)/riot/esp-idf && \
         git checkout -q f198339ec09e90666150672884535802304d23ec
 
+DL_ASSETS := https://github.com/AnimaGUS-minerva/RIOT-rust-module-studio/releases/download/assets-0.1
+
 QEMU_XTENSA_TGZ := qemu-d558d21678-20210520.tgz
 init-qemu-xtensa:
 	@if [ ! -e "$(TOOLCHAIN_XTENSA)/qemu/$(QEMU_XTENSA_TGZ)" ]; then \
