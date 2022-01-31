@@ -17,12 +17,10 @@ TOOLCHAIN_XTENSA := toolchain/xtensa
 
 RUST_BUILD_MODULE := $(TOOLCHAIN_XTENSA)/rust-build
 init-rust-xtensa:
-	@if [ ! -d "$(TOOLCHAIN_XTENSA)/rust-build" ]; then \
-	    git submodule init $(RUST_BUILD_MODULE); \
-	    git submodule update; \
-        echo "Configuring rustc esp ..."; \
-	    cd $(RUST_BUILD_MODULE) && ./install-rust-toolchain.sh; \
-        fi
+	git submodule init $(RUST_BUILD_MODULE)
+	git submodule update
+	@echo "Configuring rustc esp ..."
+	cd $(RUST_BUILD_MODULE) && ./install-rust-toolchain.sh
 	@echo "Testing rustc esp ..."
 	@RUST_MODULE_STUDIO=$(CURDIR) source ./examples/esp32.setup && \
         if [[ `rustc +esp --version` =~ rustc.* ]]; then \
