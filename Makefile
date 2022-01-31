@@ -66,6 +66,7 @@ init-rust-i686-nightly:
 init-rust-x86_64-nightly:
 	rustup toolchain install nightly-x86_64-unknown-linux-gnu
 	rustup target add x86_64-unknown-linux-gnu
+	cargo install cargo-xbuild
 
 NAMES := esp32-no_std xbd-base xbd-micropython \
 	native-sockets native-lwip
