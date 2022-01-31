@@ -15,26 +15,18 @@ init:
 
 TOOLCHAIN_XTENSA := toolchain/xtensa
 
-DL_ASSETS := https://github.com/AnimaGUS-minerva/RIOT-rust-module-studio/releases/download/assets-0.1
-
-RUSTC_TBZ2 := assets-0.1-rustc.tbz2
-LLVM_TBZ2 := assets-0.1-llvm.tbz2
+RUST_BUILD_MODULE := $(TOOLCHAIN_XTENSA)/rust-build
 init-rust-xtensa:
-	@if [ ! -d "$(TOOLCHAIN_XTENSA)/rustc" ]; then \
-        echo "[1/4] Setting up xtensa/rustc ..."; \
-        (cd $(TOOLCHAIN_XTENSA); curl -O -L $(DL_ASSETS)/$(RUSTC_TBZ2); tar xfj $(RUSTC_TBZ2)); \
-        echo "[2/4] Setting up xtensa/llvm ..."; \
-        (cd $(TOOLCHAIN_XTENSA); curl -O -L $(DL_ASSETS)/$(LLVM_TBZ2); tar xfj $(LLVM_TBZ2)); \
-        echo "[3/4] Configuring rustc xtensa ..."; \
-        rustup component add rustfmt; \
-        rustup toolchain link xtensa $(TOOLCHAIN_XTENSA)/rustc/rust_build; \
-        cargo install bindgen; \
-        cargo install cargo-xbuild; \
+	@if [ ! -d "$(TOOLCHAIN_XTENSA)/rust-build" ]; then \
+	    git submodule init $(RUST_BUILD_MODULE); \
+	    git submodule update; \
+        echo "Configuring rustc esp ..."; \
+	    cd $(RUST_BUILD_MODULE) && ./install-rust-toolchain.sh; \
         fi
-	@echo "[4/4] Testing rustc xtensa ..."
+	@echo "Testing rustc esp ..."
 	@RUST_MODULE_STUDIO=$(CURDIR) source ./examples/esp32.setup && \
-        if [[ `rustc +xtensa --version` =~ rustc.* ]]; then \
-            echo rustc xtensa version LGTM; else false; \
+        if [[ `rustc +esp --version` =~ rustc.* ]]; then \
+            echo rustc esp version LGTM; else false; \
             fi
 
 IDF_MODULE := $(TOOLCHAIN_XTENSA)/esp-idf
