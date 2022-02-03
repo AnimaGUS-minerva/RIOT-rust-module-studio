@@ -52,24 +52,38 @@ if 1:  # test `voucher` module
 
     #
 
-    bs_key_pem_02 = voucher.get_key_pem_02_00_2E()
-    test_assert_eq('voucher.get_key_pem_02_00_2E', len(bs_key_pem_02), 227)
+    bs_key_pem_f2 = voucher.get_key_pem_F2_00_02()
+    test_assert_eq('voucher.get_key_pem_F2_00_02', len(bs_key_pem_f2), 227)
 
-    bs_device_crt_02 = voucher.get_device_crt_02_00_2E()
-    test_assert_eq('voucher.get_device_crt_02_00_2E', len(bs_device_crt_02), 761)
+    bs_device_crt_f2 = voucher.get_device_crt_F2_00_02()
+    test_assert_eq('voucher.get_device_crt_F2_00_02', len(bs_device_crt_f2), 644)
 
-    bs_vrq = voucher.create_vrq_02_00_2E()
-    print('bs_vrq', list(bs_vrq))
+    #
+
+    bs_vrq_sample = voucher.get_vrq_F2_00_02()
+    test_assert_eq('bs_vrq_sample (with bare signature)', len(bs_vrq_sample), 622)
+
+    test_assert('voucher.{sign,validate} - vrq sample F2_00_02 via pubkey',
+        voucher.validate(bs_vrq_sample, bs_device_crt_f2))
+    test_assert('voucher.{sign,validate} - vrq sample F2_00_02 via privkey',
+        voucher.validate(bs_vrq_sample, bs_key_pem_f2))
+
+    #
+
+    bs_vrq = voucher.create_vrq_F2_00_02()
+    # print('bs_vrq', list(bs_vrq))
+    test_assert_eq('bs_vrq', len(bs_vrq), 555)
 
     test_assert('voucher.{sign,validate} - validating an unsigned voucher should fail',
-        not voucher.validate(bs_vrq, bs_device_crt_02))
+        not voucher.validate(bs_vrq, bs_device_crt_f2))
 
-    bs_vrq_signed = voucher.sign(bs_vrq, bs_key_pem_02)
-    print('bs_vrq_signed', list(bs_vrq_signed))
+    bs_vrq_signed = voucher.sign(bs_vrq, bs_key_pem_f2)
+    # print('bs_vrq_signed', list(bs_vrq_signed))
+    test_assert_eq('bs_vrq_signed (with asn1 signature)', len(bs_vrq_signed), 630)
 
-    test_assert('voucher.{sign,validate} - 02_00_2E via pubkey',
-        voucher.validate(bs_vrq_signed, bs_device_crt_02))
-    test_assert('voucher.{sign,validate} - 02_00_2E via privkey',
-        voucher.validate(bs_vrq_signed, bs_key_pem_02))
+    test_assert('voucher.{sign,validate} - vrq F2_00_02 via pubkey',
+        voucher.validate(bs_vrq_signed, bs_device_crt_f2))
+    test_assert('voucher.{sign,validate} - vrq F2_00_02 via privkey',
+        voucher.validate(bs_vrq_signed, bs_key_pem_f2))
 
     #

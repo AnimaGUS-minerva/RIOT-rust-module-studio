@@ -105,36 +105,45 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_0(mod_get_masa_pem_F2_00_02_obj, mod_get_masa_pem
 
 //
 
-STATIC mp_obj_t mod_get_key_pem_02_00_2E(void) {
+STATIC mp_obj_t mod_get_key_pem_F2_00_02(void) {
     uint8_t *ptr_static;
     size_t sz;
 
-    sz = vch_get_key_pem_02_00_2E(&ptr_static);
+    sz = vch_get_key_pem_F2_00_02(&ptr_static);
     return mp_obj_new_bytes(ptr_static, sz);
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(mod_get_key_pem_02_00_2E_obj, mod_get_key_pem_02_00_2E);
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(mod_get_key_pem_F2_00_02_obj, mod_get_key_pem_F2_00_02);
 
-STATIC mp_obj_t mod_get_device_crt_02_00_2E(void) {
+STATIC mp_obj_t mod_get_device_crt_F2_00_02(void) {
     uint8_t *ptr_static;
     size_t sz;
 
-    sz = vch_get_device_crt_02_00_2E(&ptr_static);
+    sz = vch_get_device_crt_F2_00_02(&ptr_static);
     return mp_obj_new_bytes(ptr_static, sz);
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(mod_get_device_crt_02_00_2E_obj, mod_get_device_crt_02_00_2E);
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(mod_get_device_crt_F2_00_02_obj, mod_get_device_crt_F2_00_02);
 
-STATIC mp_obj_t mod_create_vrq_02_00_2E(void) {
+STATIC mp_obj_t mod_get_vrq_F2_00_02(void) {
+    uint8_t *ptr_static;
+    size_t sz;
+
+    sz = vch_get_vrq_F2_00_02(&ptr_static);
+    return mp_obj_new_bytes(ptr_static, sz);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(mod_get_vrq_F2_00_02_obj, mod_get_vrq_F2_00_02);
+
+STATIC mp_obj_t mod_create_vrq_F2_00_02(void) {
     uint8_t *ptr_heap;
     size_t sz_heap;
     mp_obj_t obj;
 
-    sz_heap = vch_create_vrq_02_00_2E(&ptr_heap);
+    sz_heap = vch_create_vrq_F2_00_02(&ptr_heap);
     obj = mp_obj_new_bytes(ptr_heap, sz_heap);
     free(ptr_heap);
 
     return obj;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(mod_create_vrq_02_00_2E_obj, mod_create_vrq_02_00_2E);
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(mod_create_vrq_F2_00_02_obj, mod_create_vrq_F2_00_02);
 
 STATIC mp_obj_t mod_sign(mp_obj_t bs_vch, mp_obj_t bs_key) {
     if (mp_obj_is_type(bs_vch, &mp_type_bytes) &&
@@ -224,9 +233,10 @@ STATIC const mp_rom_map_elem_t mp_module_voucher_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_get_voucher_jada), MP_ROM_PTR(&mod_get_voucher_jada_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_voucher_F2_00_02), MP_ROM_PTR(&mod_get_voucher_F2_00_02_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_masa_pem_F2_00_02), MP_ROM_PTR(&mod_get_masa_pem_F2_00_02_obj) },
-    { MP_ROM_QSTR(MP_QSTR_get_key_pem_02_00_2E), MP_ROM_PTR(&mod_get_key_pem_02_00_2E_obj) },
-    { MP_ROM_QSTR(MP_QSTR_get_device_crt_02_00_2E), MP_ROM_PTR(&mod_get_device_crt_02_00_2E_obj) },
-    { MP_ROM_QSTR(MP_QSTR_create_vrq_02_00_2E), MP_ROM_PTR(&mod_create_vrq_02_00_2E_obj) },
+    { MP_ROM_QSTR(MP_QSTR_get_key_pem_F2_00_02), MP_ROM_PTR(&mod_get_key_pem_F2_00_02_obj) },
+    { MP_ROM_QSTR(MP_QSTR_get_device_crt_F2_00_02), MP_ROM_PTR(&mod_get_device_crt_F2_00_02_obj) },
+    { MP_ROM_QSTR(MP_QSTR_get_vrq_F2_00_02), MP_ROM_PTR(&mod_get_vrq_F2_00_02_obj) },
+    { MP_ROM_QSTR(MP_QSTR_create_vrq_F2_00_02), MP_ROM_PTR(&mod_create_vrq_F2_00_02_obj) },
     { MP_ROM_QSTR(MP_QSTR_sign), MP_ROM_PTR(&mod_sign_obj) },
     { MP_ROM_QSTR(MP_QSTR_debug), MP_ROM_PTR(&mod_debug_obj) },
     { MP_ROM_QSTR(MP_QSTR_validate), MP_ROM_PTR(&mod_validate_obj) },
