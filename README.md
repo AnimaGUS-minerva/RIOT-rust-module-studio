@@ -71,29 +71,33 @@ $ make run-native
 [test] voucher.get_masa_pem_F2_00_02 : ✅
 [test] no MemoryError for simple ops : ✅
 @@ validating raw_voucher: [len=328]
-⚠️ missing `signature_type`; ES256 is assumed
 [test] voucher.validate - jada : ✅
 @@ validating raw_voucher with pem: [len=771] [len=684]
 [test] voucher.validate - F2_00_02 : ✅
-[test] voucher.get_key_pem_02_00_2E : ✅
-[test] voucher.get_device_crt_02_00_2E : ✅
-bs_vrq [210, 132, 65, 160, 160, 88, 68, 161, 26, 0, 15, 70, 194, 164, 1, 105, 112, 114, 111, 120, 105, 109, 105, 116, 121, 2, 193, 26, 97, 119, 115, 164, 10, 81, 48, 48, 45, 68, 48, 45, 69, 53, 45, 48, 50, 45, 48, 48, 45, 50, 69, 7, 118, 114, 72, 103, 99, 66, 86, 78, 86, 97, 70, 109, 66, 87, 98, 84, 77, 109, 101, 79, 75, 117, 103, 64]
-@@ validating raw_voucher with pem: [len=76] [len=761]
-⚠️ missing `signature_type`; ES256 is assumed
+[test] voucher.get_key_pem_F2_00_02 : ✅
+[test] voucher.get_device_crt_F2_00_02 : ✅
+[test] bs_vrq_sample (with bare signature) : ✅
+@@ validating raw_voucher with pem: [len=622] [len=644]
+[test] voucher.{sign,validate} - vrq sample F2_00_02 via pubkey : ✅
+@@ validating raw_voucher with pem: [len=622] [len=227]
+[test] voucher.{sign,validate} - vrq sample F2_00_02 via privkey : ✅
+[test] bs_vrq : ✅
+@@ validating raw_voucher with pem: [len=555] [len=644]
 [test] voucher.{sign,validate} - validating an unsigned voucher should fail : ✅
-@@ vch_sign(): [len_raw=76] [len_key=227]
-⚠️ missing `signature_type`; ES256 is assumed
-bs_vrq_signed [210, 132, 65, 160, 160, 88, 68, 161, 26, 0, 15, 70, 194, 164, 1, 105, 112, 114, 111, 120, 105, 109, 105, 116, 121, 2, 193, 26, 97, 119, 115, 164, 10, 81, 48, 48, 45, 68, 48, 45, 69, 53, 45, 48, 50, 45, 48, 48, 45, 50, 69, 7, 118, 114, 72, 103, 99, 66, 86, 78, 86, 97, 70, 109, 66, 87, 98, 84, 77, 109, 101, 79, 75, 117, 103, 88, 72, 48, 70, 2, 33, 0, 226, 133, 204, 212, 146, 54, 173, 224, 191, 137, 104, 146, 5, 43, 216, 61, 167, 219, 192, 125, 138, 167, 160, 145, 26, 197, 52, 17, 94, 97, 210, 115, 2, 33, 0, 149, 230, 42, 127, 120, 31, 10, 28, 154, 2, 82, 16, 154, 165, 201, 129, 133, 192, 49, 15, 44, 159, 165, 129, 124, 210, 216, 67, 144, 174, 77, 107]
-@@ validating raw_voucher with pem: [len=149] [len=761]
-⚠️ missing `signature_type`; ES256 is assumed
-[test] voucher.{sign,validate} - 02_00_2E via pubkey : ✅
-@@ validating raw_voucher with pem: [len=149] [len=227]
-⚠️ missing `signature_type`; ES256 is assumed
-[test] voucher.{sign,validate} - 02_00_2E via privkey : ✅
+@@ vch_sign(): [len_raw=555] [len_key=227]
+rnd_std_rand(): ^^
+rnd_std_rand(): ^^
+rnd_std_rand(): ^^
+[test] bs_vrq_signed (with asn1 signature) : ✅
+@@ validating raw_voucher with pem: [len=630] [len=644]
+[test] voucher.{sign,validate} - vrq F2_00_02 via pubkey : ✅
+@@ validating raw_voucher with pem: [len=630] [len=227]
+[test] voucher.{sign,validate} - vrq F2_00_02 via privkey : ✅
 -- boot.py exited. Starting REPL..
-MicroPython v1.16-38-g5885fb219 on 2021-11-24; riot-native with native
+MicroPython v1.16-39-g503c0d317 on 2022-02-03; riot-native with native
 Type "help()" for more information.
->>> Quiting native...
+>>> ^C
+native: exiting
 ```
 
 ```
