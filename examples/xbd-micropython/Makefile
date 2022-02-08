@@ -63,7 +63,7 @@ run-native: build-native
 	./micropython/ports/riot/main/bin/native/main.elf
 
 test-native: build-native
-	EMU_TIMEOUT=4000  make native-run-riot
+	##EMU_TIMEOUT=4000  make native-run-riot
 
 # esp32
 
