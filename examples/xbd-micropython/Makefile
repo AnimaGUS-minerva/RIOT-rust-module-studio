@@ -3,7 +3,17 @@ all: build-native
 include ../native.mk
 include ../esp32.mk
 
+# TODO bump RIOT version across the upper layers
+RIOT_TAG := 2021.10
+clone-RIOT:
+	@if [ ! -e RIOT ]; then \
+		git clone https://github.com/RIOT-OS/RIOT RIOT; \
+		cd RIOT && git checkout -q $(RIOT_TAG); \
+	fi
+
 # submodule
+
+micropython: get-submodule
 
 get-submodule:
 	[ -e "micropython/.git" ] || \
@@ -37,13 +47,20 @@ mp-build-dir: get-submodule
 
 # native
 
-build-native:
-	CUSTOM_BOARD=native make mp-build-dir
+#build-native:
+	#CUSTOM_BOARD=native make mp-build-dir
+	#CARGO_FEATURES="--features 'x86-lts'"  make native-build-module
+	#CUSTOM_BOARD=native make native-build-riot
+	#====
+build-native: micropython clone-RIOT
 	CARGO_FEATURES="--features 'x86-lts'"  make native-build-module
-	CUSTOM_BOARD=native make native-build-riot
+	ln -sf ../../../RIOT ./micropython/ports/riot/
+	make -C micropython/ports/riot  # TODO link 'libvoucher.a'
 
 run-native: build-native
-	make native-run-riot
+	#make native-run-riot
+	#==== WIP pass `RIOT_NATIVE_ELF` as env var to mcu-emu; refactor into native-run-riot
+	./micropython/ports/riot/main/bin/native/main.elf
 
 test-native: build-native
 	EMU_TIMEOUT=4000  make native-run-riot
@@ -74,7 +91,7 @@ run: run-native
 
 test:
 	make test-native
-	make test-esp32
+	##make test-esp32
 	make test-std-lts
 	make test-std
 
