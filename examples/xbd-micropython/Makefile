@@ -11,7 +11,7 @@ get-submodule:
 
 sync-submodule:
 	git submodule update --remote micropython && \
-		cd micropython && git checkout 1.16-minerva && git pull
+		cd micropython && git checkout v1.17-riot-voucher && git pull
 
 # build directory
 
