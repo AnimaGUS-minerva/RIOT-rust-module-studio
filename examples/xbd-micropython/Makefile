@@ -47,23 +47,18 @@ mp-build-dir: get-submodule
 
 # native
 
-#build-native:
-	#CUSTOM_BOARD=native make mp-build-dir
-	#CARGO_FEATURES="--features 'x86-lts'"  make native-build-module
-	#CUSTOM_BOARD=native make native-build-riot
-	#====
 build-native: micropython clone-RIOT
 	CARGO_FEATURES="--features 'x86-lts'"  make native-build-module
-	ln -sf ../../../RIOT ./micropython/ports/riot/
-	make -C micropython/ports/riot  # TODO link 'libvoucher.a'
+	ln -sf ../../../RIOT ./micropython/ports/riot/ && \
+		make -C ./micropython/ports/riot  # TODO link 'libvoucher.a'
+
+RIOT_NATIVE_ELF := ./micropython/ports/riot/main/bin/native/main.elf
 
 run-native: build-native
-	#make native-run-riot
-	#==== WIP pass `RIOT_NATIVE_ELF` as env var to mcu-emu; refactor into native-run-riot
-	./micropython/ports/riot/main/bin/native/main.elf
+	RIOT_NATIVE_ELF=$(RIOT_NATIVE_ELF)  make native-run-riot
 
-test-native: build-native
-	##EMU_TIMEOUT=4000  make native-run-riot
+test-native:
+	EMU_TIMEOUT=4000  make run-native
 
 # esp32
 
@@ -75,8 +70,8 @@ build-esp32:
 run-esp32: build-esp32
 	make esp32-run-riot
 
-test-esp32: build-esp32
-	EMU_TIMEOUT=16000  make esp32-run-riot
+test-esp32:
+	EMU_TIMEOUT=16000  make run-esp32
 
 # std
 
