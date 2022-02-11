@@ -15,6 +15,10 @@ esp32-build-riot:
 	RUST_MODULE_STUDIO=$(RUST_MODULE_STUDIO) source ../esp32.setup && cd ./riot && \
 		RIOT_PATH=${RIOT_PATH} RIOT_BASE=${RIOT_BASE} CONTINUE_ON_EXPECTED_ERRORS=1 \
 		$(TOOLCHAIN_XTENSA)/riot/riot-build
+esp32-build-riot-micropython:
+	RUST_MODULE_STUDIO=$(RUST_MODULE_STUDIO) source ../esp32.setup && cd ./micropython/ports/riot && \
+		RIOT_PATH=${RIOT_PATH} RIOT_BASE=${RIOT_BASE} CONTINUE_ON_EXPECTED_ERRORS=1 \
+		CUSTOM_BOARD=esp32  $(TOOLCHAIN_XTENSA)/riot/riot-build
 
 RIOT_ESP32_BIN ?= ./riot.esp32.bin
 esp32-run-riot:

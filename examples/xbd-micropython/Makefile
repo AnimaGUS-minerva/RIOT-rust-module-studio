@@ -23,21 +23,12 @@ sync-submodule:
 	git submodule update --remote micropython && \
 		cd micropython && git checkout v1.17-riot-voucher && git pull
 
-# build directory
-
-CUSTOM_BOARD ?= native
-ifeq ($(CUSTOM_BOARD),esp32)
-    MP_BUILD_DIR := ./riot/bin/esp32-wroom-32/pkg/micropython
-else ifeq ($(CUSTOM_BOARD),native)
-	MP_BUILD_DIR := ./riot/bin/native/pkg/micropython
-endif
-
 # native
 
 build-native: micropython clone-RIOT
 	CARGO_FEATURES="--features 'x86-lts'"  make native-build-module
-	ln -sf ../../../RIOT ./micropython/ports/riot/ && \
-		make -C ./micropython/ports/riot  # TODO link 'libvoucher.a'
+	ln -sf ../../../RIOT ./micropython/ports/riot/
+	make -C ./micropython/ports/riot
 
 RIOT_NATIVE_ELF := ./micropython/ports/riot/main/bin/native/main.elf
 
@@ -49,10 +40,11 @@ test-native:
 
 # esp32
 
-build-esp32:
-	CUSTOM_BOARD=esp32 make mp-build-dir
+build-esp32: micropython clone-RIOT
 	CARGO_FEATURES="--features 'xtensa-lts'"  make esp32-build-module
-	CUSTOM_BOARD=esp32 make esp32-build-riot
+	ln -sf ../../../RIOT ./micropython/ports/riot/
+	RIOT_BASE=$(CURDIR)/micropython/ports/riot/RIOT \
+		make esp32-build-riot-micropython
 
 run-esp32: build-esp32
 	make esp32-run-riot
@@ -73,9 +65,9 @@ run: run-native
 
 test:
 	make test-native
-	##make test-esp32
+	##make clean && make test-esp32
 	make test-std-lts
 	make test-std
 
 clean:
-	rm -rf target ./micropython/ports/riot/main/bin
+	rm -rf target micropython
