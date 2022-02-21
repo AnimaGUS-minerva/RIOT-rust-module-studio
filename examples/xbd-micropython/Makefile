@@ -65,7 +65,7 @@ run: run-native
 
 test:
 	make test-native
-	##make clean && make test-esp32
+	make clean && make test-esp32
 	make test-std-lts
 	make test-std
 
