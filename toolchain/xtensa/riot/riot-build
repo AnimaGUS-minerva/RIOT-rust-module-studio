@@ -19,9 +19,9 @@ make WERROR=0 \
     BOARD=esp32-wroom-32 \
     RIOTBASE=$RIOT_BASE
 
-"$IDF_PATH/components/esptool_py/esptool/esptool.py" \
-    --chip esp32 \
-    elf2image \
-    -o ../riot.esp32.bin \
-    bin/esp32-wroom-32/*.elf  # e.g. riot.elf
-ls -l ../riot.esp32.bin
+pwd
+if [ -z $RIOT_ESP32_IMG ]; then RIOT_ESP32_IMG=../riot.esp32.bin; fi
+if [ -z $RIOT_ESP32_ELF ]; then RIOT_ESP32_ELF=./bin/esp32-wroom-32/riot.elf; fi
+"$IDF_PATH/components/esptool_py/esptool/esptool.py" --chip esp32 \
+    elf2image -o $RIOT_ESP32_IMG $RIOT_ESP32_ELF
+ls -l $RIOT_ESP32_IMG
