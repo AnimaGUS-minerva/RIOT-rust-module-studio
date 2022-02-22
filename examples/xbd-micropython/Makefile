@@ -23,14 +23,16 @@ sync-submodule:
 	git submodule update --remote micropython && \
 		cd micropython && git checkout v1.17-riot-voucher && git pull
 
+MP_PORTS_RIOT_DIR := $(CURDIR)/micropython/ports/riot
+
 # native
 
 build-native: micropython clone-RIOT
 	CARGO_FEATURES="--features 'x86-lts'"  make native-build-module
-	ln -sf ../../../RIOT ./micropython/ports/riot/
-	make -C ./micropython/ports/riot
+	ln -sf ../../../RIOT $(MP_PORTS_RIOT_DIR)/
+	make -C $(MP_PORTS_RIOT_DIR)
 
-RIOT_NATIVE_ELF := ./micropython/ports/riot/main/bin/native/main.elf
+RIOT_NATIVE_ELF := $(MP_PORTS_RIOT_DIR)/main/bin/native/main.elf
 
 run-native: build-native
 	RIOT_NATIVE_ELF=$(RIOT_NATIVE_ELF)  make native-run-riot
@@ -42,8 +44,10 @@ test-native:
 
 build-esp32: micropython clone-RIOT
 	CARGO_FEATURES="--features 'xtensa-lts'"  make esp32-build-module
-	ln -sf ../../../RIOT ./micropython/ports/riot/
-	RIOT_BASE=$(CURDIR)/micropython/ports/riot/RIOT \
+	ln -sf ../../../RIOT $(MP_PORTS_RIOT_DIR)/
+	RIOT_BASE=$(MP_PORTS_RIOT_DIR)/RIOT \
+		RIOT_ESP32_IMG=$(CURDIR)/riot.esp32.bin \
+		RIOT_ESP32_ELF=$(MP_PORTS_RIOT_DIR)/main/bin/esp32-wroom-32/main.elf \
 		make esp32-build-riot-micropython
 
 run-esp32: build-esp32
@@ -64,7 +68,7 @@ test-std:
 run: run-native
 
 test:
-	make test-native
+	make clean && make test-native
 	make clean && make test-esp32
 	make test-std-lts
 	make test-std
