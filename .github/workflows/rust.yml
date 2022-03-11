@@ -43,5 +43,6 @@ jobs:
           rustup default nightly
     - name: Run test
       run: |
+          sudo apt update
           sudo apt install gcc-multilib
           make ci
