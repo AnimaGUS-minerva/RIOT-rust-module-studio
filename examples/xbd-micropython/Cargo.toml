@@ -24,5 +24,5 @@ lts = ["minerva-voucher/sign-lts", "minerva-voucher/validate-lts"]
 
 [dependencies]
 mcu-if = { git = "https://github.com/AnimaGUS-minerva/mcu-if", rev = "984b8dd" }
-minerva-voucher = { git = "https://github.com/AnimaGUS-minerva/voucher", rev = "0750ad9", default-features = false }
-minerva-mbedtls = { git = "https://github.com/AnimaGUS-minerva/minerva-mbedtls", rev = "ce0a890", default-features = false, optional = true }
+minerva-voucher = { git = "https://github.com/AnimaGUS-minerva/voucher", rev = "84b3c2a", default-features = false }
+minerva-mbedtls = { git = "https://github.com/AnimaGUS-minerva/minerva-mbedtls", rev = "a13b14a", default-features = false, optional = true }
