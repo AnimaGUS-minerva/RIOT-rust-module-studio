@@ -6,7 +6,7 @@ ci:
 	TARGET=ci make test
 
 init:
-	make init-rust-xtensa
+	make init-rust-xtensa && cargo install cargo-xbuild
 	make init-esp-idf
 	make init-riot-xtensa
 	make init-qemu-xtensa
