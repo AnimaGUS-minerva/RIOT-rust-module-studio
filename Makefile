@@ -6,7 +6,7 @@ ci:
 	TARGET=ci make test
 
 init:
-	make init-rust-xtensa && cargo install cargo-xbuild
+	make init-rust-xtensa
 	make init-esp-idf
 	make init-riot-xtensa
 	make init-qemu-xtensa
@@ -25,6 +25,7 @@ init-rust-xtensa:
         if [[ `rustc +esp --version` =~ rustc.* ]]; then \
             echo rustc esp version LGTM; else false; \
             fi
+	cargo install cargo-xbuild
 
 IDF_MODULE := $(TOOLCHAIN_XTENSA)/esp-idf
 init-esp-idf:
