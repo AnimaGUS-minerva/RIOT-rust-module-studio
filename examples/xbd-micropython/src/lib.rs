@@ -27,7 +27,6 @@ mod tests;
 
 //
 
-#[cfg(feature = "v3")]
 fn init_psa_crypto() {
     use minerva_mbedtls::psa_crypto;
 
@@ -42,12 +41,12 @@ use minerva_voucher::{vrq, attr::*};
 use core::convert::TryFrom;
 
 #[cfg(not(any(feature = "x86", feature = "xtensa")))]
-use minerva_voucher::Voucher; // for x86_64{,-lts}, {x86,xtensa}-lts
+use minerva_voucher::Voucher; // for x86_64
 #[cfg(any(feature = "x86", feature = "xtensa"))]
 use wip::Voucher;
 
 #[cfg(any(feature = "x86", feature = "xtensa"))]
-mod wip { // TODO adapt to voucher 0.6.0 -- `CARGO_FEATURES="--features xtensa"  make esp32-build-module`
+mod wip { // TODO adapt to voucher 0.7.x -- `CARGO_FEATURES="--features xtensa"  make esp32-build-module`
     use super::*;
     use minerva_voucher::Voucher as BaseVoucher;
 

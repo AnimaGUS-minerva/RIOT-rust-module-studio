@@ -4,7 +4,6 @@ use core::convert::TryFrom;
 
 #[test]
 fn test_voucher_decode_jada() {
-    #[cfg(feature = "v3")]
     crate::init_psa_crypto();
 
     let vch = Voucher::try_from(VOUCHER_JADA).unwrap();
@@ -18,7 +17,6 @@ fn test_voucher_decode_jada() {
 
 #[test]
 fn test_voucher_validate_jada() {
-    #[cfg(feature = "v3")]
     crate::init_psa_crypto();
 
     let vch = Voucher::try_from(VOUCHER_JADA).unwrap();
@@ -29,7 +27,6 @@ fn test_voucher_validate_jada() {
 
 #[test]
 fn test_voucher_decode_f2_00_02() {
-    #[cfg(feature = "v3")]
     crate::init_psa_crypto();
 
     let vch = Voucher::try_from(VOUCHER_F2_00_02).unwrap();
@@ -43,7 +40,6 @@ fn test_voucher_decode_f2_00_02() {
 
 #[test]
 fn test_voucher_validate_f2_00_02() {
-    #[cfg(feature = "v3")]
     crate::init_psa_crypto();
 
     let vch = Voucher::try_from(VOUCHER_F2_00_02).unwrap();
