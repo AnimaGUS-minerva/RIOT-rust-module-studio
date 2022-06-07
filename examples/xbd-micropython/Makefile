@@ -28,7 +28,7 @@ MP_PORTS_RIOT_DIR := $(CURDIR)/micropython/ports/riot
 # native
 
 build-native: micropython clone-RIOT
-	CARGO_FEATURES="--features 'x86-lts'"  make native-build-module
+	CARGO_FEATURES="--features 'x86'"  make native-build-module
 	ln -sf ../../../RIOT $(MP_PORTS_RIOT_DIR)/
 	make -C $(MP_PORTS_RIOT_DIR)
 
@@ -43,7 +43,7 @@ test-native:
 # esp32
 
 build-esp32: micropython clone-RIOT
-	CARGO_FEATURES="--features 'xtensa-lts'"  make esp32-build-module
+	CARGO_FEATURES="--features 'xtensa'"  make esp32-build-module
 	ln -sf ../../../RIOT $(MP_PORTS_RIOT_DIR)/
 	RIOT_BASE=$(MP_PORTS_RIOT_DIR)/RIOT \
 		RIOT_ESP32_IMG=$(CURDIR)/riot.esp32.bin \
@@ -58,8 +58,6 @@ test-esp32:
 
 # std
 
-test-std-lts:
-	cargo +nightly-x86_64-unknown-linux-gnu test --features x86_64-lts
 test-std:
 	cargo +nightly-x86_64-unknown-linux-gnu test --features x86_64
 
@@ -69,8 +67,7 @@ run: run-native
 
 test:
 	make clean && make test-native
-	make clean && make test-esp32
-	make test-std-lts
+	##TODO##make clean && make test-esp32
 	make test-std
 
 clean:
