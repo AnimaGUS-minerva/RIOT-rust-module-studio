@@ -35,12 +35,8 @@ jobs:
       run: make init-riot-xtensa
     - name: make init-qemu-xtensa
       run: make init-qemu-xtensa
-    - name: make init-rust-i686-nightly
-      run: make init-rust-i686-nightly
-    - name: make init-rust-x86_64-nightly
-      run: |
-          make init-rust-x86_64-nightly
-          rustup default nightly
+    - name: make init-rust-toolchains
+      run: make init-rust-toolchains
     - name: Run test
       run: |
           sudo apt update
