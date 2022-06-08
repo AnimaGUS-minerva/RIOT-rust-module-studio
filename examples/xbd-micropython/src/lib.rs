@@ -1,11 +1,11 @@
 #![no_std]
 #![feature(alloc_error_handler)]
 
-#[cfg(not(feature = "std"))]
+#[cfg(feature = "xtensa")]
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! { mcu_if::panic(info) }
 
-#[cfg(not(feature = "std"))]
+#[cfg(feature = "xtensa")]
 #[alloc_error_handler]
 fn alloc_error(layout: mcu_if::alloc::alloc::Layout) -> ! { mcu_if::alloc_error(layout) }
 
@@ -27,7 +27,7 @@ mod tests;
 
 //
 
-fn init_psa_crypto() {
+pub fn init_psa_crypto() {
     use minerva_mbedtls::psa_crypto;
 
     psa_crypto::init().unwrap();
@@ -40,12 +40,12 @@ use minerva_voucher::{Sign, Validate, SignatureAlgorithm};
 use minerva_voucher::{vrq, attr::*};
 use core::convert::TryFrom;
 
-#[cfg(not(any(feature = "x86", feature = "xtensa")))]
-use minerva_voucher::Voucher; // for x86_64
-#[cfg(any(feature = "x86", feature = "xtensa"))]
+#[cfg(not(feature = "xtensa"))]
+use minerva_voucher::Voucher;
+#[cfg(feature = "xtensa")]
 use wip::Voucher;
 
-#[cfg(any(feature = "x86", feature = "xtensa"))]
+#[cfg(feature = "xtensa")]
 mod wip { // TODO adapt to voucher 0.7.x -- `CARGO_FEATURES="--features xtensa"  make esp32-build-module`
     use super::*;
     use minerva_voucher::Voucher as BaseVoucher;
