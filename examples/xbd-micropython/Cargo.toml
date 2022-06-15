@@ -16,9 +16,8 @@ x86 = ["psa"]
 xtensa = ["psa"]  # TODO
 
 std = []
-psa = ["minerva-voucher/sign", "minerva-voucher/validate", "minerva-mbedtls"]
+psa = ["minerva-voucher/sign", "minerva-voucher/validate"]
 
 [dependencies]
 mcu-if = { git = "https://github.com/AnimaGUS-minerva/mcu-if", rev = "984b8dd" }
-minerva-voucher = { git = "https://github.com/AnimaGUS-minerva/voucher", rev = "5ca7deb", default-features = false }
-minerva-mbedtls = { git = "https://github.com/AnimaGUS-minerva/minerva-mbedtls", rev = "05e0353", default-features = false, optional = true }
+minerva-voucher = { git = "https://github.com/AnimaGUS-minerva/voucher", rev = "5ca7deb" }

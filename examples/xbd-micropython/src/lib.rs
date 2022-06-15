@@ -28,10 +28,7 @@ mod tests;
 //
 
 fn init_psa_crypto() {
-    use minerva_mbedtls::psa_crypto;
-
-    psa_crypto::init().unwrap();
-    psa_crypto::initialized().unwrap();
+    minerva_voucher::init_psa_crypto();
 }
 
 #[no_mangle]
