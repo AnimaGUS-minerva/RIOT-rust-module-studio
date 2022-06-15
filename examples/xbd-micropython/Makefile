@@ -56,10 +56,12 @@ run-esp32: build-esp32
 test-esp32:
 	EMU_TIMEOUT=16000  make run-esp32
 
-# std
+# misc.
 
 test-std:
 	cargo +nightly-x86_64-unknown-linux-gnu test --features x86_64
+test-i686:
+	cargo test --target i686-unknown-linux-gnu --features x86
 
 #
 
@@ -69,6 +71,7 @@ test:
 	make clean && make test-native
 	##TODO##make clean && make test-esp32
 	make test-std
+	make test-i686
 
 clean:
 	rm -rf target micropython
