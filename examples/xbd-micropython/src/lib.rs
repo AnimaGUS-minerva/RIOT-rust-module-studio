@@ -27,8 +27,19 @@ mod tests;
 
 //
 
+fn fixme_validate_crashing() {
+    println!("@@ fixme_validate_crashing(): VOUCHER_JADA: [len={}]", VOUCHER_JADA.len());
+
+    println!("@@ !!!! before validate");
+    let _ = Voucher::try_from(VOUCHER_JADA).unwrap().validate(None).is_ok();
+    println!("@@ !!!! after validate"); // not seen
+}
+
 fn init_psa_crypto() {
     minerva_voucher::init_psa_crypto();
+
+    if 0 == 1 { // `make test-native` crashes when enabled
+        fixme_validate_crashing(); }
 }
 
 #[no_mangle]
