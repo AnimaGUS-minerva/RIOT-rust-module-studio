@@ -27,19 +27,8 @@ mod tests;
 
 //
 
-fn fixme_validate_crashing() {
-    println!("@@ fixme_validate_crashing(): VOUCHER_JADA: [len={}]", VOUCHER_JADA.len());
-
-    println!("@@ !!!! before validate");
-    let _ = Voucher::try_from(VOUCHER_JADA).unwrap().validate(None).is_ok();
-    println!("@@ !!!! after validate"); // not seen
-}
-
 fn init_psa_crypto() {
     minerva_voucher::init_psa_crypto();
-
-    if 0 == 1 { // `make test-native` crashes when enabled
-        fixme_validate_crashing(); }
 }
 
 #[no_mangle]
@@ -154,7 +143,6 @@ pub extern fn vch_validate(ptr: *const u8, sz: usize) -> bool {
     let raw_voucher = u8_slice_from(ptr, sz);
     println!("@@ validating raw_voucher: [len={}]", raw_voucher.len());
 
-    if 1 == 1 { println!("vch_validate(): ⚠️ FIXME crashing on `make run-native`; returing `false` as workaround."); return false; }
     Voucher::try_from(raw_voucher).unwrap().validate(None).is_ok()
 }
 
