@@ -1,7 +1,8 @@
 [package]
-name = "xbd-base"
+name = "xbd-psa"
 version = "0.1.0"
-edition = "2018"
+#edition = "2018"  # FIXME in case of xtensa-esp32 toolchain: error[E0463]: can't find crate for `std` ; error: could not compile `memchr` due to previous error
+edition = "2021"  # kludge
 authors = ["ANIMA Minerva toolkit"]
 
 [lib]
@@ -10,3 +11,9 @@ crate-type = ["staticlib"]
 
 [dependencies]
 mcu-if = { git = "https://github.com/AnimaGUS-minerva/mcu-if", rev = "984b8dd" }
+
+psa-crypto = { git = "https://github.com/AnimaGUS-minerva/rust-psa-crypto", rev = "a9cacd4", default-features = false, features=["minerva"] }
+##psa-crypto = { path = "./rust-psa-crypto--ttt2/psa-crypto", default-features = false, features=["minerva"] }  # needs `git submodule update --init`
+#==== !!!!switch
+##minerva-mbedtls = { git = "https://github.com/AnimaGUS-minerva/minerva-mbedtls", rev = "44c4fb2" }
+##minerva-mbedtls = { path = "./minerva-mbedtls--ttt2" }
