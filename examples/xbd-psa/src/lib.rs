@@ -38,9 +38,9 @@ fn demo_psa() {
     // TODO - for now, in case of arch `xtensa`, RIOT linking fails !!
     //        https://github.com/AnimaGUS-minerva/rust-psa-crypto/commit/a9cacd4afa937ac90931c9ef054cb3119a4006ac
     //----
-    //psa_crypto::init().unwrap(); // !!
-    //psa_crypto::initialized().unwrap(); // !!
-    //let _info = md_info::from_type(MD_SHA256); // !!
+    psa_crypto::init().unwrap(); // !!
+    psa_crypto::initialized().unwrap(); // !!
+    let _info = md_info::from_type(MD_SHA256); // !!
     //====
 
     //
