@@ -12,8 +12,8 @@ crate-type = ["staticlib"]
 [dependencies]
 mcu-if = { git = "https://github.com/AnimaGUS-minerva/mcu-if", rev = "984b8dd" }
 
-psa-crypto = { git = "https://github.com/AnimaGUS-minerva/rust-psa-crypto", rev = "16c33cc", default-features = false, features=["minerva"] }
+##psa-crypto = { git = "https://github.com/AnimaGUS-minerva/rust-psa-crypto", rev = "408b1d1", default-features = false, features=["minerva"] }
 ##psa-crypto = { path = "./rust-psa-crypto--ttt2/psa-crypto", default-features = false, features=["minerva"] }  # needs `git submodule update --init`
-#==== !!!!switch
-##minerva-mbedtls = { git = "https://github.com/AnimaGUS-minerva/minerva-mbedtls", rev = "91f0f52" }
+#==== !!!!switch, TODO !! exercise test units from the 'minerva-mbedtls-test' crate
+minerva-mbedtls = { git = "https://github.com/AnimaGUS-minerva/minerva-mbedtls", rev = "fba3bff" }
 ##minerva-mbedtls = { path = "./minerva-mbedtls--ttt2" }
