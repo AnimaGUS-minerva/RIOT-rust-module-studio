@@ -23,10 +23,10 @@ pub extern fn square(input: i32) -> i32 {
 
 //
 
-//use psa_crypto::{self, ffi};
+use psa_crypto::{self, ffi};
 //==== !!!!switch
-use minerva_mbedtls::{psa_crypto, psa_ifce};
-use psa_crypto::ffi;
+//use minerva_mbedtls::{psa_crypto, psa_ifce};
+//use psa_crypto::ffi;
 
 fn demo_psa() {
     // ok
