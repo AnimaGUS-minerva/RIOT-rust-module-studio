@@ -23,10 +23,10 @@ pub extern fn square(input: i32) -> i32 {
 
 //
 
-use psa_crypto::{self, ffi};
+//use psa_crypto::{self, ffi};
 //==== !!!!switch
-//use minerva_mbedtls::{psa_crypto, psa_ifce};
-//use psa_crypto::ffi;
+use minerva_mbedtls::{psa_crypto, psa_ifce};
+use psa_crypto::ffi;
 
 fn demo_psa() {
     // ok
@@ -35,9 +35,9 @@ fn demo_psa() {
     println!("enum value of `ffi::MD_SHA512`: {:?}", ffi::MD_SHA512); // 6
 
     //====
-    psa_crypto::init().unwrap(); // FIXME xtensa - "called `Result::unwrap()` on an `Err` value: InsufficientEntropy"
-    psa_crypto::initialized().unwrap(); // !!
-    let _info = md_info::from_type(MD_SHA256); // !!
+    psa_crypto::init().unwrap();
+    psa_crypto::initialized().unwrap();
+    let _info = md_info::from_type(MD_SHA256);
     //====
 
     //
