@@ -1,2 +1,1 @@
-
-int square(int input);
+void start(void);

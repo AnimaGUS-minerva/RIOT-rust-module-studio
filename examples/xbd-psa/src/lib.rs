@@ -7,51 +7,49 @@ fn panic(info: &core::panic::PanicInfo) -> ! { mcu_if::panic(info) }
 #[alloc_error_handler]
 fn alloc_error(layout: mcu_if::alloc::alloc::Layout) -> ! { mcu_if::alloc_error(layout) }
 
-//
-
 use mcu_if::println;
-use mcu_if::alloc::{vec, vec::Vec};
 
 #[no_mangle]
-pub extern fn square(input: i32) -> i32 {
-    println!("[src/lib.rs] square(): input: {}", input);
-
-    demo_psa();
-
-    input * input
+pub extern fn start() {
+    println!("[src/lib.rs] start(): ^^");
+    psa_demo();
+    psa_tests();
 }
 
-//
+fn psa_demo() {
+    use minerva_mbedtls_test::minerva_mbedtls::{psa_crypto::{self, ffi}, psa_ifce};
+    println!("psa_demo(): ^^");
 
-//use psa_crypto::{self, ffi};
-//==== !!!!switch
-use minerva_mbedtls::{psa_crypto, psa_ifce};
-use psa_crypto::ffi;
-
-fn demo_psa() {
-    // ok
     println!("enum value of `ffi::MD_SHA256`: {:?}", ffi::MD_SHA256); // 4
     println!("enum value of `ffi::MD_SHA384`: {:?}", ffi::MD_SHA384); // 5
     println!("enum value of `ffi::MD_SHA512`: {:?}", ffi::MD_SHA512); // 6
 
-    //====
     psa_crypto::init().unwrap();
     psa_crypto::initialized().unwrap();
-    let _info = md_info::from_type(MD_SHA256);
-    //====
 
-    //
+    let _ = psa_ifce::pk_context::new(); // ok
+    //let _ = psa_ifce::x509_crt::new(); // FIXME linker issues
 
-    println!("Vec::from([0, 1, 2]): {:?}", Vec::from([0, 1, 2]));
-    println!("vec![0, 1, 2]: {:?}", vec![0, 1, 2]);
+    println!("psa_demo(): vv");
 }
 
-//
+fn psa_tests() {
+    use minerva_mbedtls_test::*;
+    println!("psa_tests(): ^^");
 
-pub use ffi::{md_type_t, MD_SHA256};
-pub struct md_info(*const ffi::md_info_t);
-impl md_info {
-    pub fn from_type(ty: ffi::md_type_t) -> Self {
-        Self(unsafe { ffi::md_info_from_type(ty) })
-    }
+    type TestType = fn() -> Result<(), minerva_mbedtls::mbedtls_error>;
+    let tv = [
+        ("test_md", test_md as TestType),
+        ("test_pk_context_verify_via_ecp", test_pk_context_verify_via_ecp),
+        /* FIXME linker issues */ //("test_pk_context_verify_via_x509_crt", test_pk_context_verify_via_x509_crt),
+        ("test_pk_context_sign", test_pk_context_sign),
+        ("test_utils_is_asn1_signature", test_utils_is_asn1_signature),
+    ];
+
+    tv.iter().enumerate().for_each(|(i, (title, test))| {
+        println!("🧪 [{}/{}] {} ... ", i + 1, tv.len(), title);
+        println!("{}", if test().is_ok() { "✅" } else { "❌" });
+    });
+
+    println!("psa_tests(): vv");
 }

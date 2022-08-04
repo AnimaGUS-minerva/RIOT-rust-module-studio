@@ -11,7 +11,4 @@ crate-type = ["staticlib"]
 
 [dependencies]
 mcu-if = { git = "https://github.com/AnimaGUS-minerva/mcu-if", rev = "984b8dd" }
-
-#psa-crypto = { git = "https://github.com/AnimaGUS-minerva/rust-psa-crypto", rev = "dd28b72", default-features = false, features=["minerva"] }
-#==== !!!!switch, TODO !! exercise test units from the 'minerva-mbedtls-test' crate
-minerva-mbedtls = { git = "https://github.com/AnimaGUS-minerva/minerva-mbedtls", rev = "3074b6b" }
+minerva-mbedtls-test = { git = "https://github.com/AnimaGUS-minerva/minerva-mbedtls", rev = "8b281b3" }
