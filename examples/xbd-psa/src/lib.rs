@@ -28,7 +28,7 @@ fn psa_demo() {
     psa_crypto::initialized().unwrap();
 
     let _ = psa_ifce::pk_context::new(); // ok
-    //let _ = psa_ifce::x509_crt::new(); // FIXME linker issues
+    let _ = psa_ifce::x509_crt::new(); // ok
 
     println!("psa_demo(): vv");
 }
@@ -41,7 +41,7 @@ fn psa_tests() {
     let tv = [
         ("test_md", test_md as TestType),
         ("test_pk_context_verify_via_ecp", test_pk_context_verify_via_ecp),
-        /* FIXME linker issues */ //("test_pk_context_verify_via_x509_crt", test_pk_context_verify_via_x509_crt),
+        ("test_pk_context_verify_via_x509_crt", test_pk_context_verify_via_x509_crt),
         ("test_pk_context_sign", test_pk_context_sign),
         ("test_utils_is_asn1_signature", test_utils_is_asn1_signature),
     ];
