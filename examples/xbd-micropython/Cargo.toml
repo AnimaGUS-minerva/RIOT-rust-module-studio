@@ -14,6 +14,7 @@ default = []
 x86_64 = ["std", "psa"]
 x86 = ["psa"]
 xtensa = ["psa"]  # TODO
+# WIP !!!! `make build-esp32`
 
 std = []
 psa = ["minerva-voucher/sign", "minerva-voucher/validate"]
