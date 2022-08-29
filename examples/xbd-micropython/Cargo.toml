@@ -20,4 +20,4 @@ psa = ["minerva-voucher/sign", "minerva-voucher/validate"]
 
 [dependencies]
 mcu-if = { git = "https://github.com/AnimaGUS-minerva/mcu-if", rev = "984b8dd" }
-minerva-voucher = { git = "https://github.com/AnimaGUS-minerva/voucher", rev = "a86d74b" }
+minerva-voucher = { git = "https://github.com/AnimaGUS-minerva/voucher", rev = "f0bdd45" }
