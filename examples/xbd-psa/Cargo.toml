@@ -1,8 +1,7 @@
 [package]
 name = "xbd-psa"
 version = "0.1.0"
-#edition = "2018"  # FIXME in case of xtensa-esp32 toolchain: error[E0463]: can't find crate for `std` ; error: could not compile `memchr` due to previous error
-edition = "2021"  # kludge
+edition = "2021"
 authors = ["ANIMA Minerva toolkit"]
 
 [lib]
