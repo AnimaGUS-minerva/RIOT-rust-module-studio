@@ -38,35 +38,9 @@ pub extern fn vch_init_psa_crypto() {
 
 //
 
-use minerva_voucher::{Sign, Validate, SignatureAlgorithm};
+use minerva_voucher::{Voucher, Sign, Validate, SignatureAlgorithm};
 use minerva_voucher::{vrq, attr::*};
 use core::convert::TryFrom;
-
-#[cfg(not(feature = "xtensa"))]
-use minerva_voucher::Voucher;
-#[cfg(feature = "xtensa")]
-use wip::Voucher;
-
-#[cfg(feature = "xtensa")]
-mod wip { // TODO adapt to voucher 0.7.x -- `CARGO_FEATURES="--features xtensa"  make esp32-build-module`
-    use super::*;
-    use minerva_voucher::Voucher as BaseVoucher;
-
-    pub struct Voucher(BaseVoucher); // dummy `Voucher` without validation capability
-    impl Voucher {
-        pub fn from(raw: &[u8]) -> Self { Voucher(BaseVoucher::try_from(raw).unwrap()) }
-    }
-    impl core::ops::Deref for Voucher {
-        type Target = BaseVoucher;
-        fn deref(&self) -> &Self::Target { &self.0 }
-    }
-    impl Validate for Voucher {
-        fn validate(&self, _masa_pem: Option<&[u8]>) -> Result<&Self, VoucherError> {
-            println!("⚠️ WIP -- `x86`, `xtensa` (v3 with PSA); validation fails for now!!");
-            Err(VoucherError::ValidationFailed)
-        }
-    }
-}
 
 //
 
