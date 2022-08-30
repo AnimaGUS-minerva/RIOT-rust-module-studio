@@ -69,7 +69,7 @@ run: run-native
 
 test:
 	make clean && make test-native
-	##TODO##make clean && make test-esp32
+	make clean && make test-esp32
 	make test-std
 	make test-i686
 
