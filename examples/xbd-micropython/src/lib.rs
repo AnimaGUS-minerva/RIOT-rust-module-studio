@@ -1,11 +1,11 @@
 #![no_std]
 #![feature(alloc_error_handler)]
 
-#[cfg(not(feature = "std"))]
+#[cfg(all(not(feature = "std"), not(test)))]
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! { mcu_if::panic(info) }
 
-#[cfg(not(feature = "std"))]
+#[cfg(all(not(feature = "std"), not(test)))]
 #[alloc_error_handler]
 fn alloc_error(layout: mcu_if::alloc::alloc::Layout) -> ! { mcu_if::alloc_error(layout) }
 
