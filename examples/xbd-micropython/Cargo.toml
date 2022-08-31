@@ -10,13 +10,8 @@ crate-type = ["staticlib"]
 
 [features]
 default = []
-
-x86_64 = ["std", "psa"]
-x86 = ["psa"]
-xtensa = ["psa"]
-
+x86_64 = ["std"]
 std = []
-psa = ["minerva-voucher/sign", "minerva-voucher/validate"]
 
 [dependencies]
 mcu-if = { git = "https://github.com/AnimaGUS-minerva/mcu-if", rev = "984b8dd" }
