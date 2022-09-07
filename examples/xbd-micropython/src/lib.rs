@@ -32,7 +32,7 @@ fn init_psa_crypto() {
 }
 
 #[no_mangle]
-pub extern fn vch_init_psa_crypto() {
+pub extern fn vi_init_psa_crypto() {
     init_psa_crypto();
 }
 
@@ -61,27 +61,27 @@ static DEVICE_CRT_F2_00_02: &[u8] = core::include_bytes!(
 
 
 #[no_mangle]
-pub extern fn vch_get_voucher_jada(pp: *mut *const u8) -> usize {
+pub extern fn vi_get_voucher_jada(pp: *mut *const u8) -> usize {
     set_bytes_static(VOUCHER_JADA, pp)
 }
 
 #[no_mangle]
-pub extern fn vch_get_voucher_F2_00_02(pp: *mut *const u8) -> usize {
+pub extern fn vi_get_voucher_F2_00_02(pp: *mut *const u8) -> usize {
     set_bytes_static(VOUCHER_F2_00_02, pp)
 }
 
 #[no_mangle]
-pub extern fn vch_get_masa_pem_F2_00_02(pp: *mut *const u8) -> usize {
+pub extern fn vi_get_masa_pem_F2_00_02(pp: *mut *const u8) -> usize {
     set_bytes_static(MASA_PEM_F2_00_02, pp)
 }
 
 #[no_mangle]
-pub extern fn vch_get_key_pem_F2_00_02(pp: *mut *const u8) -> usize {
+pub extern fn vi_get_key_pem_F2_00_02(pp: *mut *const u8) -> usize {
     set_bytes_static(KEY_PEM_F2_00_02, pp)
 }
 
 #[no_mangle]
-pub extern fn vch_get_device_crt_F2_00_02(pp: *mut *const u8) -> usize {
+pub extern fn vi_get_device_crt_F2_00_02(pp: *mut *const u8) -> usize {
     set_bytes_static(DEVICE_CRT_F2_00_02, pp)
 }
 
@@ -104,7 +104,7 @@ fn set_bytes_heap(bytes: Vec<u8>, pp: *mut *const u8) -> usize {
 //
 
 #[no_mangle]
-pub extern fn vch_debug(ptr: *const u8, sz: usize) {
+pub extern fn vi_dump(ptr: *const u8, sz: usize) {
     let raw_voucher = u8_slice_from(ptr, sz);
 
     Voucher::try_from(raw_voucher).unwrap().dump()
@@ -113,7 +113,7 @@ pub extern fn vch_debug(ptr: *const u8, sz: usize) {
 //
 
 #[no_mangle]
-pub extern fn vch_validate(ptr: *const u8, sz: usize) -> bool {
+pub extern fn vi_validate(ptr: *const u8, sz: usize) -> bool {
     let raw_voucher = u8_slice_from(ptr, sz);
     println!("@@ validating raw_voucher: [len={}]", raw_voucher.len());
 
@@ -121,7 +121,7 @@ pub extern fn vch_validate(ptr: *const u8, sz: usize) -> bool {
 }
 
 #[no_mangle]
-pub extern fn vch_validate_with_pem(ptr: *const u8, sz: usize, ptr_pem: *const u8, sz_pem: usize) -> bool {
+pub extern fn vi_validate_with_pem(ptr: *const u8, sz: usize, ptr_pem: *const u8, sz_pem: usize) -> bool {
     let raw_voucher = u8_slice_from(ptr, sz);
     let pem = u8_slice_from(ptr_pem, sz_pem);
     println!("@@ validating raw_voucher with pem: [len={}] [len={}]", raw_voucher.len(), pem.len());
@@ -132,12 +132,12 @@ pub extern fn vch_validate_with_pem(ptr: *const u8, sz: usize, ptr_pem: *const u
 //
 
 #[no_mangle]
-pub extern fn vch_get_vrq_F2_00_02(pp: *mut *const u8) -> usize {
+pub extern fn vi_get_vrq_F2_00_02(pp: *mut *const u8) -> usize {
     set_bytes_static(VOUCHER_REQUEST_F2_00_02, pp)
 }
 
 #[no_mangle]
-pub extern fn vch_create_vrq_F2_00_02(pp: *mut *const u8) -> usize {
+pub extern fn vi_create_vrq_F2_00_02(pp: *mut *const u8) -> usize {
     let vrq = vrq![
         Attr::Assertion(Assertion::Proximity),
         Attr::CreatedOn(1599086034),
@@ -149,13 +149,13 @@ pub extern fn vch_create_vrq_F2_00_02(pp: *mut *const u8) -> usize {
 }
 
 #[no_mangle]
-pub extern fn vch_sign(
+pub extern fn vi_sign(
     ptr_raw: *const u8, sz_raw: usize, ptr_key: *const u8, sz_key: usize,
     pp: *mut *const u8
 ) -> usize {
     let raw = u8_slice_from(ptr_raw, sz_raw);
     let key = u8_slice_from(ptr_key, sz_key);
-    println!("@@ vch_sign(): [len_raw={}] [len_key={}]", raw.len(), key.len());
+    println!("@@ vi_sign(): [len_raw={}] [len_key={}]", raw.len(), key.len());
 
     let mut vch = Voucher::try_from(raw).unwrap();
     vch.sign(key, SignatureAlgorithm::ES256).unwrap();
@@ -166,6 +166,6 @@ pub extern fn vch_sign(
 //
 
 #[no_mangle]
-pub extern fn vch_square(input: i32) -> i32 {
+pub extern fn vi_square(input: i32) -> i32 {
     input * input
 }

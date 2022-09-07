@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["ANIMA Minerva toolkit"]
 
 [lib]
-name = "voucher"
+name = "voucher_if"
 crate-type = ["staticlib"]
 
 [features]
