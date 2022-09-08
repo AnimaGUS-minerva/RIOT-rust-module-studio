@@ -15,3 +15,10 @@ size_t vi_sign(const uint8_t *ptr_raw, size_t sz_raw, const uint8_t *ptr_key, si
 bool vi_validate(const uint8_t *ptr, size_t sz);
 bool vi_validate_with_pem(const uint8_t *ptr, size_t sz, const uint8_t *ptr_pem, size_t sz_pem);
 void vi_dump(const uint8_t *ptr, size_t sz);
+
+//
+
+typedef void vi_provider_t;
+void vi_provider_allocate(vi_provider_t **pp, bool is_vrq);
+void vi_provider_free(vi_provider_t **pp);
+void vi_provider_set(vi_provider_t *p, int val);

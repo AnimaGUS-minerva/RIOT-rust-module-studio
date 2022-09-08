@@ -166,6 +166,49 @@ pub extern fn vi_sign(
 //
 
 #[no_mangle]
+pub extern fn vi_provider_allocate(pp: *mut *const core::ffi::c_void, is_vrq: bool) {
+    let mut vou = if is_vrq { Voucher::new_vrq() } else { Voucher::new_vch() };
+
+    vou.set(Attr::CreatedOn(42)); // !! ok
+    vou.dump(); // !! ok
+
+    unsafe { *pp = & vou as *const Voucher as *const core::ffi::c_void; }
+    core::mem::forget(vou); // check !!!! WIP
+}
+
+#[no_mangle]
+pub extern fn vi_provider_set(p: *mut core::ffi::c_void, val: core::ffi::c_int) {
+    println!("@@ vi_provider_set(): val: {}", val);
+
+    let vou = unsafe { &mut *(p as *mut Voucher) };
+
+    println!("@@ vi_provider_set(): vou.is_vrq(): {}", vou.is_vrq()); // ok
+    println!("@@ vi_provider_set(): vou.is_vch(): {}", vou.is_vch()); // ok
+
+    vou.set(Attr::CreatedOn(1599086034)); // FIXME DEBUG
+    println!("@@ vi_provider_set(): vou.is_vch(): {}", vou.is_vch());
+
+    //println!("@@ vi_provider_set(): vou.len(): {}", vou.len()); // FIXME
+
+    // vou.dump(); // before
+    // //...
+    // vou.dump(); // after
+}
+
+/*
+vi_provider_t
+
+vi_provider_allocate()
+vi_provider_free()
+
+vi_provider_set()
+...
+
+ */
+
+//
+
+#[no_mangle]
 pub extern fn vi_square(input: i32) -> i32 {
     input * input
 }
