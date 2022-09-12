@@ -1,3 +1,12 @@
+#ifndef VOUCHER_IF_H
+#define VOUCHER_IF_H
+
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int vi_square(int);
 
 void vi_init_psa_crypto(void);
@@ -22,3 +31,9 @@ typedef void vi_provider_t;
 void vi_provider_allocate(vi_provider_t **pp, bool is_vrq);
 void vi_provider_free(vi_provider_t **pp);
 void vi_provider_set(vi_provider_t *p, int val);
+
+#endif // VOUCHER_IF_H
+
+#ifdef __cplusplus
+}
+#endif
