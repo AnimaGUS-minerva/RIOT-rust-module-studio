@@ -178,10 +178,14 @@ pub extern fn vi_sign(
 type ProviderPtr = *const c_void;
 
 fn get_voucher_ref(ptr: ProviderPtr) -> &'static Voucher {
+    assert!(ptr != core::ptr::null());
+
     unsafe { & *(ptr as *const Voucher) }
 }
 
 fn get_voucher_mut(ptr: ProviderPtr) -> &'static mut Voucher {
+    assert!(ptr != core::ptr::null());
+
     unsafe { &mut *(ptr as *mut Voucher) }
 }
 
@@ -196,8 +200,16 @@ pub extern fn vi_provider_allocate(pp: *mut ProviderPtr, is_vrq: bool) {
 }
 
 #[no_mangle]
-pub extern fn vi_provider_free(_pp: *mut ProviderPtr) {
-    // !!!!
+pub extern fn vi_provider_free(pp: *mut ProviderPtr) {
+    let null = core::ptr::null();
+
+    let ptr = unsafe { *pp };
+    assert_ne!(ptr, null);
+
+    drop(unsafe { Box::from_raw(ptr as *mut Voucher) });
+
+    unsafe { *pp = null; }
+    assert_eq!(unsafe { *pp }, null);
 }
 
 #[no_mangle]
@@ -207,12 +219,11 @@ pub extern fn vi_provider_dump(ptr: ProviderPtr) {
 
 #[no_mangle]
 pub extern fn vi_provider_set(ptr: ProviderPtr, val: c_int) {
-    let vou = get_voucher_mut(ptr);
-
     println!("@@ vi_provider_set(): val: {}", val);
 
+    let vou = get_voucher_mut(ptr);
     //vou.dump();
-    vou.set(Attr::CreatedOn(val as u64)); // !!!!
+    vou.set(Attr::CreatedOn(val as u64)); // !!!! todo
 
     // vou.dump();
     // println!("@@ vi_provider_set(): vou (:p): {:p}", vou);
