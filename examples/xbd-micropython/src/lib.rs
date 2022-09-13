@@ -16,11 +16,12 @@ fn alloc_error(layout: mcu_if::alloc::alloc::Layout) -> ! { mcu_if::alloc_error(
 extern crate std;
 
 #[cfg(feature = "std")]
-use std::{println, vec::Vec, vec, boxed::Box};
+use std::{println, vec::Vec, vec, boxed::Box, os::raw::*};
 #[cfg(not(feature = "std"))]
-use mcu_if::{println, alloc::{vec::Vec, vec, boxed::Box}};
+use mcu_if::{println, alloc::{vec::Vec, vec, boxed::Box}, c_types::*};
 
-use core::mem::ManuallyDrop;
+#[allow(non_camel_case_types,dead_code)]
+type size_t = c_uint;
 
 //
 
@@ -42,7 +43,7 @@ pub extern fn vi_init_psa_crypto() {
 
 use minerva_voucher::{Voucher, Sign, Validate, SignatureAlgorithm};
 use minerva_voucher::{vrq, attr::*};
-use core::convert::TryFrom;
+use core::{convert::TryFrom, mem::ManuallyDrop};
 
 //
 
@@ -174,50 +175,50 @@ pub extern fn vi_sign(
 
 //
 
+type ProviderPtr = *const c_void;
+
+fn as_voucher_ref(ptr: ProviderPtr) -> &'static Voucher {
+    unsafe { & *(ptr as *const Voucher) }
+}
+
+fn as_voucher_ref_mut(ptr: ProviderPtr) -> &'static mut Voucher {
+    unsafe { &mut *(ptr as *mut Voucher) }
+}
+
 #[no_mangle]
-pub extern fn vi_provider_allocate(pp: *mut *const core::ffi::c_void, is_vrq: bool) {
-    let mut vou = if is_vrq { Voucher::new_vrq() } else { Voucher::new_vch() };
+pub extern fn vi_provider_allocate(pp: *mut ProviderPtr, is_vrq: bool) {
+    let vou = if is_vrq { Voucher::new_vrq() } else { Voucher::new_vch() };
 
-    vou.set(Attr::CreatedOn(42)); // !! debug
-    vou.dump(); // !! debug
+    let ptr = ManuallyDrop::new(Box::pin(vou)).as_ref().get_ref()
+        as *const Voucher as ProviderPtr;
 
-    let vou = ManuallyDrop::new(Box::pin(vou));
-
-    let ptr = vou.as_ref().get_ref() as *const Voucher as *const core::ffi::c_void; // ****
     unsafe { *pp = ptr; }
-
-
-    if 1 == 1 {
-        println!("@@ debug: ptr: {:?}", ptr);
-        let vou22 = unsafe { & *(ptr as *const Voucher) }; // **
-
-        println!("@@ debug: vou22 (:p): {:p}", vou22);
-        println!("@@ debug: vou22.is_vrq(): {}", vou22.is_vrq()); // ok
-        println!("@@ debug: vou22.is_vrq(): {}", vou22.is_vch()); // ok
-        //vou22.dump(); // ok
-        println!("@@ debug: vou.len(): {}", vou22.len()); // ok
-    }
 }
 
 #[no_mangle]
-pub extern fn vi_provider_free(pp: *mut *const core::ffi::c_void) {
-    //
+pub extern fn vi_provider_free(_pp: *mut ProviderPtr) {
+    // !!!!
 }
 
+#[no_mangle]
+pub extern fn vi_provider_dump(ptr: ProviderPtr) {
+    println!("@@ vi_provider_dump(): ptr: {:?}", ptr);
+
+    as_voucher_ref(ptr).dump();
+}
 
 #[no_mangle]
-pub extern fn vi_provider_set(ptr: *const core::ffi::c_void, val: core::ffi::c_int) {
+pub extern fn vi_provider_set(ptr: ProviderPtr, val: c_int) {
+    let vou = as_voucher_ref_mut(ptr);
+
     println!("@@ vi_provider_set(): val: {}", val);
-    println!("@@ vi_provider_set(): ptr: {:?}", ptr);
 
-    let vou = unsafe { & *(ptr as *const Voucher) }; // **
+    vou.dump(); // before
+    vou.set(Attr::CreatedOn(val as u64)); // !!!!
+    vou.dump(); // after
 
     println!("@@ vi_provider_set(): vou (:p): {:p}", vou);
     println!("@@ vi_provider_set(): vou.is_vrq(): {}", vou.is_vrq()); //
     println!("@@ vi_provider_set(): vou.is_vch(): {}", vou.is_vch()); //
     println!("@@ vi_provider_set(): vou.len(): {}", vou.len()); //
-
-    // vou.dump(); // before
-    // vou.set(Attr::CreatedOn(val as u64));
-    // vou.dump(); // after
 }
