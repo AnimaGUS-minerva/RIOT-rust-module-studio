@@ -177,11 +177,11 @@ pub extern fn vi_sign(
 
 type ProviderPtr = *const c_void;
 
-fn as_voucher_ref(ptr: ProviderPtr) -> &'static Voucher {
+fn get_voucher_ref(ptr: ProviderPtr) -> &'static Voucher {
     unsafe { & *(ptr as *const Voucher) }
 }
 
-fn as_voucher_ref_mut(ptr: ProviderPtr) -> &'static mut Voucher {
+fn get_voucher_mut(ptr: ProviderPtr) -> &'static mut Voucher {
     unsafe { &mut *(ptr as *mut Voucher) }
 }
 
@@ -202,23 +202,21 @@ pub extern fn vi_provider_free(_pp: *mut ProviderPtr) {
 
 #[no_mangle]
 pub extern fn vi_provider_dump(ptr: ProviderPtr) {
-    println!("@@ vi_provider_dump(): ptr: {:?}", ptr);
-
-    as_voucher_ref(ptr).dump();
+    get_voucher_ref(ptr).dump();
 }
 
 #[no_mangle]
 pub extern fn vi_provider_set(ptr: ProviderPtr, val: c_int) {
-    let vou = as_voucher_ref_mut(ptr);
+    let vou = get_voucher_mut(ptr);
 
     println!("@@ vi_provider_set(): val: {}", val);
 
-    vou.dump(); // before
+    //vou.dump();
     vou.set(Attr::CreatedOn(val as u64)); // !!!!
-    vou.dump(); // after
 
-    println!("@@ vi_provider_set(): vou (:p): {:p}", vou);
-    println!("@@ vi_provider_set(): vou.is_vrq(): {}", vou.is_vrq()); //
-    println!("@@ vi_provider_set(): vou.is_vch(): {}", vou.is_vch()); //
-    println!("@@ vi_provider_set(): vou.len(): {}", vou.len()); //
+    // vou.dump();
+    // println!("@@ vi_provider_set(): vou (:p): {:p}", vou);
+    // println!("@@ vi_provider_set(): vou.is_vrq(): {}", vou.is_vrq());
+    // println!("@@ vi_provider_set(): vou.is_vch(): {}", vou.is_vch());
+    // println!("@@ vi_provider_set(): vou.len(): {}", vou.len());
 }

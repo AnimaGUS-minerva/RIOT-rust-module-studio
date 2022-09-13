@@ -31,6 +31,7 @@ typedef void vi_provider_t;
 void vi_provider_allocate(vi_provider_t **pp, bool is_vrq);
 void vi_provider_free(vi_provider_t **pp);
 void vi_provider_set(vi_provider_t *p, int val);
+void vi_provider_dump(vi_provider_t *p);
 
 #endif // VOUCHER_IF_H
 
