@@ -34,6 +34,7 @@ void vi_provider_set_int(vi_provider_t *p, int attr_key, int attr_val);
 void vi_provider_set_bytes(vi_provider_t *p, int attr_key, const uint8_t *buf, size_t sz);
 void vi_provider_dump(vi_provider_t *p);
 
+// Ref: https://github.com/AnimaGUS-minerva/voucher/blob/master/src/attr.rs
 #define ATTR_ASSERTION                          (0x00)
 #define ATTR_CREATED_ON                         (0x01)
 #define ATTR_DOMAIN_CERT_REVOCATION_CHECKS      (0x02)
