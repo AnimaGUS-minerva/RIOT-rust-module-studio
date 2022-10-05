@@ -178,13 +178,13 @@ pub extern fn vi_sign(
 type ProviderPtr = *const c_void;
 
 fn get_voucher_ref(ptr: ProviderPtr) -> &'static Voucher {
-    assert!(ptr != core::ptr::null());
+    assert_ne!(ptr, core::ptr::null());
 
     unsafe { & *(ptr as *const Voucher) }
 }
 
 fn get_voucher_mut(ptr: ProviderPtr) -> &'static mut Voucher {
-    assert!(ptr != core::ptr::null());
+    assert_ne!(ptr, core::ptr::null());
 
     unsafe { &mut *(ptr as *mut Voucher) }
 }
@@ -218,16 +218,20 @@ pub extern fn vi_provider_dump(ptr: ProviderPtr) {
 }
 
 #[no_mangle]
-pub extern fn vi_provider_set(ptr: ProviderPtr, val: c_int) {
-    println!("@@ vi_provider_set(): val: {}", val);
+pub extern fn vi_provider_set_int(ptr: ProviderPtr, attr_key: c_int, attr_val: c_int) {
+    println!("@@ vi_provider_set_int(): attr_key: {} attr_val: {}", attr_key, attr_val);
 
     let vou = get_voucher_mut(ptr);
-    //vou.dump();
-    vou.set(Attr::CreatedOn(val as u64)); // !!!! todo
+    // TODO: resolve `attr_key`
+    vou.set(Attr::CreatedOn(attr_val as u64)); // !!!!
+}
 
-    // vou.dump();
-    // println!("@@ vi_provider_set(): vou (:p): {:p}", vou);
-    // println!("@@ vi_provider_set(): vou.is_vrq(): {}", vou.is_vrq());
-    // println!("@@ vi_provider_set(): vou.is_vch(): {}", vou.is_vch());
-    // println!("@@ vi_provider_set(): vou.len(): {}", vou.len());
+#[no_mangle]
+pub extern fn vi_provider_set_bytes(ptr: ProviderPtr, attr_key: c_int, buf: *const u8, sz: usize) {
+    let attr_val = u8_slice_from(buf, sz);
+    println!("@@ vi_provider_set_bytes(): attr_key: {} attr_val: {:?}", attr_key, attr_val);
+
+    let vou = get_voucher_mut(ptr);
+    // TODO: resolve `attr_key`
+    vou.set(Attr::SerialNumber(attr_val.to_vec())); // !!!!
 }
