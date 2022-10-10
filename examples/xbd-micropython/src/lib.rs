@@ -217,21 +217,46 @@ pub extern fn vi_provider_dump(ptr: ProviderPtr) {
     get_voucher_ref(ptr).dump();
 }
 
+/*
+    Assertion(Assertion) =                   ATTR_ASSERTION,
+    CreatedOn(u64) =                         ATTR_CREATED_ON,
+    DomainCertRevocationChecks(bool) =       ATTR_DOMAIN_CERT_REVOCATION_CHECKS,
+    ExpiresOn(u64) =                         ATTR_EXPIRES_ON,
+    LastRenewalDate(u64) =                   ATTR_LAST_RENEWAL_DATE,
+ */
 #[no_mangle]
-pub extern fn vi_provider_set_int(ptr: ProviderPtr, attr_key: c_int, attr_val: c_int) {
+pub extern fn vi_provider_set_int(ptr: ProviderPtr, attr_key: u8, attr_val: u64) -> bool {
     println!("@@ vi_provider_set_int(): attr_key: {} attr_val: {}", attr_key, attr_val);
 
     let vou = get_voucher_mut(ptr);
     // TODO: resolve `attr_key`
-    vou.set(Attr::CreatedOn(attr_val as u64)); // !!!!
+    vou.set(Attr::CreatedOn(attr_val)); // !!!!
+
+    true // !!!!
 }
 
 #[no_mangle]
-pub extern fn vi_provider_set_bytes(ptr: ProviderPtr, attr_key: c_int, buf: *const u8, sz: usize) {
-    let attr_val = u8_slice_from(buf, sz);
-    println!("@@ vi_provider_set_bytes(): attr_key: {} attr_val: {:?}", attr_key, attr_val);
+pub extern fn vi_provider_set_bytes(ptr: ProviderPtr, attr_key: u8, buf: *const u8, sz: usize) -> bool {
+    use Attr::*;
+    let bytes = u8_slice_from(buf, sz).to_vec();
+    let attr = match attr_key {
+        ATTR_IDEVID_ISSUER => Some(IdevidIssuer(bytes)),
+        ATTR_NONCE => Some(Nonce(bytes)),
+        ATTR_PINNED_DOMAIN_CERT => Some(PinnedDomainCert(bytes)),
+        ATTR_PINNED_DOMAIN_PUBK => Some(PinnedDomainPubk(bytes)),
+        ATTR_PINNED_DOMAIN_PUBK_SHA256 => Some(PinnedDomainPubkSha256(bytes)),
+        ATTR_PRIOR_SIGNED_VOUCHER_REQUEST => Some(PriorSignedVoucherRequest(bytes)),
+        ATTR_PROXIMITY_REGISTRAR_CERT => Some(ProximityRegistrarCert(bytes)),
+        ATTR_PROXIMITY_REGISTRAR_PUBK => Some(ProximityRegistrarPubk(bytes)),
+        ATTR_PROXIMITY_REGISTRAR_PUBK_SHA256 => Some(ProximityRegistrarPubkSha256(bytes)),
+        ATTR_SERIAL_NUMBER => Some(SerialNumber(bytes)),
+        _ => None,
+    };
 
-    let vou = get_voucher_mut(ptr);
-    // TODO: resolve `attr_key`
-    vou.set(Attr::SerialNumber(attr_val.to_vec())); // !!!!
+    if let Some(attr) = attr {
+        get_voucher_mut(ptr).set(attr);
+        true
+    } else {
+        false
+    }
 }
