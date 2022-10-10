@@ -50,6 +50,9 @@ void vi_provider_dump(vi_provider_t *p);
 #define ATTR_PROXIMITY_REGISTRAR_PUBK           (0x42) // vrq only
 #define ATTR_PROXIMITY_REGISTRAR_PUBK_SHA256    (0x43) // vrq only
 #define ATTR_SERIAL_NUMBER                      (0x08)
+#define ASSERTION_VERIFIED                      (0)
+#define ASSERTION_LOGGED                        (1)
+#define ASSERTION_PROXIMITY                     (2)
 
 #endif // VOUCHER_IF_H
 

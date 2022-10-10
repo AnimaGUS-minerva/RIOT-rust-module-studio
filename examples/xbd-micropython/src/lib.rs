@@ -42,7 +42,7 @@ pub extern fn vi_init_psa_crypto() {
 //
 
 use minerva_voucher::{Voucher, Sign, Validate, SignatureAlgorithm};
-use minerva_voucher::{vrq, attr::*};
+use minerva_voucher::{vrq, attr::{self, *}};
 use core::{convert::TryFrom, mem::ManuallyDrop};
 
 //
@@ -217,29 +217,42 @@ pub extern fn vi_provider_dump(ptr: ProviderPtr) {
     get_voucher_ref(ptr).dump();
 }
 
-/*
-    Assertion(Assertion) =                   ATTR_ASSERTION,
-    CreatedOn(u64) =                         ATTR_CREATED_ON,
-    DomainCertRevocationChecks(bool) =       ATTR_DOMAIN_CERT_REVOCATION_CHECKS,
-    ExpiresOn(u64) =                         ATTR_EXPIRES_ON,
-    LastRenewalDate(u64) =                   ATTR_LAST_RENEWAL_DATE,
- */
+fn set_inner(ptr: ProviderPtr, attr: Option<Attr>) -> bool {
+    if let Some(attr) = attr {
+        get_voucher_mut(ptr).set(attr);
+        true
+    } else {
+        false
+    }
+}
+
 #[no_mangle]
 pub extern fn vi_provider_set_int(ptr: ProviderPtr, attr_key: u8, attr_val: u64) -> bool {
-    println!("@@ vi_provider_set_int(): attr_key: {} attr_val: {}", attr_key, attr_val);
+    use Attr::*;
+    println!("@@ vi_provider_set_int(): attr_key: {} | attr_val: {}", attr_key, attr_val);
 
-    let vou = get_voucher_mut(ptr);
-    // TODO: resolve `attr_key`
-    vou.set(Attr::CreatedOn(attr_val)); // !!!!
-
-    true // !!!!
+    set_inner(ptr, match attr_key {
+        ATTR_ASSERTION => match attr_val {
+            0 => Some(Assertion(attr::Assertion::Verified)),
+            1 => Some(Assertion(attr::Assertion::Logged)),
+            2 => Some(Assertion(attr::Assertion::Proximity)),
+            _ => None,
+        },
+        ATTR_CREATED_ON => Some(CreatedOn(attr_val)),
+        // WIP !!!!
+        //ATTR_DOMAIN_CERT_REVOCATION_CHECKS => Some(DomainCertRevocationChecks(bool)),
+        ATTR_EXPIRES_ON => Some(ExpiresOn(attr_val)),
+        ATTR_LAST_RENEWAL_DATE => Some(LastRenewalDate(attr_val)),
+        _ => None,
+    })
 }
 
 #[no_mangle]
 pub extern fn vi_provider_set_bytes(ptr: ProviderPtr, attr_key: u8, buf: *const u8, sz: usize) -> bool {
     use Attr::*;
     let bytes = u8_slice_from(buf, sz).to_vec();
-    let attr = match attr_key {
+
+    set_inner(ptr, match attr_key {
         ATTR_IDEVID_ISSUER => Some(IdevidIssuer(bytes)),
         ATTR_NONCE => Some(Nonce(bytes)),
         ATTR_PINNED_DOMAIN_CERT => Some(PinnedDomainCert(bytes)),
@@ -251,12 +264,5 @@ pub extern fn vi_provider_set_bytes(ptr: ProviderPtr, attr_key: u8, buf: *const 
         ATTR_PROXIMITY_REGISTRAR_PUBK_SHA256 => Some(ProximityRegistrarPubkSha256(bytes)),
         ATTR_SERIAL_NUMBER => Some(SerialNumber(bytes)),
         _ => None,
-    };
-
-    if let Some(attr) = attr {
-        get_voucher_mut(ptr).set(attr);
-        true
-    } else {
-        false
-    }
+    })
 }
