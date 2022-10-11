@@ -239,10 +239,19 @@ pub extern fn vi_provider_set_int(ptr: ProviderPtr, attr_key: u8, attr_val: u64)
             _ => None,
         },
         ATTR_CREATED_ON => Some(CreatedOn(attr_val)),
-        // WIP !!!!
-        //ATTR_DOMAIN_CERT_REVOCATION_CHECKS => Some(DomainCertRevocationChecks(bool)),
         ATTR_EXPIRES_ON => Some(ExpiresOn(attr_val)),
         ATTR_LAST_RENEWAL_DATE => Some(LastRenewalDate(attr_val)),
+        _ => None,
+    })
+}
+
+#[no_mangle]
+pub extern fn vi_provider_set_bool(ptr: ProviderPtr, attr_key: u8, attr_val: bool) -> bool {
+    use Attr::*;
+    println!("@@ vi_provider_set_bool(): attr_key: {} | attr_val: {}", attr_key, attr_val);
+
+    set_inner(ptr, match attr_key {
+        ATTR_DOMAIN_CERT_REVOCATION_CHECKS => Some(DomainCertRevocationChecks(attr_val)),
         _ => None,
     })
 }

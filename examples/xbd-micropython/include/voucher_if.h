@@ -31,6 +31,7 @@ typedef void vi_provider_t;
 void vi_provider_allocate(vi_provider_t **pp, bool is_vrq);
 void vi_provider_free(vi_provider_t **pp);
 bool vi_provider_set_int(vi_provider_t *p, uint8_t attr_key, uint64_t attr_val);
+bool vi_provider_set_bool(vi_provider_t *p, uint8_t attr_key, bool attr_val);
 bool vi_provider_set_bytes(vi_provider_t *p, uint8_t attr_key, const uint8_t *buf, size_t sz);
 void vi_provider_dump(vi_provider_t *p);
 
