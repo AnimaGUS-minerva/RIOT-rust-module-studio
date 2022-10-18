@@ -35,7 +35,7 @@ bool vi_provider_set_bool(vi_provider_t *p, uint8_t attr_key, bool attr_val);
 bool vi_provider_set_bytes(vi_provider_t *p, uint8_t attr_key, const uint8_t *buf, size_t sz);
 void vi_provider_dump(vi_provider_t *p);
 
-// Ref: https://github.com/AnimaGUS-minerva/voucher/blob/master/src/attr.rs
+// https://github.com/AnimaGUS-minerva/voucher/blob/master/src/attr.rs
 #define ATTR_ASSERTION                          (0x00)
 #define ATTR_CREATED_ON                         (0x01)
 #define ATTR_DOMAIN_CERT_REVOCATION_CHECKS      (0x02)
@@ -54,6 +54,12 @@ void vi_provider_dump(vi_provider_t *p);
 #define ASSERTION_VERIFIED                      (0)
 #define ASSERTION_LOGGED                        (1)
 #define ASSERTION_PROXIMITY                     (2)
+
+// https://animagus-minerva.github.io/voucher/doc/minerva_voucher/enum.SignatureAlgorithm.html
+#define SA_ES256                                (0)
+#define SA_ES384                                (1)
+#define SA_ES512                                (2)
+#define SA_PS256                                (3)
 
 #endif // VOUCHER_IF_H
 
