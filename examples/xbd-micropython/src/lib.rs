@@ -168,15 +168,7 @@ pub extern fn vi_sign(
     println!("@@ vi_sign(): [len_raw={}] [len_key={}]", raw.len(), key.len());
 
     let mut vch = Voucher::try_from(raw).unwrap();
-    let alg = match alg {
-        0 => Some(SignatureAlgorithm::ES256),
-        1 => Some(SignatureAlgorithm::ES384),
-        2 => Some(SignatureAlgorithm::ES512),
-        3 => Some(SignatureAlgorithm::PS256),
-        _ => None,
-    };
-
-    vch.sign(key, alg.unwrap()).unwrap();
+    vch.sign(key, resolve_alg(alg).unwrap()).unwrap();
 
     set_bytes_heap(vch.serialize().unwrap(), pp)
 }
@@ -288,22 +280,27 @@ pub extern fn vi_provider_set_bytes(ptr: ProviderPtr, attr_key: u8, buf: *const 
 
 //
 
-#[no_mangle]
-pub extern fn vi_provider_sign(ptr: ProviderPtr, ptr_key: *const u8, sz_key: usize, alg: u8) {
-    let key = u8_slice_from(ptr_key, sz_key);
-
-    // !! refactor
-    let alg = match alg {
+fn resolve_alg(alg: u8) -> Option<SignatureAlgorithm> {
+    match alg {
         0 => Some(SignatureAlgorithm::ES256),
         1 => Some(SignatureAlgorithm::ES384),
         2 => Some(SignatureAlgorithm::ES512),
         3 => Some(SignatureAlgorithm::PS256),
         _ => None,
-    };
+    }
+}
 
+#[no_mangle]
+pub extern fn vi_provider_sign(ptr: ProviderPtr, ptr_key: *const u8, sz_key: usize, alg: u8) -> bool {
+    let key = u8_slice_from(ptr_key, sz_key);
     println!("@@ vi_provider_sign(): [len_key={}]", key.len());
 
-    get_voucher_mut(ptr).sign(key, alg.unwrap()).unwrap(); // !! process unwrap
+    if let Some(alg) = resolve_alg(alg) {
+        get_voucher_mut(ptr).sign(key, alg).is_ok()
+    } else {
+        println!("@@ vi_provider_sign(): invalid `alg`: {}", alg);
+        false
+    }
 }
 
 //
