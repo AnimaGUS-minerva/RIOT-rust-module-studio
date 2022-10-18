@@ -225,6 +225,8 @@ pub extern fn vi_provider_dump(ptr: ProviderPtr) {
     get_voucher_ref(ptr).dump();
 }
 
+//
+
 fn set_inner(ptr: ProviderPtr, attr: Option<Attr>) -> bool {
     if let Some(attr) = attr {
         get_voucher_mut(ptr).set(attr);
@@ -283,3 +285,25 @@ pub extern fn vi_provider_set_bytes(ptr: ProviderPtr, attr_key: u8, buf: *const 
         _ => None,
     })
 }
+
+//
+
+#[no_mangle]
+pub extern fn vi_provider_sign(ptr: ProviderPtr, ptr_key: *const u8, sz_key: usize, alg: u8) {
+    let key = u8_slice_from(ptr_key, sz_key);
+
+    // !! refactor
+    let alg = match alg {
+        0 => Some(SignatureAlgorithm::ES256),
+        1 => Some(SignatureAlgorithm::ES384),
+        2 => Some(SignatureAlgorithm::ES512),
+        3 => Some(SignatureAlgorithm::PS256),
+        _ => None,
+    };
+
+    println!("@@ vi_provider_sign(): [len_key={}]", key.len());
+
+    get_voucher_mut(ptr).sign(key, alg.unwrap()).unwrap(); // !! process unwrap
+}
+
+//

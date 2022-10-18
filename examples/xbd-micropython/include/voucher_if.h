@@ -35,6 +35,7 @@ bool vi_provider_set_int(vi_provider_t *p, uint8_t attr_key, uint64_t attr_val);
 bool vi_provider_set_bool(vi_provider_t *p, uint8_t attr_key, bool attr_val);
 bool vi_provider_set_bytes(vi_provider_t *p, uint8_t attr_key, const uint8_t *buf, size_t sz);
 void vi_provider_dump(vi_provider_t *p);
+void vi_provider_sign(vi_provider_t *p, const uint8_t *ptr_key, size_t sz_key, uint8_t alg);
 
 // https://github.com/AnimaGUS-minerva/voucher/blob/master/src/attr.rs
 #define ATTR_ASSERTION                          (0x00)
