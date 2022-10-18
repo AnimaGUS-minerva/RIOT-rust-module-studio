@@ -161,14 +161,22 @@ pub extern fn vi_create_vrq_F2_00_02(pp: *mut *const u8) -> usize {
 #[no_mangle]
 pub extern fn vi_sign(
     ptr_raw: *const u8, sz_raw: usize, ptr_key: *const u8, sz_key: usize,
-    pp: *mut *const u8
+    pp: *mut *const u8, alg: u8
 ) -> usize {
     let raw = u8_slice_from(ptr_raw, sz_raw);
     let key = u8_slice_from(ptr_key, sz_key);
     println!("@@ vi_sign(): [len_raw={}] [len_key={}]", raw.len(), key.len());
 
     let mut vch = Voucher::try_from(raw).unwrap();
-    vch.sign(key, SignatureAlgorithm::ES256).unwrap();
+    let alg = match alg {
+        0 => Some(SignatureAlgorithm::ES256),
+        1 => Some(SignatureAlgorithm::ES384),
+        2 => Some(SignatureAlgorithm::ES512),
+        3 => Some(SignatureAlgorithm::PS256),
+        _ => None,
+    };
+
+    vch.sign(key, alg.unwrap()).unwrap();
 
     set_bytes_heap(vch.serialize().unwrap(), pp)
 }
