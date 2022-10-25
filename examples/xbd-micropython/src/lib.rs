@@ -303,4 +303,16 @@ pub extern fn vi_provider_sign(ptr: ProviderPtr, ptr_key: *const u8, sz_key: usi
     }
 }
 
+#[no_mangle]
+pub extern fn vi_provider_validate(ptr: ProviderPtr) -> bool {
+    false // !!!!
+}
+
+#[no_mangle]
+pub extern fn vi_provider_validate_with_pem(ptr: ProviderPtr, ptr_pem: *const u8, sz_pem: usize) -> bool {
+    let pem = u8_slice_from(ptr_pem, sz_pem);
+
+    get_voucher_ref(ptr).validate(Some(pem)).is_ok()
+}
+
 //
