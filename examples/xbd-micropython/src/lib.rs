@@ -196,6 +196,7 @@ pub extern fn vi_provider_allocate(pp: *mut ProviderPtr, is_vrq: bool) {
     let ptr = ManuallyDrop::new(Box::pin(vou)).as_ref().get_ref()
         as *const Voucher as ProviderPtr;
 
+    assert_eq!(unsafe { *pp }, core::ptr::null());
     unsafe { *pp = ptr; }
 }
 
@@ -209,7 +210,6 @@ pub extern fn vi_provider_free(pp: *mut ProviderPtr) {
     drop(unsafe { Box::from_raw(ptr as *mut Voucher) });
 
     unsafe { *pp = null; }
-    assert_eq!(unsafe { *pp }, null);
 }
 
 #[no_mangle]
