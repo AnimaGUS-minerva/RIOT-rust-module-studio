@@ -189,15 +189,30 @@ fn get_voucher_mut(ptr: ProviderPtr) -> &'static mut Voucher {
     unsafe { &mut *(ptr as *mut Voucher) }
 }
 
-#[no_mangle]
-pub extern fn vi_provider_allocate(pp: *mut ProviderPtr, is_vrq: bool) {
-    let vou = if is_vrq { Voucher::new_vrq() } else { Voucher::new_vch() };
-
+fn provider_allocate(pp: *mut ProviderPtr, vou: Voucher) {
     let ptr = ManuallyDrop::new(Box::pin(vou)).as_ref().get_ref()
         as *const Voucher as ProviderPtr;
 
     assert_eq!(unsafe { *pp }, core::ptr::null());
     unsafe { *pp = ptr; }
+}
+
+#[no_mangle]
+pub extern fn vi_provider_allocate(pp: *mut ProviderPtr, is_vrq: bool) {
+    let vou = if is_vrq { Voucher::new_vrq() } else { Voucher::new_vch() };
+    provider_allocate(pp, vou);
+}
+
+#[no_mangle]
+pub extern fn vi_provider_allocate_from_cbor(pp: *mut ProviderPtr, buf: *const u8, sz: usize) -> bool {
+    let cbor = u8_slice_from(buf, sz);
+
+    if let Ok(vou) = Voucher::try_from(cbor) {
+        provider_allocate(pp, vou);
+        true
+    } else {
+        false
+    }
 }
 
 #[no_mangle]

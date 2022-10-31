@@ -30,6 +30,7 @@ void vi_dump(const uint8_t *ptr, size_t sz);
 
 typedef void vi_provider_t;
 void vi_provider_allocate(vi_provider_t **pp, bool is_vrq);
+bool vi_provider_allocate_from_cbor(vi_provider_t **pp, const uint8_t *buf, size_t sz);
 void vi_provider_free(vi_provider_t **pp);
 bool vi_provider_set_int(vi_provider_t *p, uint8_t attr_key, uint64_t attr_val);
 bool vi_provider_set_bool(vi_provider_t *p, uint8_t attr_key, bool attr_val);
