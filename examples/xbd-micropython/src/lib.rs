@@ -233,6 +233,11 @@ pub extern fn vi_provider_is_vrq(ptr: ProviderPtr) -> bool {
 }
 
 #[no_mangle]
+pub extern fn vi_provider_to_cbor(ptr: ProviderPtr, pp: *mut *const u8) -> usize {
+    set_bytes_heap(get_voucher_ref(ptr).serialize().unwrap(), pp)
+}
+
+#[no_mangle]
 pub extern fn vi_provider_dump(ptr: ProviderPtr) {
     get_voucher_ref(ptr).dump();
 }
