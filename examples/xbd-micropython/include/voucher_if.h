@@ -37,6 +37,7 @@ bool vi_provider_set_bool(vi_provider_t *p, uint8_t attr_key, bool attr_val);
 bool vi_provider_set_bytes(vi_provider_t *p, uint8_t attr_key, const uint8_t *buf, size_t sz);
 bool vi_provider_is_vrq(vi_provider_t *p);
 void vi_provider_dump(vi_provider_t *p);
+size_t vi_provider_len(vi_provider_t *p);
 bool vi_provider_sign(vi_provider_t *p, const uint8_t *ptr_key, size_t sz_key, uint8_t alg);
 bool vi_provider_validate(vi_provider_t *p);
 bool vi_provider_validate_with_pem(vi_provider_t *p, const uint8_t *ptr_pem, size_t sz_pem);

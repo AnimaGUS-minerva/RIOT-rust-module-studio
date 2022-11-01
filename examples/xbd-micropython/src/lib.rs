@@ -237,6 +237,11 @@ pub extern fn vi_provider_dump(ptr: ProviderPtr) {
     get_voucher_ref(ptr).dump();
 }
 
+#[no_mangle]
+pub extern fn vi_provider_len(ptr: ProviderPtr) -> usize {
+    get_voucher_ref(ptr).len()
+}
+
 //
 
 fn set_inner(ptr: ProviderPtr, attr: Option<Attr>) -> bool {
