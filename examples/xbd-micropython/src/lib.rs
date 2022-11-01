@@ -228,6 +228,11 @@ pub extern fn vi_provider_free(pp: *mut ProviderPtr) {
 }
 
 #[no_mangle]
+pub extern fn vi_provider_is_vrq(ptr: ProviderPtr) -> bool {
+    get_voucher_ref(ptr).is_vrq()
+}
+
+#[no_mangle]
 pub extern fn vi_provider_dump(ptr: ProviderPtr) {
     get_voucher_ref(ptr).dump();
 }
