@@ -97,9 +97,12 @@ fn set_bytes_static(bytes: &[u8], pp: *mut *const u8) -> usize {
 
 fn set_bytes_heap(bytes: Vec<u8>, pp: *mut *const u8) -> usize {
     let sz = bytes.len();
-    unsafe { *pp = bytes.as_ptr(); }
-
-    core::mem::forget(bytes);
+    if sz > 0 {
+        unsafe { *pp = bytes.as_ptr(); }
+        core::mem::forget(bytes);
+    } else {
+        unsafe { *pp = core::ptr::null(); }
+    }
 
     sz
 }
@@ -234,8 +237,11 @@ pub extern fn vi_provider_is_vrq(ptr: ProviderPtr) -> bool {
 
 #[no_mangle]
 pub extern fn vi_provider_to_cbor(ptr: ProviderPtr, pp: *mut *const u8) -> usize {
-    // TODO !!!!++ absorb the `.unwrap()`
-    set_bytes_heap(get_voucher_ref(ptr).serialize().unwrap(), pp)
+    if let Ok(bytes) = get_voucher_ref(ptr).serialize() {
+        set_bytes_heap(bytes, pp)
+    } else {
+        set_bytes_heap(vec![], pp)
+    }
 }
 
 #[no_mangle]
