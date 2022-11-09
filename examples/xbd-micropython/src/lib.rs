@@ -237,11 +237,7 @@ pub extern fn vi_provider_is_vrq(ptr: ProviderPtr) -> bool {
 
 #[no_mangle]
 pub extern fn vi_provider_to_cbor(ptr: ProviderPtr, pp: *mut *const u8) -> usize {
-    if let Ok(bytes) = get_voucher_ref(ptr).serialize() {
-        set_bytes_heap(bytes, pp)
-    } else {
-        set_bytes_heap(vec![], pp)
-    }
+    set_bytes_heap(get_voucher_ref(ptr).serialize().unwrap_or(vec![]), pp)
 }
 
 #[no_mangle]
