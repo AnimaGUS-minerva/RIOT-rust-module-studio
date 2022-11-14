@@ -313,6 +313,32 @@ pub extern fn vi_provider_set_bytes(ptr: ProviderPtr, attr_key: u8, buf: *const 
 
 //
 
+#[no_mangle]
+pub extern fn vi_provider_has(ptr: ProviderPtr, attr_key: u8) -> bool {
+    false // !!!! !!!!
+}
+
+#[no_mangle]
+pub extern fn vi_provider_get_int(ptr: ProviderPtr, attr_key: u8) -> u64 {
+    use Attr::*;
+
+    // todo !! if `None` also panic!()
+    match attr_key {
+        ATTR_ASSERTION => 1111 /*match attr_val {
+            0 => Some(Assertion(attr::Assertion::Verified)),
+            1 => Some(Assertion(attr::Assertion::Logged)),
+            2 => Some(Assertion(attr::Assertion::Proximity)),
+            _ => None,
+        }*/,
+        ATTR_CREATED_ON => 2222,//Some(CreatedOn(attr_val)),
+        ATTR_EXPIRES_ON => 3333,//Some(ExpiresOn(attr_val)),
+        ATTR_LAST_RENEWAL_DATE => 4444,//Some(LastRenewalDate(attr_val)),
+        _ => panic!(),
+    }
+}
+
+//
+
 fn resolve_alg(alg: u8) -> Option<SignatureAlgorithm> {
     match alg {
         0 => Some(SignatureAlgorithm::ES256),
