@@ -333,6 +333,16 @@ pub extern fn vi_provider_get_int_or_panic(ptr: ProviderPtr, attr_key: u8) -> u6
     }
 }
 
+#[no_mangle]
+pub extern fn vi_provider_get_bool_or_panic(ptr: ProviderPtr, attr_key: u8) -> bool {
+    use Attr::*;
+
+    match get_voucher_ref(ptr).get(attr_key) {
+        Some(DomainCertRevocationChecks(val)) => *val,
+        _ => panic!(),
+    }
+}
+
 //
 
 fn resolve_alg(alg: u8) -> Option<SignatureAlgorithm> {
