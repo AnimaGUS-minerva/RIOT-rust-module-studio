@@ -343,6 +343,27 @@ pub extern fn vi_provider_get_bool_or_panic(ptr: ProviderPtr, attr_key: u8) -> b
     }
 }
 
+#[no_mangle]
+pub extern fn vi_provider_get_bytes_or_panic(ptr: ProviderPtr, attr_key: u8, pp: *mut *const u8) -> usize {
+    use Attr::*;
+
+    let bytes = match get_voucher_ref(ptr).get(attr_key) {
+        Some(IdevidIssuer(x)) => x,
+        Some(Nonce(x)) => x,
+        Some(PinnedDomainCert(x)) => x,
+        Some(PinnedDomainPubk(x)) => x,
+        Some(PinnedDomainPubkSha256(x)) => x,
+        Some(PriorSignedVoucherRequest(x)) => x,
+        Some(ProximityRegistrarCert(x)) => x,
+        Some(ProximityRegistrarPubk(x)) => x,
+        Some(ProximityRegistrarPubkSha256(x)) => x,
+        Some(SerialNumber(x)) => x,
+        _ => panic!(),
+    };
+
+    set_bytes_heap(bytes.to_vec(), pp)
+}
+
 //
 
 fn resolve_alg(alg: u8) -> Option<SignatureAlgorithm> {
