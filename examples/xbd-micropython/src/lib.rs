@@ -262,9 +262,9 @@ fn set_inner(ptr: ProviderPtr, attr: Option<Attr>) -> bool {
 }
 
 #[no_mangle]
-pub extern fn vi_provider_set_int(ptr: ProviderPtr, attr_key: u8, attr_val: u64) -> bool {
+pub extern fn vi_provider_set_attr_int(ptr: ProviderPtr, attr_key: u8, attr_val: u64) -> bool {
     use Attr::*;
-    println!("@@ vi_provider_set_int(): attr_key: {} | attr_val: {}", attr_key, attr_val);
+    println!("@@ vi_provider_set_attr_int(): attr_key: {} | attr_val: {}", attr_key, attr_val);
 
     set_inner(ptr, match attr_key {
         ATTR_ASSERTION => match attr_val {
@@ -281,9 +281,9 @@ pub extern fn vi_provider_set_int(ptr: ProviderPtr, attr_key: u8, attr_val: u64)
 }
 
 #[no_mangle]
-pub extern fn vi_provider_set_bool(ptr: ProviderPtr, attr_key: u8, attr_val: bool) -> bool {
+pub extern fn vi_provider_set_attr_bool(ptr: ProviderPtr, attr_key: u8, attr_val: bool) -> bool {
     use Attr::*;
-    println!("@@ vi_provider_set_bool(): attr_key: {} | attr_val: {}", attr_key, attr_val);
+    println!("@@ vi_provider_set_attr_bool(): attr_key: {} | attr_val: {}", attr_key, attr_val);
 
     set_inner(ptr, match attr_key {
         ATTR_DOMAIN_CERT_REVOCATION_CHECKS => Some(DomainCertRevocationChecks(attr_val)),
@@ -292,7 +292,7 @@ pub extern fn vi_provider_set_bool(ptr: ProviderPtr, attr_key: u8, attr_val: boo
 }
 
 #[no_mangle]
-pub extern fn vi_provider_set_bytes(ptr: ProviderPtr, attr_key: u8, buf: *const u8, sz: usize) -> bool {
+pub extern fn vi_provider_set_attr_bytes(ptr: ProviderPtr, attr_key: u8, buf: *const u8, sz: usize) -> bool {
     use Attr::*;
     let bytes = u8_slice_from(buf, sz).to_vec();
 
@@ -386,15 +386,12 @@ fn vi_provider_get_bytes(ptr: ProviderPtr, attr_key: u8) -> Option<&'static [u8]
 
 //
 
-fn resolve_alg(alg: u8) -> Option<SignatureAlgorithm> {
-    match alg {
-        0 => Some(SignatureAlgorithm::ES256),
-        1 => Some(SignatureAlgorithm::ES384),
-        2 => Some(SignatureAlgorithm::ES512),
-        3 => Some(SignatureAlgorithm::PS256),
-        _ => None,
-    }
+#[no_mangle]
+pub extern fn vi_provider_remove_attr(ptr: ProviderPtr, attr_key: u8) -> bool {
+    get_voucher_mut(ptr).remove(attr_key)
 }
+
+//
 
 #[no_mangle]
 pub extern fn vi_provider_sign(ptr: ProviderPtr, ptr_key: *const u8, sz_key: usize, alg: u8) -> bool {
@@ -406,6 +403,16 @@ pub extern fn vi_provider_sign(ptr: ProviderPtr, ptr_key: *const u8, sz_key: usi
     } else {
         println!("@@ vi_provider_sign(): invalid `alg`: {}", alg);
         false
+    }
+}
+
+fn resolve_alg(alg: u8) -> Option<SignatureAlgorithm> {
+    match alg {
+        0 => Some(SignatureAlgorithm::ES256),
+        1 => Some(SignatureAlgorithm::ES384),
+        2 => Some(SignatureAlgorithm::ES512),
+        3 => Some(SignatureAlgorithm::PS256),
+        _ => None,
     }
 }
 

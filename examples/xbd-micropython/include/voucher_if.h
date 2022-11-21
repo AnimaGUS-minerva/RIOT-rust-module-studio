@@ -37,13 +37,16 @@ void vi_provider_free(vi_provider_t **pp);
 bool vi_provider_has_attr_int(vi_provider_t *p, uint8_t attr_key);
 bool vi_provider_has_attr_bool(vi_provider_t *p, uint8_t attr_key);
 bool vi_provider_has_attr_bytes(vi_provider_t *p, uint8_t attr_key);
+
 uint64_t vi_provider_get_attr_int_or_panic(vi_provider_t *p, uint8_t attr_key);
 bool vi_provider_get_attr_bool_or_panic(vi_provider_t *p, uint8_t attr_key);
 size_t vi_provider_get_attr_bytes_or_panic(vi_provider_t *p, uint8_t attr_key, uint8_t **buf);
 
-bool vi_provider_set_int(vi_provider_t *p, uint8_t attr_key, uint64_t attr_val);
-bool vi_provider_set_bool(vi_provider_t *p, uint8_t attr_key, bool attr_val);
-bool vi_provider_set_bytes(vi_provider_t *p, uint8_t attr_key, const uint8_t *buf, size_t sz);
+bool vi_provider_set_attr_int(vi_provider_t *p, uint8_t attr_key, uint64_t attr_val);
+bool vi_provider_set_attr_bool(vi_provider_t *p, uint8_t attr_key, bool attr_val);
+bool vi_provider_set_attr_bytes(vi_provider_t *p, uint8_t attr_key, const uint8_t *buf, size_t sz);
+
+bool vi_provider_remove_attr(vi_provider_t *p, uint8_t attr_key);
 
 bool vi_provider_is_vrq(vi_provider_t *p);
 size_t vi_provider_to_cbor(vi_provider_t *p, uint8_t **buf);
