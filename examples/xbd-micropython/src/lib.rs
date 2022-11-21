@@ -314,32 +314,32 @@ pub extern fn vi_provider_set_bytes(ptr: ProviderPtr, attr_key: u8, buf: *const 
 //
 
 #[no_mangle]
-pub extern fn vi_provider_has_int(ptr: ProviderPtr, attr_key: u8) -> bool {
+pub extern fn vi_provider_has_attr_int(ptr: ProviderPtr, attr_key: u8) -> bool {
     vi_provider_get_int(ptr, attr_key).is_some()
 }
 
 #[no_mangle]
-pub extern fn vi_provider_has_bool(ptr: ProviderPtr, attr_key: u8) -> bool {
+pub extern fn vi_provider_has_attr_bool(ptr: ProviderPtr, attr_key: u8) -> bool {
     vi_provider_get_bool(ptr, attr_key).is_some()
 }
 
 #[no_mangle]
-pub extern fn vi_provider_has_bytes(ptr: ProviderPtr, attr_key: u8) -> bool {
+pub extern fn vi_provider_has_attr_bytes(ptr: ProviderPtr, attr_key: u8) -> bool {
     vi_provider_get_bytes(ptr, attr_key).is_some()
 }
 
 #[no_mangle]
-pub extern fn vi_provider_get_int_or_panic(ptr: ProviderPtr, attr_key: u8) -> u64 {
+pub extern fn vi_provider_get_attr_int_or_panic(ptr: ProviderPtr, attr_key: u8) -> u64 {
     vi_provider_get_int(ptr, attr_key).unwrap()
 }
 
 #[no_mangle]
-pub extern fn vi_provider_get_bool_or_panic(ptr: ProviderPtr, attr_key: u8) -> bool {
+pub extern fn vi_provider_get_attr_bool_or_panic(ptr: ProviderPtr, attr_key: u8) -> bool {
     vi_provider_get_bool(ptr, attr_key).unwrap()
 }
 
 #[no_mangle]
-pub extern fn vi_provider_get_bytes_or_panic(ptr: ProviderPtr, attr_key: u8, pp: *mut *const u8) -> usize {
+pub extern fn vi_provider_get_attr_bytes_or_panic(ptr: ProviderPtr, attr_key: u8, pp: *mut *const u8) -> usize {
     set_bytes_heap(vi_provider_get_bytes(ptr, attr_key).unwrap().to_vec(), pp)
 }
 
