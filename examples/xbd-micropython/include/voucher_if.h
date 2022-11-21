@@ -34,7 +34,9 @@ void vi_provider_allocate(vi_provider_t **pp, bool is_vrq);
 bool vi_provider_allocate_from_cbor(vi_provider_t **pp, const uint8_t *buf, size_t sz);
 void vi_provider_free(vi_provider_t **pp);
 
-bool vi_provider_has(vi_provider_t *p, uint8_t attr_key);
+bool vi_provider_has_int(vi_provider_t *p, uint8_t attr_key);
+bool vi_provider_has_bool(vi_provider_t *p, uint8_t attr_key);
+bool vi_provider_has_bytes(vi_provider_t *p, uint8_t attr_key);
 uint64_t vi_provider_get_int_or_panic(vi_provider_t *p, uint8_t attr_key);
 bool vi_provider_get_bool_or_panic(vi_provider_t *p, uint8_t attr_key);
 size_t vi_provider_get_bytes_or_panic(vi_provider_t *p, uint8_t attr_key, uint8_t **buf);

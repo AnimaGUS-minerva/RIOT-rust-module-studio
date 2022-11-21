@@ -313,12 +313,6 @@ pub extern fn vi_provider_set_bytes(ptr: ProviderPtr, attr_key: u8, buf: *const 
 
 //
 
-// deprecating
-#[no_mangle]
-pub extern fn vi_provider_has(ptr: ProviderPtr, attr_key: u8) -> bool {
-    get_voucher_ref(ptr).get(attr_key).is_some()
-}
-
 #[no_mangle]
 pub extern fn vi_provider_has_int(ptr: ProviderPtr, attr_key: u8) -> bool {
     vi_provider_get_int(ptr, attr_key).is_some()
