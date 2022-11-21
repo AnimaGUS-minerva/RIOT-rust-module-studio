@@ -313,55 +313,81 @@ pub extern fn vi_provider_set_bytes(ptr: ProviderPtr, attr_key: u8, buf: *const 
 
 //
 
+// deprecating
 #[no_mangle]
 pub extern fn vi_provider_has(ptr: ProviderPtr, attr_key: u8) -> bool {
     get_voucher_ref(ptr).get(attr_key).is_some()
 }
 
 #[no_mangle]
-pub extern fn vi_provider_get_int_or_panic(ptr: ProviderPtr, attr_key: u8) -> u64 {
-    use Attr::*;
+pub extern fn vi_provider_has_int(ptr: ProviderPtr, attr_key: u8) -> bool {
+    vi_provider_get_int(ptr, attr_key).is_some()
+}
 
-    match get_voucher_ref(ptr).get(attr_key) {
-        Some(Assertion(attr::Assertion::Verified)) => 0,
-        Some(Assertion(attr::Assertion::Logged)) => 1,
-        Some(Assertion(attr::Assertion::Proximity)) => 2,
-        Some(CreatedOn(val)) => *val,
-        Some(ExpiresOn(val)) => *val,
-        Some(LastRenewalDate(val)) => *val,
-        _ => panic!(),
-    }
+#[no_mangle]
+pub extern fn vi_provider_has_bool(ptr: ProviderPtr, attr_key: u8) -> bool {
+    vi_provider_get_bool(ptr, attr_key).is_some()
+}
+
+#[no_mangle]
+pub extern fn vi_provider_has_bytes(ptr: ProviderPtr, attr_key: u8) -> bool {
+    vi_provider_get_bytes(ptr, attr_key).is_some()
+}
+
+#[no_mangle]
+pub extern fn vi_provider_get_int_or_panic(ptr: ProviderPtr, attr_key: u8) -> u64 {
+    vi_provider_get_int(ptr, attr_key).unwrap()
 }
 
 #[no_mangle]
 pub extern fn vi_provider_get_bool_or_panic(ptr: ProviderPtr, attr_key: u8) -> bool {
-    use Attr::*;
-
-    match get_voucher_ref(ptr).get(attr_key) {
-        Some(DomainCertRevocationChecks(val)) => *val,
-        _ => panic!(),
-    }
+    vi_provider_get_bool(ptr, attr_key).unwrap()
 }
 
 #[no_mangle]
 pub extern fn vi_provider_get_bytes_or_panic(ptr: ProviderPtr, attr_key: u8, pp: *mut *const u8) -> usize {
+    set_bytes_heap(vi_provider_get_bytes(ptr, attr_key).unwrap().to_vec(), pp)
+}
+
+fn vi_provider_get_int(ptr: ProviderPtr, attr_key: u8) -> Option<u64> {
     use Attr::*;
 
-    let bytes = match get_voucher_ref(ptr).get(attr_key) {
-        Some(IdevidIssuer(x)) => x,
-        Some(Nonce(x)) => x,
-        Some(PinnedDomainCert(x)) => x,
-        Some(PinnedDomainPubk(x)) => x,
-        Some(PinnedDomainPubkSha256(x)) => x,
-        Some(PriorSignedVoucherRequest(x)) => x,
-        Some(ProximityRegistrarCert(x)) => x,
-        Some(ProximityRegistrarPubk(x)) => x,
-        Some(ProximityRegistrarPubkSha256(x)) => x,
-        Some(SerialNumber(x)) => x,
-        _ => panic!(),
-    };
+    match get_voucher_ref(ptr).get(attr_key) {
+        Some(Assertion(attr::Assertion::Verified)) => Some(0),
+        Some(Assertion(attr::Assertion::Logged)) => Some(1),
+        Some(Assertion(attr::Assertion::Proximity)) => Some(2),
+        Some(CreatedOn(val)) => Some(*val),
+        Some(ExpiresOn(val)) => Some(*val),
+        Some(LastRenewalDate(val)) => Some(*val),
+        _ => None,
+    }
+}
 
-    set_bytes_heap(bytes.to_vec(), pp)
+fn vi_provider_get_bool(ptr: ProviderPtr, attr_key: u8) -> Option<bool> {
+    use Attr::*;
+
+    match get_voucher_ref(ptr).get(attr_key) {
+        Some(DomainCertRevocationChecks(val)) => Some(*val),
+        _ => None,
+    }
+}
+
+fn vi_provider_get_bytes(ptr: ProviderPtr, attr_key: u8) -> Option<&'static [u8]> {
+    use Attr::*;
+
+    match get_voucher_ref(ptr).get(attr_key) {
+        Some(IdevidIssuer(x)) => Some(x),
+        Some(Nonce(x)) => Some(x),
+        Some(PinnedDomainCert(x)) => Some(x),
+        Some(PinnedDomainPubk(x)) => Some(x),
+        Some(PinnedDomainPubkSha256(x)) => Some(x),
+        Some(PriorSignedVoucherRequest(x)) => Some(x),
+        Some(ProximityRegistrarCert(x)) => Some(x),
+        Some(ProximityRegistrarPubk(x)) => Some(x),
+        Some(ProximityRegistrarPubkSha256(x)) => Some(x),
+        Some(SerialNumber(x)) => Some(x),
+        _ => None,
+    }
 }
 
 //
