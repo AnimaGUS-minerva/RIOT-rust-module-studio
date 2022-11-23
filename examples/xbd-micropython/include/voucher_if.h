@@ -47,6 +47,7 @@ bool vi_provider_set_attr_bool(vi_provider_t *p, uint8_t attr_key, bool attr_val
 bool vi_provider_set_attr_bytes(vi_provider_t *p, uint8_t attr_key, const uint8_t *buf, size_t sz);
 
 bool vi_provider_remove_attr(vi_provider_t *p, uint8_t attr_key);
+uint8_t vi_provider_attr_key_at(vi_provider_t *p, size_t at);
 
 bool vi_provider_is_vrq(vi_provider_t *p);
 size_t vi_provider_to_cbor(vi_provider_t *p, uint8_t **buf);

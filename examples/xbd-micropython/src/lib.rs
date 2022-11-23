@@ -391,6 +391,14 @@ pub extern fn vi_provider_remove_attr(ptr: ProviderPtr, attr_key: u8) -> bool {
     get_voucher_mut(ptr).remove(attr_key)
 }
 
+#[no_mangle]
+pub extern fn vi_provider_attr_key_at(ptr: ProviderPtr, at: usize) -> u8 {
+    let mut it = get_voucher_ref(ptr).iter();
+    for _ in 0..at { it.next(); }
+
+    it.next().unwrap().disc()
+}
+
 //
 
 #[no_mangle]
