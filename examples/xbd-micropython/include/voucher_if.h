@@ -74,6 +74,28 @@ bool vi_provider_validate_with_pem(vi_provider_t *p, const uint8_t *ptr_pem, siz
 #define ATTR_PROXIMITY_REGISTRAR_PUBK           (0x42) // vrq only
 #define ATTR_PROXIMITY_REGISTRAR_PUBK_SHA256    (0x43) // vrq only
 #define ATTR_SERIAL_NUMBER                      (0x08)
+
+uint8_t * attr_key_to_str(uint8_t attr_key) {
+    switch (attr_key) {
+        case ATTR_ASSERTION:                       return "ATTR_ASSERTION";
+        case ATTR_CREATED_ON:                      return "ATTR_CREATED_ON";
+        case ATTR_DOMAIN_CERT_REVOCATION_CHECKS:   return "ATTR_DOMAIN_CERT_REVOCATION_CHECKS";
+        case ATTR_EXPIRES_ON:                      return "ATTR_EXPIRES_ON";
+        case ATTR_IDEVID_ISSUER:                   return "ATTR_IDEVID_ISSUER";
+        case ATTR_LAST_RENEWAL_DATE:               return "ATTR_LAST_RENEWAL_DATE";
+        case ATTR_NONCE:                           return "ATTR_NONCE";
+        case ATTR_PINNED_DOMAIN_CERT:              return "ATTR_PINNED_DOMAIN_CERT";
+        case ATTR_PINNED_DOMAIN_PUBK:              return "ATTR_PINNED_DOMAIN_PUBK";
+        case ATTR_PINNED_DOMAIN_PUBK_SHA256:       return "ATTR_PINNED_DOMAIN_PUBK_SHA256";
+        case ATTR_PRIOR_SIGNED_VOUCHER_REQUEST:    return "ATTR_PRIOR_SIGNED_VOUCHER_REQUEST";
+        case ATTR_PROXIMITY_REGISTRAR_CERT:        return "ATTR_PROXIMITY_REGISTRAR_CERT";
+        case ATTR_PROXIMITY_REGISTRAR_PUBK:        return "ATTR_PROXIMITY_REGISTRAR_PUBK";
+        case ATTR_PROXIMITY_REGISTRAR_PUBK_SHA256: return "ATTR_PROXIMITY_REGISTRAR_PUBK_SHA256";
+        case ATTR_SERIAL_NUMBER:                   return "ATTR_SERIAL_NUMBER";
+    }
+    return "unknown";
+}
+
 #define ASSERTION_VERIFIED                      (0)
 #define ASSERTION_LOGGED                        (1)
 #define ASSERTION_PROXIMITY                     (2)
