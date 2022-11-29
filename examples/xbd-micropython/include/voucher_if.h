@@ -75,7 +75,7 @@ bool vi_provider_validate_with_pem(vi_provider_t *p, const uint8_t *ptr_pem, siz
 #define ATTR_PROXIMITY_REGISTRAR_PUBK_SHA256    (0x43) // vrq only
 #define ATTR_SERIAL_NUMBER                      (0x08)
 
-uint8_t * attr_key_to_str(uint8_t attr_key) {
+const char * attr_key_to_str(uint8_t attr_key) {
     switch (attr_key) {
         case ATTR_ASSERTION:                       return "ATTR_ASSERTION";
         case ATTR_CREATED_ON:                      return "ATTR_CREATED_ON";
