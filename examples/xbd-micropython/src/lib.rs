@@ -433,3 +433,15 @@ pub extern fn vi_provider_validate_with_pem(ptr: ProviderPtr, ptr_pem: *const u8
 }
 
 //
+
+#[no_mangle]
+pub extern fn vi_provider_get_signer_cert(ptr: ProviderPtr, pp: *mut *const u8) -> usize {
+    let cert = get_voucher_ref(ptr)
+        .get_signer_cert()
+        .map(|x| x.to_vec())
+        .unwrap_or(vec![]);
+
+    set_bytes_heap(cert, pp)
+}
+
+//

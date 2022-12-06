@@ -58,6 +58,8 @@ bool vi_provider_sign(vi_provider_t *p, const uint8_t *ptr_key, size_t sz_key, u
 bool vi_provider_validate(vi_provider_t *p);
 bool vi_provider_validate_with_pem(vi_provider_t *p, const uint8_t *ptr_pem, size_t sz_pem);
 
+size_t vi_provider_get_signer_cert(vi_provider_t *p, uint8_t **buf);
+
 // https://github.com/AnimaGUS-minerva/voucher/blob/master/src/attr.rs
 #define ATTR_ASSERTION                          (0x00)
 #define ATTR_CREATED_ON                         (0x01)
