@@ -444,4 +444,10 @@ pub extern fn vi_provider_get_signer_cert(ptr: ProviderPtr, pp: *mut *const u8) 
     set_bytes_heap(cert, pp)
 }
 
+#[no_mangle]
+pub extern fn vi_provider_set_signer_cert(ptr: ProviderPtr, buf: *const u8, sz: usize) {
+    get_voucher_mut(ptr)
+        .set_signer_cert(u8_slice_from(buf, sz));
+}
+
 //
