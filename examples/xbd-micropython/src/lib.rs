@@ -464,10 +464,12 @@ pub extern fn vi_provider_get_signature_bytes(ptr: ProviderPtr, pp: *mut *const 
 }
 
 #[no_mangle]
-pub extern fn vi_provider_get_signature_alg(ptr: ProviderPtr) -> u8 {
-    let alg = get_voucher_ref(ptr).to_validate().1.unwrap().1;
-
-    core::intrinsics::discriminant_value(alg).try_into().unwrap()
+pub extern fn vi_provider_get_signature_alg(ptr: ProviderPtr) -> i8 {
+    if let Some(alg) = get_voucher_ref(ptr).to_validate().1 {
+        core::intrinsics::discriminant_value(&alg).try_into().unwrap()
+    } else {
+        -1
+    }
 }
 
 //

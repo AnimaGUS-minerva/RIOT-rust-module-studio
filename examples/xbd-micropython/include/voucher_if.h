@@ -62,7 +62,7 @@ size_t vi_provider_get_signer_cert(vi_provider_t *p, uint8_t **buf);
 void vi_provider_set_signer_cert(vi_provider_t *p, const uint8_t *buf, size_t sz);
 size_t vi_provider_get_content(vi_provider_t *p, uint8_t **buf);
 size_t vi_provider_get_signature_bytes(vi_provider_t *p, uint8_t **buf);
-uint8_t vi_provider_get_signature_alg(vi_provider_t *p);
+int8_t vi_provider_get_signature_alg(vi_provider_t *p);
 
 // https://github.com/AnimaGUS-minerva/voucher/blob/master/src/attr.rs
 #define ATTR_ASSERTION                          (0x00)
@@ -111,6 +111,16 @@ const char * attr_key_to_str(uint8_t attr_key) {
 #define SA_ES384                                (1)
 #define SA_ES512                                (2)
 #define SA_PS256                                (3)
+
+const char * signature_alg_to_str(int8_t alg) {
+    switch (alg) {
+        case SA_ES256: return "SA_ES256";
+        case SA_ES384: return "SA_ES384";
+        case SA_ES512: return "SA_ES512";
+        case SA_PS256: return "SA_PS256";
+    }
+    return "unknown";
+}
 
 #endif // VOUCHER_IF_H
 
