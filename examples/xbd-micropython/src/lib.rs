@@ -1,5 +1,5 @@
 #![no_std]
-#![feature(alloc_error_handler)]
+#![feature(alloc_error_handler, core_intrinsics)]
 
 #[cfg(all(not(feature = "std"), not(test)))]
 #[panic_handler]
@@ -465,12 +465,9 @@ pub extern fn vi_provider_get_signature_bytes(ptr: ProviderPtr, pp: *mut *const 
 
 #[no_mangle]
 pub extern fn vi_provider_get_signature_alg(ptr: ProviderPtr) -> u8 {
-    match get_voucher_ref(ptr).to_validate().1.unwrap().1 {
-        SignatureAlgorithm::ES256 => 0,
-        SignatureAlgorithm::ES384 => 1,
-        SignatureAlgorithm::ES512 => 2,
-        SignatureAlgorithm::PS256 => 3,
-    }
+    let alg = get_voucher_ref(ptr).to_validate().1.unwrap().1;
+
+    core::intrinsics::discriminant_value(alg).try_into().unwrap()
 }
 
 //
