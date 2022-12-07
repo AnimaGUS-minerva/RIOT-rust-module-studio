@@ -454,6 +454,23 @@ pub extern fn vi_provider_get_content(ptr: ProviderPtr, pp: *mut *const u8) -> u
     set_bytes_heap(get_voucher_ref(ptr).to_validate().2.to_vec(), pp)
 }
 
-    //let (signature, alg) = get_voucher_ref(ptr).to_validate().1.to_vec();
+#[no_mangle]
+pub extern fn vi_provider_get_signature_bytes(ptr: ProviderPtr, pp: *mut *const u8) -> usize {
+    let sig = get_voucher_ref(ptr).to_validate().1
+        .map(|x| x.0.to_vec())
+        .unwrap_or(vec![]);
+
+    set_bytes_heap(sig, pp)
+}
+
+#[no_mangle]
+pub extern fn vi_provider_get_signature_alg(ptr: ProviderPtr) -> u8 {
+    match get_voucher_ref(ptr).to_validate().1.unwrap().1 {
+        SignatureAlgorithm::ES256 => 0,
+        SignatureAlgorithm::ES384 => 1,
+        SignatureAlgorithm::ES512 => 2,
+        SignatureAlgorithm::PS256 => 3,
+    }
+}
 
 //
