@@ -446,8 +446,14 @@ pub extern fn vi_provider_get_signer_cert(ptr: ProviderPtr, pp: *mut *const u8) 
 
 #[no_mangle]
 pub extern fn vi_provider_set_signer_cert(ptr: ProviderPtr, buf: *const u8, sz: usize) {
-    get_voucher_mut(ptr)
-        .set_signer_cert(u8_slice_from(buf, sz));
+    get_voucher_mut(ptr).set_signer_cert(u8_slice_from(buf, sz));
 }
+
+#[no_mangle]
+pub extern fn vi_provider_get_content(ptr: ProviderPtr, pp: *mut *const u8) -> usize {
+    set_bytes_heap(get_voucher_ref(ptr).to_validate().2.to_vec(), pp)
+}
+
+    //let (signature, alg) = get_voucher_ref(ptr).to_validate().1.to_vec();
 
 //
