@@ -80,7 +80,6 @@ int8_t vi_provider_get_signature_alg(vi_provider_t *p);
 #define ATTR_PROXIMITY_REGISTRAR_PUBK           (0x42) // vrq only
 #define ATTR_PROXIMITY_REGISTRAR_PUBK_SHA256    (0x43) // vrq only
 #define ATTR_SERIAL_NUMBER                      (0x08)
-
 const char * attr_key_to_str(uint8_t attr_key) {
     switch (attr_key) {
         case ATTR_ASSERTION:                       return "ATTR_ASSERTION";
@@ -105,13 +104,20 @@ const char * attr_key_to_str(uint8_t attr_key) {
 #define ASSERTION_VERIFIED                      (0)
 #define ASSERTION_LOGGED                        (1)
 #define ASSERTION_PROXIMITY                     (2)
+const char * attr_assertion_to_str(uint8_t assertion) {
+    switch (assertion) {
+        case ASSERTION_VERIFIED:  return "ASSERTION_VERIFIED";
+        case ASSERTION_LOGGED:    return "ASSERTION_LOGGED";
+        case ASSERTION_PROXIMITY: return "ASSERTION_PROXIMITY";
+    }
+    return "unknown";
+}
 
 // https://animagus-minerva.github.io/voucher/doc/minerva_voucher/enum.SignatureAlgorithm.html
 #define SA_ES256                                (0)
 #define SA_ES384                                (1)
 #define SA_ES512                                (2)
 #define SA_PS256                                (3)
-
 const char * signature_alg_to_str(int8_t alg) {
     switch (alg) {
         case SA_ES256: return "SA_ES256";
