@@ -18,7 +18,8 @@ jobs:
         build: [linux]
         include:
           - build: linux
-            os: ubuntu-latest
+            #os: ubuntu-latest  # FIXME: ubuntu-22.04 => "native_internal.h:152:13: error: variably modified ‘__isr_stack’ at file scope"
+            os: ubuntu-20.04
             rust: stable
     steps:
     - uses: actions/checkout@v1
