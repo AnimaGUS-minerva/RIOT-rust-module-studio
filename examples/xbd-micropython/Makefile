@@ -72,6 +72,7 @@ test:
 	make clean && make test-esp32
 	make test-std
 	make test-i686
+	make test -C python3
 
 clean:
 	rm -rf target micropython

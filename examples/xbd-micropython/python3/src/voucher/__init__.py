@@ -5,16 +5,25 @@
 """python-mbedtls is a this wrapper to ARM's mbed TLS library."""
 
 
+# import mbedtls.cipher as cipher
+# import mbedtls.exceptions as exceptions
+# import mbedtls.hashlib as hashlib
+# import mbedtls.hkdf as hkdf
+# import mbedtls.hmac as hmac
+# import mbedtls.pk as pk
+# import mbedtls.secrets as secrets
+# import mbedtls.tls as tls
+# import mbedtls.version as version
+# import mbedtls.x509 as x509
+#==== @@
 #import mbedtls.cipher as cipher
-#import mbedtls.exceptions as exceptions
-#import mbedtls.hashlib as hashlib
+import voucher.exceptions as exceptions
+# import voucher.hashlib as hashlib
 #import mbedtls.hkdf as hkdf
 #import mbedtls.hmac as hmac
-####import mbedtls.pk as pk
-import voucher.pk as pk
+##import voucher.pk as pk  # FIXME -- AttributeError: module 'mbedtls._md' has no attribute 'Hash'
 #import mbedtls.secrets as secrets
 #import mbedtls.tls as tls
-####import mbedtls.version as version
 import voucher.version as version
 #import mbedtls.x509 as x509
 
@@ -22,12 +31,12 @@ __version__ = "1.5.1"
 
 __all__ = (
     #"cipher",
-    #"exceptions",
-    #"hash",
-    #"hashlib",
+    "exceptions",
+    # "hash",
+    # "hashlib",
     #"hkdf",
     #"hmac",
-    "pk",
+    ##"pk",
     #"secrets",
     #"tls",
     "version",
