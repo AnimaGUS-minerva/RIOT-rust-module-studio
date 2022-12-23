@@ -2,3 +2,5 @@ local
 build
 dist
 .eggs
+src/*.egg-info
+src/voucher/*.c
