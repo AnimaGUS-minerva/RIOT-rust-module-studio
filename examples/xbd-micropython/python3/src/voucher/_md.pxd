@@ -67,9 +67,9 @@ cdef class MDBase:
     cdef _finish(self, const unsigned char *output)
 
 
-cdef class Hash(MDBase):
-    pass
-
-
-cdef class Hmac(MDBase):
-    pass
+# cdef class Hash(MDBase):
+#     pass
+#
+#
+# cdef class Hmac(MDBase):
+#     pass
