@@ -15,8 +15,8 @@ local:
 dist: local
 	./scripts/build.sh
 	cd ./dist && \
-		rm -rf voucher minerva_voucher-*info && \
-		unzip minerva_voucher-*.whl && \
+		rm -rf voucher python_voucher-*info && \
+		unzip python_voucher-*.whl && \
 		ls -lrt
 clean:
 	rm -rf dist
