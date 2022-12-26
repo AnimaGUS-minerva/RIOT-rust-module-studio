@@ -11,8 +11,11 @@ local:
 	cd ./mbedtls && git checkout -q ae466e78f
 	mkdir -p local/src && rsync -az ./mbedtls/ local/src
 	./scripts/install-mbedtls.sh local/src local
-	ls -lrt local/lib
-dist: local
+voucher_if:
+	cd .. && cargo build --lib --release --features std
+	mkdir -p local/lib && cp ../target/release/libvoucher_if.a local/lib/
+dist: local voucher_if
+	ls -lrt local/include local/lib
 	./scripts/build.sh
 	cd ./dist && \
 		rm -rf voucher python_voucher-*info && \
