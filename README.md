@@ -20,7 +20,7 @@ Robust IoT development with Rust and RIOT-OS.
   examples/
     esp32-no_std       .... bare `no_std` firmware with a minimal Rust module 'librustmod.a'
     xbd-base           .... cross-`BOARD` (esp32/native) firmware with a demo module 'librustmod.a'
-    xbd-micropython    .... cross-`BOARD` firmware featuring MicroPython with a RFC8995 module 'libvoucher.a'
+    xbd-py             .... cross-`BOARD` firmware featuring MicroPython with a RFC8995 module 'libvoucher.a'
     ...
 ```
 
@@ -60,7 +60,7 @@ $ make run-native
 $ make run-esp32
 ```
 
-## examples/[xbd-micropython](https://github.com/AnimaGUS-minerva/iot-rust-module-studio/tree/main/examples/xbd-micropython)
+## examples/[xbd-py](https://github.com/AnimaGUS-minerva/iot-rust-module-studio/tree/main/examples/xbd-py)
 
 This example demonstrates a cross-`BOARD` firmware running the [MicroPython](https://github.com/micropython/micropython) interpretor.  After bootstraping, a Rust module called 'libvoucher.a' (which [implements the RFC8995 Constrained Voucher](https://github.com/AnimaGUS-minerva/voucher)) is loaded as Python module, and then its APIs are unit-tested.
 
