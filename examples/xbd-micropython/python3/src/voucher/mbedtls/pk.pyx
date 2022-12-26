@@ -19,17 +19,17 @@ Diffie-Hellman exchange.
 from libc.stdlib cimport malloc, free
 from libc.string cimport memset
 
-cimport mbedtls.mpi as _mpi
-cimport mbedtls.pk as _pk
-cimport mbedtls._random as _rnd
+from . cimport mpi as _mpi
+from . cimport pk as _pk
+from . cimport _random as _rnd
 
 import enum
 from collections import namedtuple
 from functools import partial
 
-import mbedtls._random as _rnd
-import mbedtls.exceptions as _exc
-from mbedtls.hashlib import new as _new_hash
+from . import _random as _rnd
+from . import exceptions as _exc
+from .hashlib import new as _new_hash
 
 
 __all__ = ("check_pair", "get_supported_ciphers", "get_supported_curves",

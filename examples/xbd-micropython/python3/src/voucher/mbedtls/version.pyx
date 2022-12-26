@@ -6,7 +6,7 @@
 from libc.stdlib cimport malloc, free
 from libc.string cimport strcpy
 
-cimport mbedtls.version as _ver
+from . cimport version as _ver
 
 from collections import namedtuple
 

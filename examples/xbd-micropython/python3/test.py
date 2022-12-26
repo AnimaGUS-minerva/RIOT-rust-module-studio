@@ -1,4 +1,4 @@
-from voucher.pk import ECC
+from voucher.mbedtls.pk import ECC
 
 def test_mbedtls_pk():
     print('==== test_mbedtls_pk(): ^^')

@@ -7,13 +7,13 @@
 
 from libc.stdlib cimport malloc, free
 
-cimport mbedtls._platform as _plt
-cimport mbedtls._random as _rnd
+from . cimport _platform as _plt
+from . cimport _random as _rnd
 
 import numbers as _numbers
 
-import mbedtls.mpi as _mpi
-from mbedtls.exceptions import check_error
+from . cimport mpi as _mpi
+from .exceptions import check_error
 
 
 BPF = 53  # Number of bits in a float

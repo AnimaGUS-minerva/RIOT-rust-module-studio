@@ -4,7 +4,7 @@
 """Platform utils."""
 
 
-cimport mbedtls._platform as _plt
+from . cimport _platform as _plt
 
 
 __all__ = ["zeroize"]

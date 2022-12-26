@@ -6,7 +6,7 @@
 
 from libc.stdlib cimport malloc, free
 
-cimport mbedtls.exceptions as _exc
+from . cimport exceptions as _exc
 
 
 __all__ = ("TLSError",)

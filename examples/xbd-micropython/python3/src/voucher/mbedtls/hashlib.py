@@ -5,7 +5,7 @@
 """Generic message digest wrapper (hash algorithm)."""
 
 
-import mbedtls._md as _md
+from . import _md as _md
 
 algorithms_guaranteed = _md.algorithms_guaranteed
 algorithms_available = _md.algorithms_available

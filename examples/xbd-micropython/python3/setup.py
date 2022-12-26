@@ -182,7 +182,7 @@ print('@@ COVERAGE:', COVERAGE)
 print('@@ ext_modules:', list(extensions(COVERAGE)))
 print('@@ packages:', find_packages("src"))
 setup(  # @@
-    name="minerva-voucher",
+    name="python-voucher",
     version=VERSION,
     ext_modules=list(extensions(COVERAGE)),
     #options=options(COVERAGE),

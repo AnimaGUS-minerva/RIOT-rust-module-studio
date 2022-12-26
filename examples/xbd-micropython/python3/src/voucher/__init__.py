@@ -1,47 +1,16 @@
 # SPDX-License-Identifier: MIT
-# Copyright (c) 2015, Elaborated Networks GmbH
-# Copyright (c) 2018, Mathias Laurin
+# Copyright (c) 2022, ANIMA Minerva toolkit
 
-"""python-mbedtls is a this wrapper to ARM's mbed TLS library."""
+"""python-voucher is a wrapper to the Minerva voucher library."""
 
 
-# import mbedtls.cipher as cipher
-# import mbedtls.exceptions as exceptions
-# import mbedtls.hashlib as hashlib
-# import mbedtls.hkdf as hkdf
-# import mbedtls.hmac as hmac
-# import mbedtls.pk as pk
-# import mbedtls.secrets as secrets
-# import mbedtls.tls as tls
-# import mbedtls.version as version
-# import mbedtls.x509 as x509
-#==== @@
-#import mbedtls.cipher as cipher
-import voucher.exceptions as exceptions
-# import voucher.hashlib as hashlib
-#import mbedtls.hkdf as hkdf
-#import mbedtls.hmac as hmac
-##import voucher.pk as pk  # FIXME -- AttributeError: module 'mbedtls._md' has no attribute 'Hash'
-#import mbedtls.secrets as secrets
-#import mbedtls.tls as tls
-import voucher.version as version
-#import mbedtls.x509 as x509
+import voucher.mbedtls as mbedtls
+#import voucher.version as version  # TODO
+import voucher.mbedtls.version as version  # shim
 
-__version__ = "1.5.1"
+__version__ = "0.1.0"
 
 __all__ = (
-    #"cipher",
-    "exceptions",
-    # "hash",
-    # "hashlib",
-    #"hkdf",
-    #"hmac",
-    ##"pk",
-    #"secrets",
-    #"tls",
+    "mbedtls",  # debug
     "version",
-    #"x509",
 )
-
-
-has_feature = version.has_feature

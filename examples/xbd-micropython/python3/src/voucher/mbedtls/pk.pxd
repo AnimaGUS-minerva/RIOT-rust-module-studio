@@ -5,8 +5,8 @@
 """Declarations for `mbedtls/pk.h`."""
 
 
-cimport mbedtls._md as _md
-cimport mbedtls.mpi as _mpi
+from . cimport _md as _md
+from . cimport mpi as _mpi
 
 
 cdef extern from "mbedtls/dhm.h" nogil:

@@ -6,17 +6,17 @@
 """Multi-precision integer library (MPI)."""
 
 
-cimport mbedtls.mpi as _mpi
-cimport mbedtls._random as _rnd
+from . cimport mpi as _mpi
+from . cimport _random as _rnd
 from libc.stdlib cimport malloc, free
 
 import math
 import numbers
 from binascii import hexlify, unhexlify
 
-import mbedtls.exceptions as _exc
-import mbedtls._platform as _plt
-import mbedtls._random as _rnd
+from . import exceptions as _exc
+from . import _platform as _plt
+from . import _random as _rnd
 
 try:
     long

@@ -4,7 +4,7 @@ PYTHON := LD_LIBRARY_PATH=../local/lib:$(LD_LIBRARY_PATH) python3
 test: dist
 	cd ./dist && \
 		$(PYTHON) -c "from voucher import version; print((version, version.version))"
-	#WIP#cd ./dist && $(PYTHON) < ../test.py
+	cd ./dist && $(PYTHON) < ../test.py
 
 local:
 	git clone https://github.com/Mbed-TLS/mbedtls
@@ -17,7 +17,6 @@ dist: local
 	cd ./dist && \
 		rm -rf voucher minerva_voucher-*info && \
 		unzip minerva_voucher-*.whl && \
-		echo KLUDGE_SHIM && mv mbedtls mbedtls-- && ln -s voucher mbedtls && \
 		ls -lrt
 clean:
 	rm -rf dist
