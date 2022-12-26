@@ -13,7 +13,6 @@ def _get_version():
     pattern = re.compile(r'^__version__ = ["]([.\w]+?)["]')
     with open(
         os.path.join(
-            #os.path.dirname(__file__), "src", "mbedtls", "__init__.py"
             os.path.dirname(__file__), "src", "voucher", "__init__.py"
         )
     ) as f:
@@ -25,12 +24,6 @@ def _get_version():
 
 
 VERSION = _get_version()
-MBEDTLS_VERSION = "2.16.9"
-DOWNLOAD_URL = "https://github.com/Synss/python-mbedtls/tarball/%s" % VERSION
-
-
-__mbedtls_version_info__ = tuple(map(int, MBEDTLS_VERSION.split(".")))
-__mbedtls_url__ = "https://tls.mbed.org"
 
 
 if "--with-coverage" in sys.argv:
@@ -58,55 +51,6 @@ tests_require = [
 ]
 
 
-def mbedtls_version(lib):
-    null = b"\0"
-    output = 18 * null
-    output_p = ctypes.c_char_p(output)
-    lib.mbedtls_version_get_string_full(output_p)
-    return output.strip(null).decode("ascii")
-
-
-def mbedtls_version_info(lib):
-    version = lib.mbedtls_version_get_number()
-    return tuple(version >> shift & 0xFF for shift in (24, 16, 8))
-
-
-def check_mbedtls_support(version, url):
-    library = ctypes.util.find_library("mbedtls")
-    if not library:
-        sys.stderr.write("  Library not found{sep}".format(sep=os.linesep))
-        sys.stderr.write(
-            "  The paths are probably not set correctly but let's try anyway{sep}".format(
-                sep=os.linesep
-            )
-        )
-        return
-    try:
-        lib = ctypes.cdll.LoadLibrary(library)
-        sys.stdout.write("  loading: {!r}\n".format(lib._name))
-        sys.stdout.write(
-            "  mbedtls version: {!s}{sep}".format(
-                mbedtls_version(lib), sep=os.linesep
-            )
-        )
-        sys.stdout.write("  python-mbedtls version: {0}".format(VERSION))
-    except OSError as exc:
-        lib = None
-        sys.stderr.write("  {exc!s}{sep}".format(exc=exc, sep=os.linesep))
-    if lib and mbedtls_version_info(lib) < version[:2]:
-        message = (
-            "  python-mbedtls requires at least mbedtls {major}.{minor}".format(
-                major=version[0], minor=version[1]
-            ),
-            "  The latest version of mbedtls may be obtained from {url}.".format(
-                url=url
-            ),
-            "",
-        )
-        sys.stderr.writelines(os.linesep.join(message))
-        sys.exit(1)
-
-
 def extensions(coverage=False):
     def from_env(var):
         with suppress(KeyError):
@@ -123,6 +67,8 @@ def extensions(coverage=False):
         ]
         if WINDOWS
         else ["mbedcrypto", "mbedtls", "mbedx509"]
+        #else ["voucher_if", "mbedcrypto", "mbedtls", "mbedx509"]
+        # FIXME ^^^^^^^^^ /usr/bin/ld: local/lib/libvoucher_if.a(cipher.o): relocation R_X86_64_PC32 against symbol `mbedtls_cipher_definitions' can not be used when making a shared object; recompile with -fPIC
     )
     library_dirs = list(from_env("LIBPATH" if WINDOWS else "LIBRARY_PATH"))
 
@@ -164,24 +110,10 @@ def options(coverage=False):
     }
 
 
-def readme():
-    with open("README.rst") as f:
-        return f.read().replace(":math:", "")
-
-
-if len(sys.argv) > 1 and any(
-    (sys.argv[1].startswith("build"), sys.argv[1].startswith("bdist"))
-):
-    check_mbedtls_support(
-        version=__mbedtls_version_info__, url=__mbedtls_url__
-    )
-
-#==== @@
-print('@@ ====== debug minimal `setup()` ========')
 print('@@ COVERAGE:', COVERAGE)
 print('@@ ext_modules:', list(extensions(COVERAGE)))
 print('@@ packages:', find_packages("src"))
-setup(  # @@
+setup(
     name="python-voucher",
     version=VERSION,
     ext_modules=list(extensions(COVERAGE)),
