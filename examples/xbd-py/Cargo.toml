@@ -7,10 +7,11 @@ authors = ["ANIMA Minerva toolkit"]
 [lib]
 name = "voucher_if"
 crate-type = ["staticlib"]
+#path = "src/lib.rs"
+path = "src/lib_python3.rs"  # dev
 
 [features]
 default = []
-x86_64 = ["std"]
 std = []
 
 [dependencies]
