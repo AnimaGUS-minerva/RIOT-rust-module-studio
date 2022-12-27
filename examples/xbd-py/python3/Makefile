@@ -12,7 +12,7 @@ local:
 	mkdir -p local/src && rsync -az ./mbedtls/ local/src
 	./scripts/install-mbedtls.sh local/src local
 voucher_if:
-	cd .. && cargo build --lib --release --features std
+	cd .. && cargo build --lib --release
 	mkdir -p local/lib && cp ../target/release/libvoucher_if.a local/lib/
 dist: local voucher_if
 	ls -lrt local/include local/lib
