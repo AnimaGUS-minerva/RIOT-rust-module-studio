@@ -3,10 +3,11 @@
 
 """python-voucher is a wrapper to the Minerva voucher library."""
 
-from . import version as version  # 'mbed TLS 3.0.0'
+from .mbedtls import version as mbedtls_version  # 'mbed TLS 3.0.0'
 
 __version__ = "0.1.0"
 
 __all__ = (
-    "version",
+    "mbedtls_version",
+    "version",  # WIP
 )
