@@ -1,3 +1,0 @@
-alias t='make clean && make test'  # use 'build' as cache
-alias tt='rm -rf build src/*/*.c src/*/*/*.c && t'
-alias r='echo todo REPL'
