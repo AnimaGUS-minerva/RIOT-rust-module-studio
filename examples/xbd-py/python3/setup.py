@@ -66,9 +66,10 @@ def extensions(coverage=False):
             "mbedTLS",
         ]
         if WINDOWS
-        else ["mbedcrypto", "mbedtls", "mbedx509"]
+        #else ["mbedcrypto", "mbedtls", "mbedx509"]
         #else ["voucher_if", "mbedcrypto", "mbedtls", "mbedx509"]
-        # FIXME ^^^^^^^^^ /usr/bin/ld: local/lib/libvoucher_if.a(cipher.o): relocation R_X86_64_PC32 against symbol `mbedtls_cipher_definitions' can not be used when making a shared object; recompile with -fPIC
+        # ?? FIXME ^^^^^^^^^ /usr/bin/ld: local/lib/libvoucher_if.a(cipher.o): relocation R_X86_64_PC32 against symbol `mbedtls_cipher_definitions' can not be used when making a shared object; recompile with -fPIC
+        else ["voucher_if"]
     )
     library_dirs = list(from_env("LIBPATH" if WINDOWS else "LIBRARY_PATH"))
 
