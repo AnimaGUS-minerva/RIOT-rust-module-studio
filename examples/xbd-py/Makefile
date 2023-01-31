@@ -63,6 +63,10 @@ test-std:
 test-i686:
 	cargo test --target i686-unknown-linux-gnu
 
+test-python3:
+	make test -C python3/voucher
+	make test -C python3/mbedtls2  # dev/debug
+
 #
 
 run: run-native
@@ -72,7 +76,7 @@ test:
 	make clean && make test-esp32
 	make test-std
 	make test-i686
-	make test -C python3
+	make test-python3
 
 clean:
 	rm -rf target micropython
