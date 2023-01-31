@@ -10,7 +10,7 @@ local:
 	cd ../.. && cargo build --lib --release
 	mkdir -p local
 	mkdir -p local/lib && cp ../../target/release/libvoucher_if.a local/lib/
-	mkdir -p local/include && cp -r ../../include/mbedtls local/include/
+	mkdir -p local/include && cp -r ../../include/* local/include/
 
 # exports for 'setup.py'
 export C_INCLUDE_PATH := local/include
