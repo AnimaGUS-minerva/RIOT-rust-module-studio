@@ -118,6 +118,14 @@ pub extern fn vi_dump(ptr: *const u8, sz: usize) {
 
 //
 
+// !!!! WIP
+// #[no_mangle]
+// pub extern fn voucher_version_get_string_full(string: *mut i8) {
+//     //
+// }
+
+//
+
 #[no_mangle]
 pub extern fn vi_square(input: i32) -> i32 {
     input * input

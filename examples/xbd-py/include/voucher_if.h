@@ -1,11 +1,19 @@
 #ifndef VOUCHER_IF_H
 #define VOUCHER_IF_H
 
+#include <stdbool.h>
+
 #pragma once
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+//
+
+void voucher_version_get_string_full(char *string);
+
+//
 
 int vi_square(int);
 
