@@ -8,12 +8,22 @@ from contextlib import suppress
 
 from setuptools import Extension, find_packages, setup
 
+WINDOWS = platform.system() == "Windows"
+
+def from_env(var):
+    ENVSEP = ";" if WINDOWS else ":"
+
+    with suppress(KeyError):
+        return list(filter(None, os.environ[var].split(ENVSEP)))
+    return ()
+
+MODULE_NAME = from_env("SETUP_MODULE_NAME")[0]
 
 def _get_version():
     pattern = re.compile(r'^__version__ = ["]([.\w]+?)["]')
     with open(
         os.path.join(
-            os.path.dirname(__file__), "src", "voucher", "__init__.py"
+            "src", MODULE_NAME, "__init__.py"
         )
     ) as f:
         for line in f:
@@ -50,25 +60,16 @@ tests_require = [
     'contextlib2; python_version < "3.0"',
 ]
 
-
 def extensions(coverage=False):
-    def from_env(var):
-        with suppress(KeyError):
-            return filter(None, os.environ[var].split(ENVSEP))
-        return ()
-
-    WINDOWS = platform.system() == "Windows"
-    ENVSEP = ";" if WINDOWS else ":"
-
     libraries = (
         [
             "AdvAPI32",  # `Crypt*` calls from `library/entropy_poll.c`
             "mbedTLS",
         ]
         if WINDOWS
-        else list(from_env("EXTENSION_LIBS"))
+        else from_env("SETUP_EXTENSION_LIBS")
     )
-    library_dirs = list(from_env("LIBPATH" if WINDOWS else "LIBRARY_PATH"))
+    library_dirs = from_env("LIBPATH" if WINDOWS else "LIBRARY_PATH")
 
     for dirpath, _, filenames in os.walk("src"):
         for fn in filenames:
@@ -112,7 +113,7 @@ print('@@ COVERAGE:', COVERAGE)
 print('@@ ext_modules:', list(extensions(COVERAGE)))
 print('@@ packages:', find_packages("src"))
 setup(
-    name="python-voucher",
+    name=f"python-{MODULE_NAME}",
     version=VERSION,
     ext_modules=list(extensions(COVERAGE)),
     #options=options(COVERAGE),
