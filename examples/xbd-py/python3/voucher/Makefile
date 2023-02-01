@@ -7,7 +7,7 @@ test: dist
 	cd ./dist && $(PYTHON) < ../test.py
 
 local:
-	cd ../.. && cargo build --lib --release
+	cd ../.. && cargo build --lib --release --features std
 	mkdir -p local
 	mkdir -p local/lib && cp ../../target/release/libvoucher_if.a local/lib/
 	mkdir -p local/include && cp -r ../../include/* local/include/
