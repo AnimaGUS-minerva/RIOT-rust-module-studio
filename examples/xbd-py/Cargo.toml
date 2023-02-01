@@ -8,11 +8,11 @@ authors = ["ANIMA Minerva toolkit"]
 name = "voucher_if"
 crate-type = ["staticlib"]
 path = "src/lib.rs"
-#path = "src/lib_python3.rs"  # dev
 
 [features]
 default = []
 std = []
+python3 = []
 
 [dependencies]
 mcu-if = { git = "https://github.com/AnimaGUS-minerva/mcu-if", rev = "f228240" }

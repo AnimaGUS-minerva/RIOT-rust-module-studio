@@ -25,6 +25,11 @@ type size_t = c_uint;
 
 //
 
+#[cfg(feature = "python3")]
+mod python3;
+
+//
+
 #[cfg(test)]
 mod tests;
 
@@ -115,14 +120,6 @@ pub extern fn vi_dump(ptr: *const u8, sz: usize) {
 
     Voucher::try_from(raw_voucher).unwrap().dump()
 }
-
-//
-
-// !!!! WIP
-// #[no_mangle]
-// pub extern fn voucher_version_get_string_full(string: *mut i8) {
-//     //
-// }
 
 //
 
