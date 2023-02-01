@@ -16,4 +16,4 @@ std = []
 
 [dependencies]
 mcu-if = { git = "https://github.com/AnimaGUS-minerva/mcu-if", rev = "984b8dd" }
-minerva-voucher = { git = "https://github.com/AnimaGUS-minerva/voucher", rev = "f514c20" }
+minerva-voucher = { git = "https://github.com/AnimaGUS-minerva/voucher", rev = "1757005" }
