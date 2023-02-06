@@ -4,5 +4,7 @@
 
 """Declarations from `python3_if.h`."""
 
+from libc.stdint cimport uint8_t
+
 cdef extern from "python3_if.h" nogil:
-    void voucher_version_get_string_full(char *ptr, size_t sz)
+    void voucher_version_get_string_full(uint8_t *ptr, size_t sz)

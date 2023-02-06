@@ -11,8 +11,8 @@ from . cimport version as _ver
 
 cdef __version():
     """Return the version as a string."""
-    sz = 32 * sizeof(char)
-    cdef char *output = <char *>malloc(sz)
+    sz = 32 * sizeof(uint8_t)
+    cdef uint8_t *output = <uint8_t *>malloc(sz)
     cdef bytes buffer
     if not output:
         raise MemoryError()
