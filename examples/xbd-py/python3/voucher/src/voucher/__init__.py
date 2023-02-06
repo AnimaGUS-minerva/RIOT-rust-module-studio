@@ -9,5 +9,5 @@ __version__ = "0.1.0"
 
 __all__ = (
     "mbedtls_version",
-    "version",  # WIP
+    "version",
 )
