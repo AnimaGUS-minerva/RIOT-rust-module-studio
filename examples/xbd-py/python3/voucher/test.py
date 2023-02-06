@@ -47,14 +47,19 @@ def wip_python3():
     #     sig = ecdsa.sign(b"Please sign here.")
     #     print('sig:', sig)
     #==== !!!!
-    import voucher.vrq as vrq
-    print('vrq.test:', vrq.test)
+    from voucher.vrq import test as vrq_test  # !!!! `__test()` kicks in
+    print('vrq_test:', vrq_test)  # '!!!! done'
 
+    from voucher.vrq import Vrq as Vrq  # !!!!
 
-    # vrq = voucher.vrq()
+    # voucher.vrq()
     # help(vrq)
     # vch = voucher.vch()
     # help(vch)
+    #==== !!!!
+    vrq = Vrq()
+    help(vrq)
+    vrq.debug_dump()
 
     # vrq.set(ATTR_ASSERTION, ASSERTION_PROXIMITY) \
     #    .set(ATTR_CREATED_ON, 1599086034) \

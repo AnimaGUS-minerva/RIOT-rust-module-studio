@@ -3,8 +3,10 @@
 
 """Declarations from `voucher_if.h`."""
 
+
 from libcpp cimport bool
 from libc.stdint cimport uint8_t
+
 
 cdef extern from "voucher_if.h" nogil:
     ctypedef struct vi_provider_t:
@@ -15,3 +17,7 @@ cdef extern from "voucher_if.h" nogil:
     void vi_provider_free(vi_provider_t **pp);
 
     void vi_provider_dump(vi_provider_t *p);
+
+
+cdef class Vrq:
+    cdef vi_provider_t *provider_ptr
