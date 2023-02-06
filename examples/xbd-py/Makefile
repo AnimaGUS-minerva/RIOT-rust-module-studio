@@ -59,7 +59,7 @@ test-esp32:
 # misc.
 
 test-std:
-	cargo +nightly-x86_64-unknown-linux-gnu test --features std
+	cargo test --features std
 test-i686:
 	cargo test --target i686-unknown-linux-gnu
 

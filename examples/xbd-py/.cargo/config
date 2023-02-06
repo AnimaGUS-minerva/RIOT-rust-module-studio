@@ -10,9 +10,3 @@ rustflags = [
   "-C", "panic=abort",
   "-Z", "panic_abort_tests",  # for `make test-i686` to work
 ]
-
-[target.x86_64-unknown-linux-gnu]
-rustflags = [
-  "-C", "panic=abort",
-  "-Z", "panic_abort_tests",
-]
