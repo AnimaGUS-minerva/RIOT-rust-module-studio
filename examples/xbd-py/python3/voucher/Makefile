@@ -2,8 +2,6 @@ all: dist
 
 PYTHON := LD_LIBRARY_PATH=../local/lib:$(LD_LIBRARY_PATH) python3
 test: dist
-	cd ./dist && \
-		$(PYTHON) -c "from voucher import version; print((version, version.version))"
 	cd ./dist && $(PYTHON) < ../test.py
 
 local:

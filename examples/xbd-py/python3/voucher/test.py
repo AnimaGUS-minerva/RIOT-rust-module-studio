@@ -1,6 +1,8 @@
 import voucher
 from voucher import *  # for `{ATTR,SA}_*` constants (?? , `debug_*()` methods)
 
+print('@@ dir(voucher):', dir(voucher))
+
 
 #### #### #### #### TODO refactor w.r.t. 'ports/riot/main/boot.py'
 def test_assert_eq(title, left, right, diag=True):
@@ -32,6 +34,22 @@ def test_voucher_version():
 
 def wip_python3():
     print('@@ ======== WIP ========')
+
+    # import mbedtls
+    # from mbedtls.pk import ECC
+    #
+    #
+    # def test_pk():
+    #     print('==== test_pk(): ^^')
+    #
+    #     ecdsa = ECC()
+    #     _prv = ecdsa.generate()
+    #     sig = ecdsa.sign(b"Please sign here.")
+    #     print('sig:', sig)
+    #==== !!!!
+    import voucher.vrq as vrq
+    print('vrq.test:', vrq.test)
+
 
     # vrq = voucher.vrq()
     # help(vrq)
