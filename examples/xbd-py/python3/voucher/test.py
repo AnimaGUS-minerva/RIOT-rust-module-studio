@@ -35,35 +35,21 @@ def test_voucher_version():
 def wip_python3():
     print('@@ ======== WIP ========')
 
-    # import mbedtls
-    # from mbedtls.pk import ECC
-    #
-    #
-    # def test_pk():
-    #     print('==== test_pk(): ^^')
-    #
-    #     ecdsa = ECC()
-    #     _prv = ecdsa.generate()
-    #     sig = ecdsa.sign(b"Please sign here.")
-    #     print('sig:', sig)
-    #==== !!!!
-    # ....
-
     # voucher.vrq()
     # help(vrq)
     # vch = voucher.vch()
     # help(vch)
-    #==== !!!!
+    #==== !!!! ok
     from voucher.voucher import Vrq
     from voucher.voucher import Vch
 
     vrq = Vrq()
     #help(vrq)
-    vrq.debug_dump()
+    #vrq.debug_dump()
 
     vch = Vch()
     #help(vch)
-    vch.debug_dump()
+    #vch.debug_dump()
     #====
 
     # vrq.set(ATTR_ASSERTION, ASSERTION_PROXIMITY) \
@@ -72,6 +58,11 @@ def wip_python3():
     #    .set(ATTR_NONCE, b'\x11\x22\x33') \
     #    .set(ATTR_DOMAIN_CERT_REVOCATION_CHECKS, True) \
     #    .debug_dump()
+    #==== !!!!
+    vrq.set(0, 2) \
+       .debug_dump()
+
+
 
 def test_voucher_xx():
     print('==== test_voucher_xx(): ^^')

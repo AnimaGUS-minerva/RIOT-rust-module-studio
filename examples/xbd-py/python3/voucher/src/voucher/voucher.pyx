@@ -16,6 +16,11 @@ cdef class Vou:
     def debug_dump(self):
         _vou.vi_provider_dump(self.provider_ptr)
 
+    def set(self, attr_key, attr_val):
+        # if (mp_obj_is_int(attr_val)) { // Yang::{Enumeration,DateAndTime}
+        _vou.vi_provider_set_attr_int(self.provider_ptr, attr_key, attr_val)
+        return self
+
 
 cdef class Vrq(Vou):
 
