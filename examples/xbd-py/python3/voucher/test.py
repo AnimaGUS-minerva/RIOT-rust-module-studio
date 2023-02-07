@@ -60,6 +60,10 @@ def wip_python3():
     #    .debug_dump()
     #==== !!!!
     vrq.set(0, 2) \
+       .set(1, 1599086034) \
+       .set(8, '00-D0-E5-F2-00-02') \
+       .set(6, b'\x11\x22\x33') \
+       .set(2, True) \
        .debug_dump()
 
 

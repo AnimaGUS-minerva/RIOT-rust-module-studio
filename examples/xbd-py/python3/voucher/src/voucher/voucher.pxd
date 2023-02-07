@@ -4,7 +4,7 @@
 """Declarations from `voucher_if.h`."""
 
 
-from libcpp cimport bool
+from libcpp cimport bool as bool_t
 from libc.stdint cimport uint8_t
 from libc.stdint cimport uint64_t
 
@@ -13,15 +13,15 @@ cdef extern from "voucher_if.h" nogil:
     ctypedef struct vi_provider_t:
         pass
 
-    void vi_provider_allocate(vi_provider_t **pp, bool is_vrq);
-    bool vi_provider_allocate_from_cbor(vi_provider_t **pp, const uint8_t *buf, size_t sz);
+    void vi_provider_allocate(vi_provider_t **pp, bool_t is_vrq);
+    bool_t vi_provider_allocate_from_cbor(vi_provider_t **pp, const uint8_t *buf, size_t sz);
     void vi_provider_free(vi_provider_t **pp);
 
     void vi_provider_dump(vi_provider_t *p);
 
-    bool vi_provider_set_attr_int(vi_provider_t *p, uint8_t attr_key, uint64_t attr_val);
-    bool vi_provider_set_attr_bool(vi_provider_t *p, uint8_t attr_key, bool attr_val);
-    bool vi_provider_set_attr_bytes(vi_provider_t *p, uint8_t attr_key, const uint8_t *buf, size_t sz);
+    bool_t vi_provider_set_attr_int(vi_provider_t *p, uint8_t attr_key, uint64_t attr_val);
+    bool_t vi_provider_set_attr_bool(vi_provider_t *p, uint8_t attr_key, bool_t attr_val);
+    bool_t vi_provider_set_attr_bytes(vi_provider_t *p, uint8_t attr_key, const uint8_t *buf, size_t sz);
 
 
 cdef class Vou:
