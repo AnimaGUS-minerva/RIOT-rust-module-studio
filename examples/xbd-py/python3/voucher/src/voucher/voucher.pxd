@@ -19,5 +19,13 @@ cdef extern from "voucher_if.h" nogil:
     void vi_provider_dump(vi_provider_t *p);
 
 
-cdef class Vrq:
+cdef class Vou:
     cdef vi_provider_t *provider_ptr
+
+
+cdef class Vrq(Vou):
+    pass
+
+
+cdef class Vch(Vou):
+    pass

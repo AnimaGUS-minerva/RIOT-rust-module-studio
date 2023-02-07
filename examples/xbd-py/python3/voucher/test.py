@@ -1,5 +1,5 @@
 import voucher
-from voucher import *  # for `{ATTR,SA}_*` constants (?? , `debug_*()` methods)
+####from voucher import *  # for `{ATTR,SA}_*` constants (?? , `debug_*()` methods)
 
 print('@@ dir(voucher):', dir(voucher))
 
@@ -47,19 +47,24 @@ def wip_python3():
     #     sig = ecdsa.sign(b"Please sign here.")
     #     print('sig:', sig)
     #==== !!!!
-    from voucher.vrq import test as vrq_test  # !!!! `__test()` kicks in
-    print('vrq_test:', vrq_test)  # '!!!! done'
-
-    from voucher.vrq import Vrq as Vrq  # !!!!
+    # ....
 
     # voucher.vrq()
     # help(vrq)
     # vch = voucher.vch()
     # help(vch)
     #==== !!!!
+    from voucher.voucher import Vrq
+    from voucher.voucher import Vch
+
     vrq = Vrq()
-    help(vrq)
+    #help(vrq)
     vrq.debug_dump()
+
+    vch = Vch()
+    #help(vch)
+    vch.debug_dump()
+    #====
 
     # vrq.set(ATTR_ASSERTION, ASSERTION_PROXIMITY) \
     #    .set(ATTR_CREATED_ON, 1599086034) \
