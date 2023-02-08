@@ -53,18 +53,12 @@ def wip_python3():
     #vch.debug_dump()
     #====
 
-    # vrq.set(ATTR_ASSERTION, ASSERTION_PROXIMITY) \
-    #    .set(ATTR_CREATED_ON, 1599086034) \
-    #    .set(ATTR_SERIAL_NUMBER, '00-D0-E5-F2-00-02') \
-    #    .set(ATTR_NONCE, b'\x11\x22\x33') \
-    #    .set(ATTR_DOMAIN_CERT_REVOCATION_CHECKS, True) \
-    #    .debug_dump()
-    #==== !!!! xxxx
-    vrq.set(ATTR_ASSERTION, 2) \
-       .set(1, 1599086034) \
-       .set(8, '00-D0-E5-F2-00-02') \
+    # ok
+    vrq.set(ATTR_ASSERTION, ASSERTION_PROXIMITY) \
+       .set(ATTR_CREATED_ON, 1599086034) \
+       .set(ATTR_SERIAL_NUMBER, '00-D0-E5-F2-00-02') \
        .set(ATTR_NONCE, b'\x11\x22\x33') \
-       .set(2, True) \
+       .set(ATTR_DOMAIN_CERT_REVOCATION_CHECKS, True) \
        .debug_dump()
 
 
