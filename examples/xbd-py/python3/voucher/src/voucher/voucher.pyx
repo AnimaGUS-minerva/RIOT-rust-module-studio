@@ -11,11 +11,6 @@ from . cimport const as _const
 ATTR_ASSERTION = _const.ATTR_ASSERTION
 ATTR_NONCE = _const.ATTR_NONCE
 
-__all__ = (
-    "ATTR_ASSERTION",
-    "ATTR_NONCE",
-)
-
 cdef class Vou:
 
     def __dealloc__(self):

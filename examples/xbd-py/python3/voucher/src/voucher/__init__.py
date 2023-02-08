@@ -5,12 +5,19 @@
 
 from .mbedtls import version as mbedtls_version
 from . import version as version
-from . import voucher as voucher
+from .voucher import Vrq
+from .voucher import Vch
+
+ATTR_ASSERTION = voucher.ATTR_ASSERTION
+ATTR_NONCE = voucher.ATTR_NONCE
 
 __version__ = "0.1.0"
 
 __all__ = (
     "mbedtls_version",
     "version",
-    "voucher",
+    "Vrq",
+    "Vch",
+    "ATTR_ASSERTION",
+    "ATTR_NONCE",
 )

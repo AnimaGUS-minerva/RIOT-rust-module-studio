@@ -1,11 +1,12 @@
-import voucher
-from voucher.voucher import Vrq
-from voucher.voucher import Vch
-from voucher.voucher import *  # for `{ATTR,SA}_*` constants (?? , `debug_*()` methods)
+from voucher import *
+#from voucher.voucher import *  # for `{ATTR,SA}_*` constants (?? , `debug_*()` methods)
 
-print('@@ dir(voucher):', dir(voucher))
-print('@@ dir(voucher.voucher):', dir(voucher.voucher))
-##exit()
+if 1:  # debug
+    import voucher
+    print('@@ dir(voucher):', dir(voucher))
+    print('@@ dir(voucher.voucher):', dir(voucher.voucher))
+    print('@@ ATTR_NONCE:', ATTR_NONCE)
+    ##exit()
 
 #### #### #### #### TODO refactor w.r.t. 'ports/riot/main/boot.py'
 def test_assert_eq(title, left, right, diag=True):
