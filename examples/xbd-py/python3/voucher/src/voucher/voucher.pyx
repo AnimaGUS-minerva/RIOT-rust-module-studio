@@ -16,26 +16,23 @@ cdef class Vou:
     def debug_dump(self):
         _vou.vi_provider_dump(self.provider_ptr)
 
-    def set(self, attr_key, attr_val):
+    def set(self, key, val):
+        ptr = self.provider_ptr
         result = None
 
-        if isinstance(attr_val, bool):  # Yang::Boolean
-            result = _vou.vi_provider_set_attr_bool(self.provider_ptr, attr_key, attr_val)
-        elif isinstance(attr_val, int):  # Yang::{Enumeration,DateAndTime}
-            result = _vou.vi_provider_set_attr_int(self.provider_ptr, attr_key, attr_val)
-        elif isinstance(attr_val, str):  # Yang::String
-            print('@@ !!!! WIP `<bytes>attr_val`:', <bytes>attr_val, len(attr_val))
-
-            result = _vou.vi_provider_set_attr_bytes(# FIXME---vv
-                self.provider_ptr, attr_key, <uint8_t *><bytes>attr_val, len(attr_val))
-        elif isinstance(attr_val, bytes):  # Yang::Binary
-            result = _vou.vi_provider_set_attr_bytes(
-                self.provider_ptr, attr_key, <uint8_t *>attr_val, len(attr_val))
+        if isinstance(val, bool):  # Yang::Boolean
+            result = _vou.vi_provider_set_attr_bool(ptr, key, val)
+        elif isinstance(val, int):  # Yang::{Enumeration,DateAndTime}
+            result = _vou.vi_provider_set_attr_int(ptr, key, val)
+        elif isinstance(val, str):  # Yang::String
+            result = _vou.vi_provider_set_attr_bytes(ptr, key, val.encode(), len(val))
+        elif isinstance(val, bytes):  # Yang::Binary
+            result = _vou.vi_provider_set_attr_bytes(ptr, key, val, len(val))
         else:
-            raise ValueError("invalid 'attr_val' type")
+            raise ValueError("invalid 'val' type")
 
         if not result:
-            raise ValueError(f"'set' operation failed for attr key({attr_key})")
+            raise ValueError(f"'set' operation failed for attr key({key})")
 
         return self
 
