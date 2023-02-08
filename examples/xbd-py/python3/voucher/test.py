@@ -1,8 +1,11 @@
 import voucher
-####from voucher import *  # for `{ATTR,SA}_*` constants (?? , `debug_*()` methods)
+from voucher.voucher import Vrq
+from voucher.voucher import Vch
+from voucher.voucher import *  # for `{ATTR,SA}_*` constants (?? , `debug_*()` methods)
 
 print('@@ dir(voucher):', dir(voucher))
-
+print('@@ dir(voucher.voucher):', dir(voucher.voucher))
+##exit()
 
 #### #### #### #### TODO refactor w.r.t. 'ports/riot/main/boot.py'
 def test_assert_eq(title, left, right, diag=True):
@@ -40,9 +43,6 @@ def wip_python3():
     # vch = voucher.vch()
     # help(vch)
     #==== !!!! ok
-    from voucher.voucher import Vrq
-    from voucher.voucher import Vch
-
     vrq = Vrq()
     #help(vrq)
     #vrq.debug_dump()
@@ -58,11 +58,11 @@ def wip_python3():
     #    .set(ATTR_NONCE, b'\x11\x22\x33') \
     #    .set(ATTR_DOMAIN_CERT_REVOCATION_CHECKS, True) \
     #    .debug_dump()
-    #==== !!!!
-    vrq.set(0, 2) \
+    #==== !!!! xxxx
+    vrq.set(ATTR_ASSERTION, 2) \
        .set(1, 1599086034) \
        .set(8, '00-D0-E5-F2-00-02') \
-       .set(6, b'\x11\x22\x33') \
+       .set(ATTR_NONCE, b'\x11\x22\x33') \
        .set(2, True) \
        .debug_dump()
 

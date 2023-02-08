@@ -6,7 +6,15 @@
 # from libc.stdlib cimport malloc, free
 # from libc.string cimport strcpy
 from . cimport voucher as _vou
+from . cimport const as _const
 
+ATTR_ASSERTION = _const.ATTR_ASSERTION
+ATTR_NONCE = _const.ATTR_NONCE
+
+__all__ = (
+    "ATTR_ASSERTION",
+    "ATTR_NONCE",
+)
 
 cdef class Vou:
 
@@ -29,10 +37,10 @@ cdef class Vou:
         elif isinstance(val, bytes):  # Yang::Binary
             result = _vou.vi_provider_set_attr_bytes(ptr, key, val, len(val))
         else:
-            raise ValueError("invalid 'val' type")
+            raise ValueError(f"invalid 'val' type ({type(val)})")
 
         if not result:
-            raise ValueError(f"'set' operation failed for attr key({key})")
+            raise ValueError(f"'set' operation failed for attr key ({key})")
 
         return self
 
