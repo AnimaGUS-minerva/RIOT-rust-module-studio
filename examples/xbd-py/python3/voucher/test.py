@@ -30,11 +30,9 @@ def test_voucher_mbedtls_version():
     test_assert('mbedtls_version.version', mbedtls_version.version.startswith('mbed TLS 3.'))
 
 def test_voucher_version():
-    import voucher.version as version
-
-    print('==== test_voucher_version(): ^^')
-    print('version.version:', version.version)
-    test_assert('version.version', version.version.startswith('Rust voucher '))
+    print('==== test_voucher_version: ^^')
+    print('voucher.version:', voucher.version)
+    test_assert('voucher.version', voucher.voucher.version.startswith('Rust voucher '))
 
 def wip_python3():
     print('@@ ======== WIP ========')

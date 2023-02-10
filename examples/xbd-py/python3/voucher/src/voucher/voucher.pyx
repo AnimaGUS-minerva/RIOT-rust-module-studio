@@ -3,6 +3,8 @@
 
 """The Voucher library."""
 
+from libc.stdlib cimport malloc, free
+#from libc.string cimport strcpy
 from . cimport voucher as _vou
 from . cimport const as _const
 
@@ -70,3 +72,19 @@ cdef class Vch(Vou):
 
     def __cinit__(self):
         _vou.vi_provider_allocate(&self.provider_ptr, False)
+
+
+cdef __version():
+    sz = 32 * sizeof(uint8_t)
+    cdef uint8_t *output = <uint8_t *>malloc(sz)
+    cdef bytes buffer
+    if not output:
+        raise MemoryError()
+    try:
+        _vou.voucher_version_get_string_full(output, sz)
+        buffer = output
+        return buffer.decode("ascii")
+    finally:
+        free(output)
+
+version = __version()

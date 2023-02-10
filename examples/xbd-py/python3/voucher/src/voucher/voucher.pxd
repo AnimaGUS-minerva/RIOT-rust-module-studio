@@ -1,12 +1,13 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2023, ANIMA Minerva toolkit
 
-"""Declarations from `voucher_if.h`."""
-
-
 from libcpp cimport bool as bool_t
 from libc.stdint cimport uint8_t
 from libc.stdint cimport uint64_t
+
+
+cdef extern from "python3_if.h" nogil:
+    void voucher_version_get_string_full(uint8_t *ptr, size_t sz)
 
 
 cdef extern from "voucher_if.h" nogil:
