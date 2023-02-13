@@ -10,4 +10,4 @@ crate-type = ["staticlib"]
 
 [dependencies]
 mcu-if = { git = "https://github.com/AnimaGUS-minerva/mcu-if", rev = "7f30df8", features=["allocator"] }
-minerva-mbedtls-test = { git = "https://github.com/AnimaGUS-minerva/minerva-mbedtls", rev = "e735df5" }
+minerva-mbedtls-test = { git = "https://github.com/AnimaGUS-minerva/minerva-mbedtls", rev = "0e9fe6b" }
