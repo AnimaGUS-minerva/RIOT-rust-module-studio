@@ -15,5 +15,5 @@ std = []
 python3 = ["std"]
 
 [dependencies]
-mcu-if = { git = "https://github.com/AnimaGUS-minerva/mcu-if", rev = "f228240" }
-minerva-voucher = { git = "https://github.com/AnimaGUS-minerva/voucher", rev = "99ff84f" }
+mcu-if = { git = "https://github.com/AnimaGUS-minerva/mcu-if", rev = "7f30df8", features=["allocator"] }
+minerva-voucher = { git = "https://github.com/AnimaGUS-minerva/voucher", rev = "edac4f8" }
