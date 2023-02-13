@@ -9,5 +9,5 @@ name = "rustmod"
 crate-type = ["staticlib"]
 
 [dependencies]
-mcu-if = { git = "https://github.com/AnimaGUS-minerva/mcu-if", rev = "984b8dd" }
-minerva-mbedtls-test = { git = "https://github.com/AnimaGUS-minerva/minerva-mbedtls", rev = "e9b761a" }
+mcu-if = { git = "https://github.com/AnimaGUS-minerva/mcu-if", rev = "7f30df8", features=["allocator"] }
+minerva-mbedtls-test = { git = "https://github.com/AnimaGUS-minerva/minerva-mbedtls", rev = "e735df5" }
