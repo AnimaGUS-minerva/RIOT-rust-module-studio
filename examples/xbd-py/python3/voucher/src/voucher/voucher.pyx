@@ -88,11 +88,20 @@ cdef __version():
         free(output)
 
 
-cdef __debug_get_key_pem_F2_00_02():
+ctypedef size_t (*f_type)(uint8_t **pp)
+
+cdef bytes __debug_f_static(f_type f):
     cdef uint8_t *ptr_static
-    sz = _vou.vi_get_key_pem_F2_00_02(&ptr_static)
+    sz = f(&ptr_static)
     return ptr_static[:sz]
+
+cdef __debug_get_key_pem_F2_00_02():
+    return __debug_f_static(_vou.vi_get_key_pem_F2_00_02)
+
+cdef __debug_get_device_crt_F2_00_02():
+    return __debug_f_static(_vou.vi_get_device_crt_F2_00_02)
 
 
 version = __version()
 debug_get_key_pem_F2_00_02 = __debug_get_key_pem_F2_00_02
+debug_get_device_crt_F2_00_02 = __debug_get_device_crt_F2_00_02

@@ -19,7 +19,7 @@ cdef extern from "voucher_if.h" nogil:
     # size_t vi_get_voucher_F2_00_02(uint8_t **pp);
     # size_t vi_get_masa_pem_F2_00_02(uint8_t **pp);
     size_t vi_get_key_pem_F2_00_02(uint8_t **pp);
-    # size_t vi_get_device_crt_F2_00_02(uint8_t **pp);
+    size_t vi_get_device_crt_F2_00_02(uint8_t **pp);
     # size_t vi_get_vrq_F2_00_02(uint8_t **pp);
     #
     # // `*pp` points to a heap address after calling

@@ -70,8 +70,8 @@ def wip_python3():
     KEY_PEM_F2_00_02 = voucher.voucher.debug_get_key_pem_F2_00_02()  # debug, privkey
     test_assert_eq('debug_get_key_pem_F2_00_02', len(KEY_PEM_F2_00_02), 227)
 
-    # DEVICE_CRT_F2_00_02 = debug_get_device_crt_F2_00_02()  # debug, pubkey
-    # test_assert_eq('debug_get_device_crt_F2_00_02', len(DEVICE_CRT_F2_00_02), 644)
+    DEVICE_CRT_F2_00_02 = voucher.voucher.debug_get_device_crt_F2_00_02()  # debug, pubkey
+    test_assert_eq('debug_get_device_crt_F2_00_02', len(DEVICE_CRT_F2_00_02), 644)
 
 
 
