@@ -87,4 +87,12 @@ cdef __version():
     finally:
         free(output)
 
+
+cdef __debug_get_key_pem_F2_00_02():
+    cdef uint8_t *ptr_static
+    sz = _vou.vi_get_key_pem_F2_00_02(&ptr_static)
+    return ptr_static[:sz]
+
+
 version = __version()
+debug_get_key_pem_F2_00_02 = __debug_get_key_pem_F2_00_02
