@@ -95,13 +95,28 @@ cdef bytes __debug_f_static(f_type f):
     sz = f(&ptr_static)
     return ptr_static[:sz]
 
+cdef __debug_get_vch_jada():
+    return __debug_f_static(_vou.vi_get_voucher_jada)
+
+cdef __debug_get_vch_F2_00_02():
+    return __debug_f_static(_vou.vi_get_voucher_F2_00_02)
+
+cdef __debug_get_masa_pem_F2_00_02():
+    return __debug_f_static(_vou.vi_get_masa_pem_F2_00_02)
+
 cdef __debug_get_key_pem_F2_00_02():
     return __debug_f_static(_vou.vi_get_key_pem_F2_00_02)
 
 cdef __debug_get_device_crt_F2_00_02():
     return __debug_f_static(_vou.vi_get_device_crt_F2_00_02)
 
+cdef __debug_get_vrq_F2_00_02():
+    return __debug_f_static(_vou.vi_get_vrq_F2_00_02)
 
 version = __version()
+debug_get_vch_jada = __debug_get_vch_jada
+debug_get_vch_F2_00_02 = __debug_get_vch_F2_00_02
+debug_get_masa_pem_F2_00_02 = __debug_get_masa_pem_F2_00_02
 debug_get_key_pem_F2_00_02 = __debug_get_key_pem_F2_00_02
 debug_get_device_crt_F2_00_02 = __debug_get_device_crt_F2_00_02
+debug_get_vrq_F2_00_02 = __debug_get_vrq_F2_00_02

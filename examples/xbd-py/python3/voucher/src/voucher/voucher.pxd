@@ -13,18 +13,15 @@ cdef extern from "python3_if.h" nogil:
 cdef extern from "voucher_if.h" nogil:
 
     # void vi_init_psa_crypto(void);
-    #
-    # // `*pp` points to a static address after calling
-    # size_t vi_get_voucher_jada(uint8_t **pp);
-    # size_t vi_get_voucher_F2_00_02(uint8_t **pp);
-    # size_t vi_get_masa_pem_F2_00_02(uint8_t **pp);
+
+    # `*pp` points to a static address after calling
+    size_t vi_get_voucher_jada(uint8_t **pp);
+    size_t vi_get_voucher_F2_00_02(uint8_t **pp);
+    size_t vi_get_masa_pem_F2_00_02(uint8_t **pp);
     size_t vi_get_key_pem_F2_00_02(uint8_t **pp);
     size_t vi_get_device_crt_F2_00_02(uint8_t **pp);
-    # size_t vi_get_vrq_F2_00_02(uint8_t **pp);
-    #
-    # // `*pp` points to a heap address after calling
-    # size_t vi_create_vrq_F2_00_02(uint8_t **pp);
-    #
+    size_t vi_get_vrq_F2_00_02(uint8_t **pp);
+
     # size_t vi_sign(const uint8_t *ptr_raw, size_t sz_raw, const uint8_t *ptr_key, size_t sz_key,
     #                uint8_t **pp, uint8_t alg);
     # bool vi_validate(const uint8_t *ptr, size_t sz);
