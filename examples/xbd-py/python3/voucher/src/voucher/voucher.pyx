@@ -36,9 +36,7 @@ SA_PS256 = _const.SA_PS256
 cdef class Vou:
 
     def __dealloc__(self):
-        # print('@@ __dealloc__(): ^^')
-        if self.provider_ptr != NULL:
-            _vou.vi_provider_free(&self.provider_ptr)
+        _vou.vi_provider_free(&self.provider_ptr)
 
     def debug_dump(self):
         _vou.vi_provider_dump(self.provider_ptr)
@@ -85,47 +83,38 @@ cdef class Vou:
         else:
             raise ValueError("'pem' arg must be <class 'bytes'>")
 
-    def allocate_from_cbor(self, cbor):
-        if not isinstance(cbor, bytes):
-            raise ValueError("'cbor' arg must be <class 'bytes'>")
 
-        if not _vou.vi_provider_allocate_from_cbor(&self.provider_ptr, cbor, len(cbor)):
-            raise ValueError("bad cbor voucher")
+UINTPTR_NULL = <uintptr_t>NULL
 
-        return _vou.vi_provider_is_vrq(self.provider_ptr)
 
 cdef class Vrq(Vou):
 
-    def __cinit__(self, cbor=None):
-        if cbor is None:
+    def __cinit__(self, uintptr_t ptr=UINTPTR_NULL):
+        if ptr == UINTPTR_NULL:
             _vou.vi_provider_allocate(&self.provider_ptr, True)
         else:
-            if not self.allocate_from_cbor(cbor):  # is vch ?
-                raise ValueError("not vrq cbor")
+            self.provider_ptr = <vi_provider_t *>ptr
 
 
 cdef class Vch(Vou):
 
-    def __cinit__(self, cbor=None):
-        if cbor is None:
+    def __cinit__(self, uintptr_t ptr=UINTPTR_NULL):
+        if ptr == UINTPTR_NULL:
             _vou.vi_provider_allocate(&self.provider_ptr, False)
         else:
-            if self.allocate_from_cbor(cbor):  # is vrq ?
-                raise ValueError("not vch cbor")
+            self.provider_ptr = <vi_provider_t *>ptr
 
 
 cdef __from_cbor(cbor):
-    try:
-        return Vrq(cbor)
-    except ValueError:
-        pass
+    cdef vi_provider_t *provider_ptr = NULL
+    if not isinstance(cbor, bytes):
+        raise ValueError("'cbor' arg must be <class 'bytes'>")
 
-    try:
-        return Vch(cbor)
-    except ValueError:
-        pass
+    if not _vou.vi_provider_allocate_from_cbor(&provider_ptr, cbor, len(cbor)):
+        raise ValueError("bad cbor voucher")
 
-    raise ValueError("failed to resolve cbor")
+    ptr = <uintptr_t>provider_ptr
+    return Vrq(ptr) if _vou.vi_provider_is_vrq(provider_ptr) else Vch(ptr)
 
 
 cdef __version():

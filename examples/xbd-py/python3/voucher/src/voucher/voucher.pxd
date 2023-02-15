@@ -4,6 +4,7 @@
 from libcpp cimport bool as bool_t
 from libc.stdint cimport uint8_t
 from libc.stdint cimport uint64_t
+from libc.stdint cimport uintptr_t
 
 
 cdef extern from "python3_if.h" nogil:
