@@ -11,16 +11,7 @@ cdef extern from "python3_if.h" nogil:
 
 
 cdef extern from "voucher_if.h" nogil:
-
-    # `*pp` points to a static address after calling
-    size_t vi_get_voucher_jada(uint8_t **pp)
-    size_t vi_get_voucher_F2_00_02(uint8_t **pp)
-    size_t vi_get_masa_pem_F2_00_02(uint8_t **pp)
-    size_t vi_get_key_pem_F2_00_02(uint8_t **pp)
-    size_t vi_get_device_crt_F2_00_02(uint8_t **pp)
-    size_t vi_get_vrq_F2_00_02(uint8_t **pp)
-
-    # void vi_init_psa_crypto(void)
+    void vi_init_psa_crypto()
 
     ctypedef struct vi_provider_t:
         pass
@@ -38,6 +29,14 @@ cdef extern from "voucher_if.h" nogil:
     bool_t vi_provider_sign(vi_provider_t *p, const uint8_t *ptr_key, size_t sz_key, uint8_t alg)
     bool_t vi_provider_validate(vi_provider_t *p)
     bool_t vi_provider_validate_with_pem(vi_provider_t *p, const uint8_t *ptr_pem, size_t sz_pem)
+
+    # `*pp` points to a static address after calling
+    size_t vi_get_voucher_jada(uint8_t **pp)
+    size_t vi_get_voucher_F2_00_02(uint8_t **pp)
+    size_t vi_get_masa_pem_F2_00_02(uint8_t **pp)
+    size_t vi_get_key_pem_F2_00_02(uint8_t **pp)
+    size_t vi_get_device_crt_F2_00_02(uint8_t **pp)
+    size_t vi_get_vrq_F2_00_02(uint8_t **pp)
 
 
 cdef class Vou:

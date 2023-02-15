@@ -136,6 +136,7 @@ cdef __debug_get_vrq_F2_00_02():
 
 
 version = __version()
+init_psa_crypto = _vou.vi_init_psa_crypto
 debug_get_vch_jada = __debug_get_vch_jada
 debug_get_vch_F2_00_02 = __debug_get_vch_F2_00_02
 debug_get_masa_pem_F2_00_02 = __debug_get_masa_pem_F2_00_02
