@@ -34,8 +34,9 @@ SA_PS256 = voucher.SA_PS256
 
 __version__ = "0.1.0"
 
+from_cbor = voucher.from_cbor
 version = voucher.version
-voucher.init_psa_crypto()
+voucher.init_psa_crypto()  # NOP in case already initialized
 
 __all__ = (
     "mbedtls_version",

@@ -20,7 +20,10 @@ cdef extern from "voucher_if.h" nogil:
     bool_t vi_provider_allocate_from_cbor(vi_provider_t **pp, const uint8_t *buf, size_t sz)
     void vi_provider_free(vi_provider_t **pp)
 
+    bool_t vi_provider_is_vrq(vi_provider_t *p)
+    size_t vi_provider_to_cbor(vi_provider_t *p, uint8_t **buf)
     void vi_provider_dump(vi_provider_t *p)
+    size_t vi_provider_len(vi_provider_t *p)
 
     bool_t vi_provider_set_attr_int(vi_provider_t *p, uint8_t attr_key, uint64_t attr_val)
     bool_t vi_provider_set_attr_bool(vi_provider_t *p, uint8_t attr_key, bool_t attr_val)

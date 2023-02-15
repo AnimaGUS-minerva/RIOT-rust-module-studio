@@ -87,13 +87,16 @@ def wip_python3():
     test_assert('vrq.validate(KEY_PEM_F2_00_02) - with privkey PEM',
         vrq.validate(KEY_PEM_F2_00_02))
 
+    test_assert('vch_jada.validate() - without PEM, `signer_cert` is used instead',
+        voucher.from_cbor(_voucher.debug_get_vch_jada()).validate())
+    test_assert('vch_f2.validate() - without PEM, should fail',
+        not voucher.from_cbor(_voucher.debug_get_vch_F2_00_02()).validate())
+    test_assert('vrq_f2.validate() - without PEM, should fail',
+        not voucher.from_cbor(_voucher.debug_get_vrq_F2_00_02()).validate())
 
 
 def test_voucher_xx():
     print('==== test_voucher_xx(): ^^')
-
-    # init_psa_crypto()  # TODO
-
     wip_python3()
 
 

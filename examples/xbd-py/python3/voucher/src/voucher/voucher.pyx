@@ -36,10 +36,13 @@ SA_PS256 = _const.SA_PS256
 cdef class Vou:
 
     def __dealloc__(self):
-        _vou.vi_provider_free(&self.provider_ptr)
+        # print('@@ __dealloc__(): ^^')
+        if self.provider_ptr != NULL:
+            _vou.vi_provider_free(&self.provider_ptr)
 
     def debug_dump(self):
         _vou.vi_provider_dump(self.provider_ptr)
+        return self
 
     def set(self, key, val):
         ptr = self.provider_ptr
@@ -82,17 +85,47 @@ cdef class Vou:
         else:
             raise ValueError("'pem' arg must be <class 'bytes'>")
 
+    def allocate_from_cbor(self, cbor):
+        if not isinstance(cbor, bytes):
+            raise ValueError("'cbor' arg must be <class 'bytes'>")
+
+        if not _vou.vi_provider_allocate_from_cbor(&self.provider_ptr, cbor, len(cbor)):
+            raise ValueError("bad cbor voucher")
+
+        return _vou.vi_provider_is_vrq(self.provider_ptr)
 
 cdef class Vrq(Vou):
 
-    def __cinit__(self):
-        _vou.vi_provider_allocate(&self.provider_ptr, True)
+    def __cinit__(self, cbor=None):
+        if cbor is None:
+            _vou.vi_provider_allocate(&self.provider_ptr, True)
+        else:
+            if not self.allocate_from_cbor(cbor):  # is vch ?
+                raise ValueError("not vrq cbor")
 
 
 cdef class Vch(Vou):
 
-    def __cinit__(self):
-        _vou.vi_provider_allocate(&self.provider_ptr, False)
+    def __cinit__(self, cbor=None):
+        if cbor is None:
+            _vou.vi_provider_allocate(&self.provider_ptr, False)
+        else:
+            if self.allocate_from_cbor(cbor):  # is vrq ?
+                raise ValueError("not vch cbor")
+
+
+cdef __from_cbor(cbor):
+    try:
+        return Vrq(cbor)
+    except ValueError:
+        pass
+
+    try:
+        return Vch(cbor)
+    except ValueError:
+        pass
+
+    raise ValueError("failed to resolve cbor")
 
 
 cdef __version():
@@ -135,6 +168,7 @@ cdef __debug_get_vrq_F2_00_02():
     return __debug_f_static(_vou.vi_get_vrq_F2_00_02)
 
 
+from_cbor = __from_cbor
 version = __version()
 init_psa_crypto = _vou.vi_init_psa_crypto
 debug_get_vch_jada = __debug_get_vch_jada
