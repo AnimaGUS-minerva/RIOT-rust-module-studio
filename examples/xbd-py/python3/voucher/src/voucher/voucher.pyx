@@ -61,6 +61,27 @@ cdef class Vou:
 
         return self
 
+    def sign(self, key_pem, alg):
+        ptr = self.provider_ptr
+
+        if not isinstance(key_pem, bytes):
+            raise ValueError("'pem' arg must be <class 'bytes'>")
+
+        if not _vou.vi_provider_sign(ptr, key_pem, len(key_pem), alg):
+            raise ValueError(f"'sign' operation failed for alg({alg})")
+
+        return self
+
+    def validate(self, pem=None):
+        ptr = self.provider_ptr
+
+        if pem is None:  # without PEM (`signer_cert` is used instead)
+            return _vou.vi_provider_validate(ptr);
+        elif isinstance(pem, bytes):
+            return _vou.vi_provider_validate_with_pem(ptr, pem, len(pem))
+        else:
+            raise ValueError("'pem' arg must be <class 'bytes'>")
+
 
 cdef class Vrq(Vou):
 
@@ -112,6 +133,7 @@ cdef __debug_get_device_crt_F2_00_02():
 
 cdef __debug_get_vrq_F2_00_02():
     return __debug_f_static(_vou.vi_get_vrq_F2_00_02)
+
 
 version = __version()
 debug_get_vch_jada = __debug_get_vch_jada

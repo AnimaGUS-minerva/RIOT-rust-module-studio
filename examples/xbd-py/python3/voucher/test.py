@@ -73,6 +73,17 @@ def wip_python3():
     DEVICE_CRT_F2_00_02 = voucher.voucher.debug_get_device_crt_F2_00_02()  # debug, pubkey
     test_assert_eq('debug_get_device_crt_F2_00_02', len(DEVICE_CRT_F2_00_02), 644)
 
+    test_assert('vrq.validate(DEVICE_CRT_F2_00_02) - with pubkey PEM, should fail (unsigned)',
+        not vrq.validate(DEVICE_CRT_F2_00_02))
+    test_assert('vrq.validate(KEY_PEM_F2_00_02) - with privkey PEM, should fail (unsigned)',
+        not vrq.validate(KEY_PEM_F2_00_02))
+
+    vrq.sign(KEY_PEM_F2_00_02, SA_ES256).debug_dump()
+
+    test_assert('vrq.validate(DEVICE_CRT_F2_00_02) - with pubkey PEM',
+        vrq.validate(DEVICE_CRT_F2_00_02))
+    test_assert('vrq.validate(KEY_PEM_F2_00_02) - with privkey PEM',
+        vrq.validate(KEY_PEM_F2_00_02))
 
 
 
