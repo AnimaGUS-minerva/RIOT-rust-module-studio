@@ -67,13 +67,13 @@ def wip_python3():
        .set(ATTR_PROXIMITY_REGISTRAR_CERT, bytes([102, 114, 118, 85, 105, 90, 104, 89, 56, 80, 110, 86, 108, 82, 75, 67, 73, 83, 51, 113, 77, 81])) \
        .set(ATTR_SERIAL_NUMBER, '00-D0-E5-F2-00-02')
 
-    KEY_PEM_F2_00_02 = voucher.voucher.debug_get_key_pem_F2_00_02()  # debug, privkey
+    _voucher = voucher.voucher
+
+    KEY_PEM_F2_00_02 = _voucher.debug_get_key_pem_F2_00_02()  # debug, privkey
     test_assert_eq('debug_get_key_pem_F2_00_02', len(KEY_PEM_F2_00_02), 227)
 
-    DEVICE_CRT_F2_00_02 = voucher.voucher.debug_get_device_crt_F2_00_02()  # debug, pubkey
+    DEVICE_CRT_F2_00_02 = _voucher.debug_get_device_crt_F2_00_02()  # debug, pubkey
     test_assert_eq('debug_get_device_crt_F2_00_02', len(DEVICE_CRT_F2_00_02), 644)
-
-    voucher.init_psa_crypto()
 
     test_assert('vrq.validate(DEVICE_CRT_F2_00_02) - with pubkey PEM, should fail (unsigned)',
         not vrq.validate(DEVICE_CRT_F2_00_02))

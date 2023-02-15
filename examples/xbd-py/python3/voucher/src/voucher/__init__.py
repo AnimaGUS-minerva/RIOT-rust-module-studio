@@ -35,7 +35,7 @@ SA_PS256 = voucher.SA_PS256
 __version__ = "0.1.0"
 
 version = voucher.version
-init_psa_crypto = voucher.init_psa_crypto
+voucher.init_psa_crypto()
 
 __all__ = (
     "mbedtls_version",
