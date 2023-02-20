@@ -50,6 +50,19 @@ cdef class Vou:
         _vou.vi_provider_dump(self.provider_ptr)
         return self
 
+    def to_cbor(self):
+        cdef uint8_t *ptr
+        sz = _vou.vi_provider_to_cbor(self.provider_ptr, &ptr)
+        if ptr == NULL:
+            raise ValueError("'to_cbor' operation failed")
+
+        cbor = ptr[:sz]
+        free(ptr)
+        return cbor
+
+    def len(self):
+        return _vou.vi_provider_len(self.provider_ptr)
+
     def set(self, key, val):
         ptr = self.provider_ptr
         result = None

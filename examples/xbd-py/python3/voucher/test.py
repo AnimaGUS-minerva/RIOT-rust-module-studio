@@ -1,5 +1,9 @@
 import voucher
 from voucher import *  # Vrq, Vch, ATTR_*, ...
+from voucher import from_cbor
+
+_voucher = voucher.voucher  # debug
+
 
 if 1:  # debug
     print('@@ dir(voucher):', dir(voucher))
@@ -67,8 +71,6 @@ def wip_python3():
        .set(ATTR_PROXIMITY_REGISTRAR_CERT, bytes([102, 114, 118, 85, 105, 90, 104, 89, 56, 80, 110, 86, 108, 82, 75, 67, 73, 83, 51, 113, 77, 81])) \
        .set(ATTR_SERIAL_NUMBER, '00-D0-E5-F2-00-02')
 
-    _voucher = voucher.voucher
-
     KEY_PEM_F2_00_02 = _voucher.debug_get_key_pem_F2_00_02()  # debug, privkey
     test_assert_eq('debug_get_key_pem_F2_00_02', len(KEY_PEM_F2_00_02), 227)
 
@@ -88,17 +90,73 @@ def wip_python3():
         vrq.validate(KEY_PEM_F2_00_02))
 
     test_assert('vch_jada.validate() - without PEM, `signer_cert` is used instead',
-        voucher.from_cbor(_voucher.debug_get_vch_jada()).validate())
+        from_cbor(_voucher.debug_get_vch_jada()).validate())
     test_assert('vch_f2.validate() - without PEM, should fail',
-        not voucher.from_cbor(_voucher.debug_get_vch_F2_00_02()).validate())
+        not from_cbor(_voucher.debug_get_vch_F2_00_02()).validate())
     test_assert('vrq_f2.validate() - without PEM, should fail',
-        not voucher.from_cbor(_voucher.debug_get_vrq_F2_00_02()).validate())
+        not from_cbor(_voucher.debug_get_vrq_F2_00_02()).validate())
+
+    #
+
+    try:
+        bad_cbor = b'\x11\x22\x33'
+        vou = from_cbor(bad_cbor)
+    except ValueError:
+        vou = None
+    test_assert_eq('from_cbor() - ValueError on bad cbor', vou, None)
+
+    obj_vch_jada = from_cbor(_voucher.debug_get_vch_jada())
+    obj_vch_f2 = from_cbor(_voucher.debug_get_vch_F2_00_02())
+    obj_vrq_f2 = from_cbor(_voucher.debug_get_vrq_F2_00_02())
+
+    print('* type checks:', type(obj_vch_jada), type(obj_vch_f2), type(obj_vrq_f2))
+    test_assert('from_cbor() - type of obj_vch_jada', isinstance(obj_vch_jada, Vch))
+    test_assert('from_cbor() - type of obj_vch_f2', isinstance(obj_vch_f2, Vch))
+    test_assert('from_cbor() - type of obj_vrq_f2', isinstance(obj_vrq_f2, Vrq))
+
+    test_assert_eq('from_cbor() - attr len of obj_vch_jada', obj_vch_jada.len(), 6)
+    test_assert_eq('from_cbor() - attr len of obj_vch_f2', obj_vch_f2.len(), 5)
+    test_assert_eq('from_cbor() - attr len of obj_vrq_f2', obj_vrq_f2.len(), 5)
+
+    test_assert_eq('to_cbor() - obj_vch_jada', obj_vch_jada.to_cbor(), _voucher.debug_get_vch_jada())
+    test_assert_eq('to_cbor() - obj_vch_f2', obj_vch_f2.to_cbor(), _voucher.debug_get_vch_F2_00_02())
+    test_assert_eq('to_cbor() - obj_vrq_f2', obj_vrq_f2.to_cbor(), _voucher.debug_get_vrq_F2_00_02())
+
+    try:
+        cbor = Vch().to_cbor()
+    except ValueError:
+        cbor = None
+    test_assert_eq('to_cbor() - exception on `vch` without required attributes', cbor, None)
+
+    try:
+        cbor = Vrq() \
+            .set(ATTR_SERIAL_NUMBER, '00-D0-E5-F2-00-02') \
+            .to_cbor()
+    except ValueError:
+        cbor = None
+    test_assert_eq('to_cbor() - exception on `vrq` without required attributes', cbor, None)
+
+    try:
+        cbor = Vrq() \
+            .set(ATTR_ASSERTION, ASSERTION_PROXIMITY) \
+            .set(ATTR_SERIAL_NUMBER, '00-D0-E5-F2-00-02') \
+            .to_cbor()
+    except ValueError:
+        cbor = None
+    test_assert_eq('to_cbor() - `vrq` with required attributes', len(cbor), 43)
+
+    #
+
+
+
+
+
 
 
 def test_voucher_xx():
     print('==== test_voucher_xx(): ^^')
     wip_python3()
-
+    print('==== test_voucher_xx(): vv')
 
 if 1:
     test_voucher_mbedtls_version()
