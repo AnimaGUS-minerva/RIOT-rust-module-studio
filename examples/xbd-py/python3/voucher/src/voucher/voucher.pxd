@@ -26,9 +26,20 @@ cdef extern from "voucher_if.h" nogil:
     void vi_provider_dump(vi_provider_t *p)
     size_t vi_provider_len(vi_provider_t *p)
 
+    bool_t vi_provider_has_attr_int(vi_provider_t *p, uint8_t attr_key)
+    bool_t vi_provider_has_attr_bool(vi_provider_t *p, uint8_t attr_key)
+    bool_t vi_provider_has_attr_bytes(vi_provider_t *p, uint8_t attr_key)
+
+    uint64_t vi_provider_get_attr_int_or_panic(vi_provider_t *p, uint8_t attr_key)
+    bool_t vi_provider_get_attr_bool_or_panic(vi_provider_t *p, uint8_t attr_key)
+    size_t vi_provider_get_attr_bytes_or_panic(vi_provider_t *p, uint8_t attr_key, uint8_t **buf)
+
     bool_t vi_provider_set_attr_int(vi_provider_t *p, uint8_t attr_key, uint64_t attr_val)
     bool_t vi_provider_set_attr_bool(vi_provider_t *p, uint8_t attr_key, bool_t attr_val)
     bool_t vi_provider_set_attr_bytes(vi_provider_t *p, uint8_t attr_key, const uint8_t *buf, size_t sz)
+
+    bool_t vi_provider_remove_attr(vi_provider_t *p, uint8_t attr_key)
+    uint8_t vi_provider_attr_key_at(vi_provider_t *p, size_t n)
 
     bool_t vi_provider_sign(vi_provider_t *p, const uint8_t *ptr_key, size_t sz_key, uint8_t alg)
     bool_t vi_provider_validate(vi_provider_t *p)
