@@ -51,13 +51,13 @@ cdef class Vou:
         return self
 
     def to_cbor(self):
-        cdef uint8_t *ptr
-        sz = _vou.vi_provider_to_cbor(self.provider_ptr, &ptr)
-        if ptr == NULL:
+        cdef uint8_t *buf
+        sz = _vou.vi_provider_to_cbor(self.provider_ptr, &buf)
+        if buf == NULL:
             raise ValueError("'to_cbor' operation failed")
 
-        cbor = ptr[:sz]
-        free(ptr)
+        cbor = buf[:sz]
+        free(buf)
         return cbor
 
     def len(self):
@@ -82,6 +82,21 @@ cdef class Vou:
             raise ValueError(f"'set' operation failed for attr key ({key})")
 
         return self
+
+    def get(self, key):
+        ptr = self.provider_ptr
+        cdef uint8_t *buf = NULL
+        obj = None
+
+        if _vou.vi_provider_has_attr_int(ptr, key):
+            obj = _vou.vi_provider_get_attr_int_or_panic(ptr, key)
+        elif _vou.vi_provider_has_attr_bool(ptr, key):
+            obj = vi_provider_get_attr_bool_or_panic(ptr, key)
+        elif _vou.vi_provider_has_attr_bytes(ptr, key):
+            sz = _vou.vi_provider_get_attr_bytes_or_panic(ptr, key, &buf)
+            obj = b'' if buf == NULL else buf[:sz]
+
+        return obj
 
     def sign(self, key_pem, alg):
         ptr = self.provider_ptr

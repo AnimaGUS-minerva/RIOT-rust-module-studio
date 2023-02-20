@@ -147,9 +147,32 @@ def wip_python3():
 
     #
 
+    vch = from_cbor(_voucher.debug_get_vch_jada())#.debug_dump()
 
+    print('* `.get()` `int` attributes in vch_jada')
+    test_assert_eq('get - ATTR_ASSERTION', vch.get(ATTR_ASSERTION), ASSERTION_PROXIMITY)
+    test_assert_eq('get - ATTR_CREATED_ON', vch.get(ATTR_CREATED_ON), 1475868702)
+    test_assert_eq('get - ATTR_EXPIRES_ON', vch.get(ATTR_EXPIRES_ON), 1506816000)
+    test_assert_eq('get - None for ATTR_LAST_RENEWAL_DATE', vch.get(ATTR_LAST_RENEWAL_DATE), None)
 
+    print('* `.get()` `bool` attributes in vch_jada')
+    test_assert_eq('get - ATTR_DOMAIN_CERT_REVOCATION_CHECKS', vch.get(ATTR_DOMAIN_CERT_REVOCATION_CHECKS), None)
 
+    v = Vrq().set(ATTR_DOMAIN_CERT_REVOCATION_CHECKS, True)
+    test_assert_eq('get - ATTR_DOMAIN_CERT_REVOCATION_CHECKS', v.get(ATTR_DOMAIN_CERT_REVOCATION_CHECKS), True)
+    v.set(ATTR_DOMAIN_CERT_REVOCATION_CHECKS, False)
+    test_assert_eq('get - ATTR_DOMAIN_CERT_REVOCATION_CHECKS', v.get(ATTR_DOMAIN_CERT_REVOCATION_CHECKS), False)
+
+    print('* `.get()` `bytes` attributes in vch_jada')
+    test_assert_eq('get - None for ATTR_IDEVID_ISSUER', vch.get(ATTR_IDEVID_ISSUER), None)
+    test_assert_eq('get - ATTR_NONCE', vch.get(ATTR_NONCE), b'abcd12345')
+    test_assert_eq('get - None for ATTR_PINNED_DOMAIN_CERT', vch.get(ATTR_PINNED_DOMAIN_CERT), None)
+    test_assert_eq('get - ATTR_PINNED_DOMAIN_PUBK_SHA256', vch.get(ATTR_PINNED_DOMAIN_PUBK_SHA256), None)
+    test_assert_eq('get - None for ATTR_PRIOR_SIGNED_VOUCHER_REQUEST', vch.get(ATTR_PRIOR_SIGNED_VOUCHER_REQUEST), None)
+    test_assert_eq('get - None for ATTR_PROXIMITY_REGISTRAR_CERT', vch.get(ATTR_PROXIMITY_REGISTRAR_CERT), None)
+    test_assert_eq('get - None for ATTR_PROXIMITY_REGISTRAR_PUBK', vch.get(ATTR_PROXIMITY_REGISTRAR_PUBK), None)
+    test_assert_eq('get - None for ATTR_PROXIMITY_REGISTRAR_PUBK_SHA256', vch.get(ATTR_PROXIMITY_REGISTRAR_PUBK_SHA256), None)
+    test_assert_eq('get - ATTR_SERIAL_NUMBER', vch.get(ATTR_SERIAL_NUMBER), b'JADA123456789')
 
 
 
