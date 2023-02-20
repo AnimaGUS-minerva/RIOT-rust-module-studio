@@ -98,6 +98,9 @@ cdef class Vou:
 
         return obj
 
+    def remove(self, key):
+        return _vou.vi_provider_remove_attr(self.provider_ptr, key)
+
     def sign(self, key_pem, alg):
         ptr = self.provider_ptr
 
