@@ -33,10 +33,18 @@ SA_ES384 = _const.SA_ES384
 SA_ES512 = _const.SA_ES512
 SA_PS256 = _const.SA_PS256
 
+
 cdef class Vou:
+    UINTPTR_NULL = <uintptr_t>NULL
 
     def __dealloc__(self):
         _vou.vi_provider_free(&self.provider_ptr)
+
+    def init_provider_ptr(self, uintptr_t ptr, is_vrq):
+        if ptr == Vou.UINTPTR_NULL:
+            _vou.vi_provider_allocate(&self.provider_ptr, is_vrq)
+        else:
+            self.provider_ptr = <vi_provider_t *>ptr
 
     def debug_dump(self):
         _vou.vi_provider_dump(self.provider_ptr)
@@ -84,25 +92,14 @@ cdef class Vou:
             raise ValueError("'pem' arg must be <class 'bytes'>")
 
 
-UINTPTR_NULL = <uintptr_t>NULL
-
-
 cdef class Vrq(Vou):
-
-    def __cinit__(self, uintptr_t ptr=UINTPTR_NULL):
-        if ptr == UINTPTR_NULL:
-            _vou.vi_provider_allocate(&self.provider_ptr, True)
-        else:
-            self.provider_ptr = <vi_provider_t *>ptr
+    def __cinit__(self, uintptr_t ptr=Vou.UINTPTR_NULL):
+        self.init_provider_ptr(ptr, True)
 
 
 cdef class Vch(Vou):
-
-    def __cinit__(self, uintptr_t ptr=UINTPTR_NULL):
-        if ptr == UINTPTR_NULL:
-            _vou.vi_provider_allocate(&self.provider_ptr, False)
-        else:
-            self.provider_ptr = <vi_provider_t *>ptr
+    def __cinit__(self, uintptr_t ptr=Vou.UINTPTR_NULL):
+        self.init_provider_ptr(ptr, False)
 
 
 cdef __from_cbor(cbor):
