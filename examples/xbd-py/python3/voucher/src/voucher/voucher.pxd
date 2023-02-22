@@ -2,9 +2,7 @@
 # Copyright (c) 2023, ANIMA Minerva toolkit
 
 from libcpp cimport bool as bool_t
-from libc.stdint cimport uint8_t
-from libc.stdint cimport uint64_t
-from libc.stdint cimport uintptr_t
+from libc.stdint cimport uint8_t, int8_t, uint64_t, uintptr_t
 
 
 cdef extern from "python3_if.h" nogil:
@@ -40,6 +38,12 @@ cdef extern from "voucher_if.h" nogil:
 
     bool_t vi_provider_remove_attr(vi_provider_t *p, uint8_t attr_key)
     uint8_t vi_provider_attr_key_at(vi_provider_t *p, size_t n)
+
+    size_t vi_provider_get_signer_cert(vi_provider_t *p, uint8_t **buf)
+    void vi_provider_set_signer_cert(vi_provider_t *p, const uint8_t *buf, size_t sz)
+    size_t vi_provider_get_content(vi_provider_t *p, uint8_t **buf)
+    size_t vi_provider_get_signature_bytes(vi_provider_t *p, uint8_t **buf)
+    int8_t vi_provider_get_signature_alg(vi_provider_t *p)
 
     bool_t vi_provider_sign(vi_provider_t *p, const uint8_t *ptr_key, size_t sz_key, uint8_t alg)
     bool_t vi_provider_validate(vi_provider_t *p)
