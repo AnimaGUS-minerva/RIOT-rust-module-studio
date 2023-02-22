@@ -108,7 +108,9 @@ cdef class Vou:
             obj = vi_provider_get_attr_bool_or_panic(ptr, key)
         elif _vou.vi_provider_has_attr_bytes(ptr, key):
             sz = _vou.vi_provider_get_attr_bytes_or_panic(ptr, key, &buf)
-            obj = b'' if buf == NULL else buf[:sz]
+            obj = Vou.into_bytes(<uintptr_t>&buf, sz)
+            if obj is None:
+                obj = b''
 
         return obj
 
