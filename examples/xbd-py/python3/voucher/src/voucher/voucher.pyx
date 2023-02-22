@@ -50,15 +50,29 @@ cdef class Vou:
         _vou.vi_provider_dump(self.provider_ptr)
         return self
 
+    @staticmethod
+    def into_bytes(uintptr_t pp_in, size_t sz):
+        cdef uint8_t **pp = <uint8_t **>pp_in
+        cdef uint8_t *p = pp[0]
+
+        if p != NULL:
+            obj = p[:sz]
+            free(p)
+            pp[0] = NULL
+        else:
+            obj = None
+
+        return obj
+
     def to_cbor(self):
         cdef uint8_t *buf
         sz = _vou.vi_provider_to_cbor(self.provider_ptr, &buf)
-        if buf == NULL:
+
+        obj = Vou.into_bytes(<uintptr_t>&buf, sz)
+        if obj is None:
             raise ValueError("'to_cbor' operation failed")
 
-        cbor = buf[:sz]
-        free(buf)
-        return cbor
+        return obj
 
     def len(self):
         return _vou.vi_provider_len(self.provider_ptr)
