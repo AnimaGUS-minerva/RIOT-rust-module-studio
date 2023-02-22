@@ -40,6 +40,35 @@ cdef class Vou:
     def __dealloc__(self):
         _vou.vi_provider_free(&self.provider_ptr)
 
+    def __repr__(self):
+        ptr = self.provider_ptr
+        sz = _vou.vi_provider_len(ptr)
+
+        print('!!!! <WIP> ^^^^')
+        for idx in range(sz):
+            key = _vou.vi_provider_attr_key_at(ptr, idx)
+            val = self.get(key)
+            print(f"!!!!  [{key}] {val}")
+            # TODO port
+            # if (key == ATTR_ASSERTION) {
+            #     mp_print_str(print,
+            #         attr_assertion_to_str(vi_provider_get_attr_int_or_panic(ptr, key)));
+            # } else {
+            #     mp_obj_print_helper(print, vou_get_inner(ptr, key), PRINT_REPR);
+            # }
+        print('!!!! <WIP> vvvv')
+
+        return """voucher type: %s
+# of attributes: %s
+<WIP>
+COSE signature algorithm: xx
+COSE signature: xx
+COSE content: xx
+"""     % (
+            "'vrq'" if _vou.vi_provider_is_vrq(ptr) else "'vch'",
+            sz,
+        )
+
     def init_provider_ptr(self, uintptr_t ptr, is_vrq):
         if ptr == Vou.UINTPTR_NULL:
             _vou.vi_provider_allocate(&self.provider_ptr, is_vrq)
