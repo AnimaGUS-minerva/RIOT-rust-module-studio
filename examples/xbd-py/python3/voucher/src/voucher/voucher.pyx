@@ -49,19 +49,8 @@ cdef class Vou:
             key = _vou.vi_provider_attr_key_at(ptr, idx)
             val = self.get(key)
             print(f"!!!!  [{key}] {val}")
-            # TODO port
-            # if (key == ATTR_ASSERTION) {
-            #     mp_print_str(print,
-            #         attr_assertion_to_str(vi_provider_get_attr_int_or_panic(ptr, key)));
-            # } else {
-            #     mp_obj_print_helper(print, vou_get_inner(ptr, key), PRINT_REPR);
-            # }
+            # TODO port `*_to_str()` stuff
         print('!!!! <WIP> vvvv')
-
-        alg = "xx"
-        sig = "xx"
-        content = "xx"
-
 
         return """voucher type: %s
 # of attributes: %s
@@ -73,8 +62,10 @@ COSE signer cert: %s
 """     % (
             "'vrq'" if _vou.vi_provider_is_vrq(ptr) else "'vch'",
             sz,
-            "<WIP>",
-            alg, sig, content,
+            "<!!!!>",
+            self.get_signature_alg(),
+            self.get_signature(),
+            self.get_content(),
             self.get_signer_cert(),
         )
 
@@ -187,12 +178,19 @@ COSE signer cert: %s
         else:
             raise ValueError("'cert' type must be bytes")
 
-    # def get_content():
-    #     pass
-    # def get_signature():
-    #     pass
-    # def get_signature_alg():
-    #     pass
+    def get_content(self):
+        cdef uint8_t *buf
+        sz = _vou.vi_provider_get_content(self.provider_ptr, &buf)
+        return Vou.into_bytes(<uintptr_t>&buf, sz)
+
+    def get_signature(self):
+        cdef uint8_t *buf
+        sz = _vou.vi_provider_get_signature_bytes(self.provider_ptr, &buf)
+        return Vou.into_bytes(<uintptr_t>&buf, sz)
+
+    def get_signature_alg(self):
+        alg = _vou.vi_provider_get_signature_alg(self.provider_ptr)
+        return alg if alg >= 0 else None
 
 
 cdef class Vrq(Vou):
