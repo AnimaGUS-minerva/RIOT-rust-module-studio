@@ -42,15 +42,15 @@ cdef class Vou:
 
     def __repr__(self):
         ptr = self.provider_ptr
-        sz = _vou.vi_provider_len(ptr)
+        ln = _vou.vi_provider_len(ptr)
 
-        print('!!!! <WIP> ^^^^')
-        for idx in range(sz):
+        attrs = "\n"
+        for idx in range(ln):
             key = _vou.vi_provider_attr_key_at(ptr, idx)
             val = self.get(key)
-            print(f"!!!!  [{key}] {val}")
-            # TODO port `*_to_str()` stuff
-        print('!!!! <WIP> vvvv')
+            if key == ATTR_ASSERTION:
+                val = Vou.attr_assertion_to_str(val)
+            attrs += f"  [{Vou.attr_key_to_str(key)}] {val}\n"
 
         return """voucher type: %s
 # of attributes: %s
@@ -61,9 +61,9 @@ COSE content: %s
 COSE signer cert: %s
 """     % (
             "'vrq'" if _vou.vi_provider_is_vrq(ptr) else "'vch'",
-            sz,
-            "<!!!!>",
-            self.get_signature_alg(),
+            ln,
+            attrs,
+            Vou.signature_alg_to_str(self.get_signature_alg()),
             self.get_signature(),
             self.get_content(),
             self.get_signer_cert(),
@@ -191,6 +191,52 @@ COSE signer cert: %s
     def get_signature_alg(self):
         alg = _vou.vi_provider_get_signature_alg(self.provider_ptr)
         return alg if alg >= 0 else None
+
+    @staticmethod
+    def attr_key_to_str(key):
+        try:
+            return {
+                ATTR_ASSERTION:                       "ATTR_ASSERTION",
+                ATTR_CREATED_ON:                      "ATTR_CREATED_ON",
+                ATTR_DOMAIN_CERT_REVOCATION_CHECKS:   "ATTR_DOMAIN_CERT_REVOCATION_CHECKS",
+                ATTR_EXPIRES_ON:                      "ATTR_EXPIRES_ON",
+                ATTR_IDEVID_ISSUER:                   "ATTR_IDEVID_ISSUER",
+                ATTR_LAST_RENEWAL_DATE:               "ATTR_LAST_RENEWAL_DATE",
+                ATTR_NONCE:                           "ATTR_NONCE",
+                ATTR_PINNED_DOMAIN_CERT:              "ATTR_PINNED_DOMAIN_CERT",
+                ATTR_PINNED_DOMAIN_PUBK:              "ATTR_PINNED_DOMAIN_PUBK",
+                ATTR_PINNED_DOMAIN_PUBK_SHA256:       "ATTR_PINNED_DOMAIN_PUBK_SHA256",
+                ATTR_PRIOR_SIGNED_VOUCHER_REQUEST:    "ATTR_PRIOR_SIGNED_VOUCHER_REQUEST",
+                ATTR_PROXIMITY_REGISTRAR_CERT:        "ATTR_PROXIMITY_REGISTRAR_CERT",
+                ATTR_PROXIMITY_REGISTRAR_PUBK:        "ATTR_PROXIMITY_REGISTRAR_PUBK",
+                ATTR_PROXIMITY_REGISTRAR_PUBK_SHA256: "ATTR_PROXIMITY_REGISTRAR_PUBK_SHA256",
+                ATTR_SERIAL_NUMBER:                   "ATTR_SERIAL_NUMBER",
+            }[key]
+        except KeyError:
+            return "unknown"
+
+    @staticmethod
+    def attr_assertion_to_str(assertion):
+        try:
+            return {
+                ASSERTION_VERIFIED:  "ASSERTION_VERIFIED",
+                ASSERTION_LOGGED:    "ASSERTION_LOGGED",
+                ASSERTION_PROXIMITY: "ASSERTION_PROXIMITY",
+            }[assertion]
+        except KeyError:
+            return "unknown"
+
+    @staticmethod
+    def signature_alg_to_str(alg):
+        try:
+            return {
+                SA_ES256: "SA_ES256",
+                SA_ES384: "SA_ES384",
+                SA_ES512: "SA_ES512",
+                SA_PS256: "SA_PS256",
+            }[alg]
+        except KeyError:
+            return "unknown"
 
 
 cdef class Vrq(Vou):
