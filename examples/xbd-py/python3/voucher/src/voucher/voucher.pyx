@@ -167,16 +167,16 @@ COSE signer cert: %s
         else:
             raise ValueError("'pem' arg must be <class 'bytes'>")
 
-    def get_signer_cert(self):
-        cdef uint8_t *buf
-        sz = _vou.vi_provider_get_signer_cert(self.provider_ptr, &buf)
-        return Vou.into_bytes(<uintptr_t>&buf, sz)
-
     def set_signer_cert(self, cert):
         if isinstance(cert, bytes):
             _vou.vi_provider_set_signer_cert(self.provider_ptr, cert, len(cert))
         else:
             raise ValueError("'cert' type must be bytes")
+
+    def get_signer_cert(self):
+        cdef uint8_t *buf
+        sz = _vou.vi_provider_get_signer_cert(self.provider_ptr, &buf)
+        return Vou.into_bytes(<uintptr_t>&buf, sz)
 
     def get_content(self):
         cdef uint8_t *buf
@@ -231,36 +231,36 @@ cdef __version():
 
 ctypedef size_t (*f_type)(uint8_t **pp)
 
-cdef bytes __debug_f_static(f_type f):
+cdef bytes _debug_f_static(f_type f):
     cdef uint8_t *ptr_static
     sz = f(&ptr_static)
     return ptr_static[:sz]
 
-cdef __debug_get_vch_jada():
-    return __debug_f_static(_vou.vi_get_voucher_jada)
+cdef _debug_get_vch_jada():
+    return _debug_f_static(_vou.vi_get_voucher_jada)
 
-cdef __debug_get_vch_F2_00_02():
-    return __debug_f_static(_vou.vi_get_voucher_F2_00_02)
+cdef _debug_get_vch_F2_00_02():
+    return _debug_f_static(_vou.vi_get_voucher_F2_00_02)
 
-cdef __debug_get_masa_pem_F2_00_02():
-    return __debug_f_static(_vou.vi_get_masa_pem_F2_00_02)
+cdef _debug_get_masa_pem_F2_00_02():
+    return _debug_f_static(_vou.vi_get_masa_pem_F2_00_02)
 
-cdef __debug_get_key_pem_F2_00_02():
-    return __debug_f_static(_vou.vi_get_key_pem_F2_00_02)
+cdef _debug_get_key_pem_F2_00_02():
+    return _debug_f_static(_vou.vi_get_key_pem_F2_00_02)
 
-cdef __debug_get_device_crt_F2_00_02():
-    return __debug_f_static(_vou.vi_get_device_crt_F2_00_02)
+cdef _debug_get_device_crt_F2_00_02():
+    return _debug_f_static(_vou.vi_get_device_crt_F2_00_02)
 
-cdef __debug_get_vrq_F2_00_02():
-    return __debug_f_static(_vou.vi_get_vrq_F2_00_02)
+cdef _debug_get_vrq_F2_00_02():
+    return _debug_f_static(_vou.vi_get_vrq_F2_00_02)
 
 
 from_cbor = __from_cbor
 version = __version()
 init_psa_crypto = _vou.vi_init_psa_crypto
-debug_get_vch_jada = __debug_get_vch_jada
-debug_get_vch_F2_00_02 = __debug_get_vch_F2_00_02
-debug_get_masa_pem_F2_00_02 = __debug_get_masa_pem_F2_00_02
-debug_get_key_pem_F2_00_02 = __debug_get_key_pem_F2_00_02
-debug_get_device_crt_F2_00_02 = __debug_get_device_crt_F2_00_02
-debug_get_vrq_F2_00_02 = __debug_get_vrq_F2_00_02
+debug_get_vch_jada = _debug_get_vch_jada
+debug_get_vch_F2_00_02 = _debug_get_vch_F2_00_02
+debug_get_masa_pem_F2_00_02 = _debug_get_masa_pem_F2_00_02
+debug_get_key_pem_F2_00_02 = _debug_get_key_pem_F2_00_02
+debug_get_device_crt_F2_00_02 = _debug_get_device_crt_F2_00_02
+debug_get_vrq_F2_00_02 = _debug_get_vrq_F2_00_02
