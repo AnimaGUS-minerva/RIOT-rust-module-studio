@@ -58,15 +58,24 @@ cdef class Vou:
             # }
         print('!!!! <WIP> vvvv')
 
+        alg = "xx"
+        sig = "xx"
+        content = "xx"
+
+
         return """voucher type: %s
 # of attributes: %s
-<WIP>
-COSE signature algorithm: xx
-COSE signature: xx
-COSE content: xx
+%s
+COSE signature algorithm: %s
+COSE signature: %s
+COSE content: %s
+COSE signer cert: %s
 """     % (
             "'vrq'" if _vou.vi_provider_is_vrq(ptr) else "'vch'",
             sz,
+            "<WIP>",
+            alg, sig, content,
+            self.get_signer_cert(),
         )
 
     def init_provider_ptr(self, uintptr_t ptr, is_vrq):
@@ -166,6 +175,24 @@ COSE content: xx
             return _vou.vi_provider_validate_with_pem(ptr, pem, len(pem))
         else:
             raise ValueError("'pem' arg must be <class 'bytes'>")
+
+    def get_signer_cert(self):
+        cdef uint8_t *buf
+        sz = _vou.vi_provider_get_signer_cert(self.provider_ptr, &buf)
+        return Vou.into_bytes(<uintptr_t>&buf, sz)
+
+    def set_signer_cert(self, cert):
+        if isinstance(cert, bytes):
+            _vou.vi_provider_set_signer_cert(self.provider_ptr, cert, len(cert))
+        else:
+            raise ValueError("'cert' type must be bytes")
+
+    # def get_content():
+    #     pass
+    # def get_signature():
+    #     pass
+    # def get_signature_alg():
+    #     pass
 
 
 cdef class Vrq(Vou):
