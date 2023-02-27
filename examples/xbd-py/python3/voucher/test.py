@@ -41,11 +41,6 @@ def test_voucher_version():
 def test_voucher_apis():
     print('==== test_voucher_apis(): ^^')
 
-    # voucher.vrq()
-    # help(vrq)
-    # vch = voucher.vch()
-    # help(vch)
-    #==== !!!! ok
     vrq = Vrq()
     #help(vrq)
     #vrq.debug_dump()
@@ -53,9 +48,9 @@ def test_voucher_apis():
     vch = Vch()
     #help(vch)
     #vch.debug_dump()
-    #====
 
-    # ok
+    #
+
     vrq.set(ATTR_ASSERTION, ASSERTION_PROXIMITY) \
        .set(ATTR_CREATED_ON, 1599086034) \
        .set(ATTR_SERIAL_NUMBER, '00-D0-E5-F2-00-02') \
