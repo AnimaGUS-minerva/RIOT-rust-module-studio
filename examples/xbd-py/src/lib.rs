@@ -32,9 +32,7 @@ mod tests;
 
 #[no_mangle]
 pub extern fn voucher_version_get_string_full(pp: *mut *const u8) -> usize {
-    let ver = format!("Rust voucher {}", minerva_voucher::VERSION)
-        .as_bytes()
-        .to_vec();
+    let ver = ["Rust voucher", minerva_voucher::VERSION].join(" ").as_bytes().to_vec();
 
     crate::set_bytes_heap(ver, pp)
 }
