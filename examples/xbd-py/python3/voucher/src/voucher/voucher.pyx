@@ -41,10 +41,9 @@ cdef class Vou:
 
     def __repr__(self):
         ptr = self.provider_ptr
-        ln = _vou.vi_provider_len(ptr)
 
         attrs = "\n"
-        for idx in range(ln):
+        for idx in range(len(self)):
             key = _vou.vi_provider_attr_key_at(ptr, idx)
             val = self.get(key)
             if key == ATTR_ASSERTION:
@@ -60,7 +59,7 @@ COSE content: %s
 COSE signer cert: %s
 """     % (
             "'vrq'" if _vou.vi_provider_is_vrq(ptr) else "'vch'",
-            ln,
+            len(self),
             attrs,
             Vou.signature_alg_to_str(self.get_signature_alg()),
             self.get_signature(),
@@ -69,11 +68,9 @@ COSE signer cert: %s
         )
 
     def __iter__(self):
-        idx = 0
-        while idx < len(self):
+        for idx in range(len(self)):
             key = _vou.vi_provider_attr_key_at(self.provider_ptr, idx)
             yield (key, self.get(key))
-            idx += 1
 
     def init_provider_ptr(self, uintptr_t ptr, is_vrq):
         if ptr == Vou.UINTPTR_NULL:
