@@ -53,7 +53,7 @@ COSE signature: %s
 COSE content: %s
 COSE signer cert: %s
 """     % (
-            "'vrq'" if _vou.vi_provider_is_vrq(self.provider_ptr) else "'vch'",
+            "'vrq'" if self.is_vrq() else "'vch'",
             len(self),
             attrs,
             Vou.signature_alg_to_str(self.get_signature_alg()),
@@ -84,6 +84,9 @@ COSE signer cert: %s
             _vou.vi_provider_allocate(&self.provider_ptr, is_vrq)
         else:
             self.provider_ptr = <vi_provider_t *>ptr
+
+    def is_vrq(self):
+        return _vou.vi_provider_is_vrq(self.provider_ptr)
 
     def debug_dump(self):
         _vou.vi_provider_dump(self.provider_ptr)
