@@ -40,15 +40,10 @@ cdef class Vou:
         _vou.vi_provider_free(&self.provider_ptr)
 
     def __repr__(self):
-        ptr = self.provider_ptr
-
         attrs = "\n"
-        for idx in range(len(self)):
-            key = _vou.vi_provider_attr_key_at(ptr, idx)
-            val = self.get(key)
-            if key == ATTR_ASSERTION:
-                val = Vou.attr_assertion_to_str(val)
-            attrs += f"  [{Vou.attr_key_to_str(key)}] {val}\n"
+        for (key, val) in self:
+            val_str = val if key != ATTR_ASSERTION else Vou.attr_assertion_to_str(val)
+            attrs += f"  [{Vou.attr_key_to_str(key)}] {val_str}\n"
 
         return """voucher type: %s
 # of attributes: %s
@@ -58,7 +53,7 @@ COSE signature: %s
 COSE content: %s
 COSE signer cert: %s
 """     % (
-            "'vrq'" if _vou.vi_provider_is_vrq(ptr) else "'vch'",
+            "'vrq'" if _vou.vi_provider_is_vrq(self.provider_ptr) else "'vch'",
             len(self),
             attrs,
             Vou.signature_alg_to_str(self.get_signature_alg()),
