@@ -184,19 +184,20 @@ def wip_python3():
 
     #
 
-    print('* "iterable" through `.getiter`')
+    ### `.getiter` >>>> micropython
+    ###  __iter__  >>>> python3
+    print('* iterables')
     vch = from_cbor(_voucher.debug_get_vch_jada())#.debug_dump()
 
-    if 0:  # TODO
-        print('.getiter - for _ in vch:')
-        for kv in vch:
-            print('attr - kv:', kv)
+    print('for _ in vch:')
+    for kv in vch:
+        print('attr - kv:', kv)
 
-        print('.getiter - for _ in enumerate(vch):')
-        for item in enumerate(vch):
-            print('attr - (at, kv):', item)
+    print('for _ in enumerate(vch):')
+    for item in enumerate(vch):
+        print('attr - (at, kv):', item)
 
-    if 0:  # TODO
+    if 0:  # WIP
         print('* `.subscr`-based getter')
         test_assert_eq('vch[ATTR_ASSERTION]', vch[ATTR_ASSERTION], ASSERTION_PROXIMITY)
         test_assert_eq('vch[ATTR_CREATED_ON]', vch[ATTR_CREATED_ON], 1475868702)

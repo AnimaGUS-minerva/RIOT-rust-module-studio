@@ -4,7 +4,6 @@
 """The Voucher library."""
 
 from libc.stdlib cimport malloc, free
-#from libc.string cimport strcpy
 from . cimport voucher as _vou
 from . cimport const as _const
 
@@ -69,6 +68,13 @@ COSE signer cert: %s
             self.get_signer_cert(),
         )
 
+    def __iter__(self):
+        idx = 0
+        while idx < len(self):
+            key = _vou.vi_provider_attr_key_at(self.provider_ptr, idx)
+            yield (key, self.get(key))
+            idx += 1
+
     def init_provider_ptr(self, uintptr_t ptr, is_vrq):
         if ptr == Vou.UINTPTR_NULL:
             _vou.vi_provider_allocate(&self.provider_ptr, is_vrq)
@@ -103,8 +109,11 @@ COSE signer cert: %s
 
         return obj
 
-    def len(self):
+    def __len__(self):
         return _vou.vi_provider_len(self.provider_ptr)
+
+    def len(self):
+        return len(self)
 
     def set(self, key, val):
         ptr = self.provider_ptr
