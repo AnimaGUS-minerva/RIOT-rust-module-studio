@@ -280,17 +280,9 @@ cdef __from_cbor(cbor):
 
 
 cdef __version():
-    sz = 32 * sizeof(uint8_t)
-    cdef uint8_t *output = <uint8_t *>malloc(sz)
-    cdef bytes buffer
-    if not output:
-        raise MemoryError()
-    try:
-        _vou.voucher_version_get_string_full(output, sz)
-        buffer = output
-        return buffer.decode("ascii")
-    finally:
-        free(output)
+    cdef uint8_t *buf
+    sz = _vou.voucher_version_get_string_full(&buf)
+    return Vou.into_bytes(<uintptr_t>&buf, sz).decode("ascii")
 
 
 ctypedef size_t (*f_type)(uint8_t **pp)

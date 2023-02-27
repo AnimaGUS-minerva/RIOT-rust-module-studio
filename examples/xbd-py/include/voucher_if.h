@@ -9,6 +9,8 @@
 extern "C" {
 #endif
 
+size_t voucher_version_get_string_full(uint8_t **buf);
+
 int vi_square(int);
 
 void vi_init_psa_crypto(void);

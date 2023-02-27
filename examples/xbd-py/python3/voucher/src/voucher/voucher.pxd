@@ -5,11 +5,9 @@ from libcpp cimport bool as bool_t
 from libc.stdint cimport uint8_t, int8_t, uint64_t, uintptr_t
 
 
-cdef extern from "python3_if.h" nogil:
-    void voucher_version_get_string_full(uint8_t *ptr, size_t sz)
-
-
 cdef extern from "voucher_if.h" nogil:
+    size_t voucher_version_get_string_full(uint8_t **buf)
+
     void vi_init_psa_crypto()
 
     ctypedef struct vi_provider_t:

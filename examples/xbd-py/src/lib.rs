@@ -25,15 +25,19 @@ type size_t = c_uint;
 
 //
 
-#[cfg(feature = "python3")]
-mod python3;
-
-//
-
 #[cfg(test)]
 mod tests;
 
 //
+
+#[no_mangle]
+pub extern fn voucher_version_get_string_full(pp: *mut *const u8) -> usize {
+    let ver = format!("Rust voucher {}", minerva_voucher::VERSION)
+        .as_bytes()
+        .to_vec();
+
+    crate::set_bytes_heap(ver, pp)
+}
 
 fn init_psa_crypto() {
     minerva_voucher::init_psa_crypto();
