@@ -184,8 +184,8 @@ def wip_python3():
 
     #
 
-    ### `.getiter` >>>> micropython
-    ###  __iter__  >>>> python3
+    ### `.getiter` <<<< micropython
+    ###  __iter__  <<<< python3
     print('* iterables')
     vch = from_cbor(_voucher.debug_get_vch_jada())#.debug_dump()
 
@@ -197,55 +197,58 @@ def wip_python3():
     for item in enumerate(vch):
         print('attr - (at, kv):', item)
 
-    if 0:  # WIP
-        print('* `.subscr`-based getter')
-        test_assert_eq('vch[ATTR_ASSERTION]', vch[ATTR_ASSERTION], ASSERTION_PROXIMITY)
-        test_assert_eq('vch[ATTR_CREATED_ON]', vch[ATTR_CREATED_ON], 1475868702)
-        test_assert_eq('vch[ATTR_EXPIRES_ON]', vch[ATTR_EXPIRES_ON], 1506816000)
-        test_assert_eq('None for vch[ATTR_LAST_RENEWAL_DATE]', vch[ATTR_LAST_RENEWAL_DATE], None)
-        test_assert_eq('None for vch[ATTR_DOMAIN_CERT_REVOCATION_CHECKS]', vch[ATTR_DOMAIN_CERT_REVOCATION_CHECKS], None)
-        test_assert_eq('None for vch[ATTR_IDEVID_ISSUER]', vch[ATTR_IDEVID_ISSUER], None)
-        test_assert_eq('vch[ATTR_NONCE]', vch[ATTR_NONCE], b'abcd12345')
-        test_assert_eq('None for vch[ATTR_PINNED_DOMAIN_CERT]', vch[ATTR_PINNED_DOMAIN_CERT], None)
-        test_assert_eq('None for vch[ATTR_PINNED_DOMAIN_PUBK_SHA256]', vch[ATTR_PINNED_DOMAIN_PUBK_SHA256], None)
-        test_assert_eq('None for vch[ATTR_PRIOR_SIGNED_VOUCHER_REQUEST]', vch[ATTR_PRIOR_SIGNED_VOUCHER_REQUEST], None)
-        test_assert_eq('None for vch[ATTR_PROXIMITY_REGISTRAR_CERT]', vch[ATTR_PROXIMITY_REGISTRAR_CERT], None)
-        test_assert_eq('None for vch[ATTR_PROXIMITY_REGISTRAR_PUBK]', vch[ATTR_PROXIMITY_REGISTRAR_PUBK], None)
-        test_assert_eq('None for vch[ATTR_PROXIMITY_REGISTRAR_PUBK_SHA256]', vch[ATTR_PROXIMITY_REGISTRAR_PUBK_SHA256], None)
-        test_assert_eq('vch[ATTR_SERIAL_NUMBER]', vch[ATTR_SERIAL_NUMBER], b'JADA123456789')
+    ### `.subscr`     <<<< micropython
+    ###  __getitem__  <<<< python3
+    print('* subscriptable based getter')
+    test_assert_eq('vch[ATTR_ASSERTION]', vch[ATTR_ASSERTION], ASSERTION_PROXIMITY)
+    test_assert_eq('vch[ATTR_CREATED_ON]', vch[ATTR_CREATED_ON], 1475868702)
+    test_assert_eq('vch[ATTR_EXPIRES_ON]', vch[ATTR_EXPIRES_ON], 1506816000)
+    test_assert_eq('None for vch[ATTR_LAST_RENEWAL_DATE]', vch[ATTR_LAST_RENEWAL_DATE], None)
+    test_assert_eq('None for vch[ATTR_DOMAIN_CERT_REVOCATION_CHECKS]', vch[ATTR_DOMAIN_CERT_REVOCATION_CHECKS], None)
+    test_assert_eq('None for vch[ATTR_IDEVID_ISSUER]', vch[ATTR_IDEVID_ISSUER], None)
+    test_assert_eq('vch[ATTR_NONCE]', vch[ATTR_NONCE], b'abcd12345')
+    test_assert_eq('None for vch[ATTR_PINNED_DOMAIN_CERT]', vch[ATTR_PINNED_DOMAIN_CERT], None)
+    test_assert_eq('None for vch[ATTR_PINNED_DOMAIN_PUBK_SHA256]', vch[ATTR_PINNED_DOMAIN_PUBK_SHA256], None)
+    test_assert_eq('None for vch[ATTR_PRIOR_SIGNED_VOUCHER_REQUEST]', vch[ATTR_PRIOR_SIGNED_VOUCHER_REQUEST], None)
+    test_assert_eq('None for vch[ATTR_PROXIMITY_REGISTRAR_CERT]', vch[ATTR_PROXIMITY_REGISTRAR_CERT], None)
+    test_assert_eq('None for vch[ATTR_PROXIMITY_REGISTRAR_PUBK]', vch[ATTR_PROXIMITY_REGISTRAR_PUBK], None)
+    test_assert_eq('None for vch[ATTR_PROXIMITY_REGISTRAR_PUBK_SHA256]', vch[ATTR_PROXIMITY_REGISTRAR_PUBK_SHA256], None)
+    test_assert_eq('vch[ATTR_SERIAL_NUMBER]', vch[ATTR_SERIAL_NUMBER], b'JADA123456789')
 
-        print('* `.subscr`-based setter')
-        vrq = voucher.vrq()
-        vrq[ATTR_ASSERTION] = ASSERTION_PROXIMITY
-        vrq[ATTR_CREATED_ON] = 1599086034
-        vrq[ATTR_SERIAL_NUMBER] = '00-D0-E5-F2-00-02'
-        vrq[ATTR_NONCE] = b'\x11\x22\x33'
-        vrq[ATTR_DOMAIN_CERT_REVOCATION_CHECKS] = True
-        #vrq.debug_dump()
-        test_assert_eq('vrq[ATTR_ASSERTION]', vrq[ATTR_ASSERTION], ASSERTION_PROXIMITY)
-        test_assert_eq('vrq[ATTR_CREATED_ON]', vrq[ATTR_CREATED_ON], 1599086034)
-        test_assert_eq('None for vrq[ATTR_EXPIRES_ON]', vrq[ATTR_EXPIRES_ON], None)
-        test_assert_eq('None for vrq[ATTR_LAST_RENEWAL_DATE]', vrq[ATTR_LAST_RENEWAL_DATE], None)
-        test_assert_eq('vrq[ATTR_DOMAIN_CERT_REVOCATION_CHECKS]', vrq[ATTR_DOMAIN_CERT_REVOCATION_CHECKS], True)
-        test_assert_eq('None for vrq[ATTR_IDEVID_ISSUER]', vrq[ATTR_IDEVID_ISSUER], None)
-        test_assert_eq('vrq[ATTR_NONCE]', vrq[ATTR_NONCE], b'\x11\x22\x33')
-        test_assert_eq('None for vrq[ATTR_PINNED_DOMAIN_CERT]', vrq[ATTR_PINNED_DOMAIN_CERT], None)
-        test_assert_eq('None for vrq[ATTR_PINNED_DOMAIN_PUBK_SHA256]', vrq[ATTR_PINNED_DOMAIN_PUBK_SHA256], None)
-        test_assert_eq('None for vrq[ATTR_PRIOR_SIGNED_VOUCHER_REQUEST]', vrq[ATTR_PRIOR_SIGNED_VOUCHER_REQUEST], None)
-        test_assert_eq('None for vrq[ATTR_PROXIMITY_REGISTRAR_CERT]', vrq[ATTR_PROXIMITY_REGISTRAR_CERT], None)
-        test_assert_eq('None for vrq[ATTR_PROXIMITY_REGISTRAR_PUBK]', vrq[ATTR_PROXIMITY_REGISTRAR_PUBK], None)
-        test_assert_eq('None for vrq[ATTR_PROXIMITY_REGISTRAR_PUBK_SHA256]', vrq[ATTR_PROXIMITY_REGISTRAR_PUBK_SHA256], None)
-        test_assert_eq('vrq[ATTR_SERIAL_NUMBER]', vrq[ATTR_SERIAL_NUMBER], b'00-D0-E5-F2-00-02')
+    ### `.subscr`     <<<< micropython
+    ###  __setitem__  <<<< python3
+    print('* subscriptable based setter')
+    vrq = Vrq()
+    vrq[ATTR_ASSERTION] = ASSERTION_PROXIMITY
+    vrq[ATTR_CREATED_ON] = 1599086034
+    vrq[ATTR_SERIAL_NUMBER] = '00-D0-E5-F2-00-02'
+    vrq[ATTR_NONCE] = b'\x11\x22\x33'
+    vrq[ATTR_DOMAIN_CERT_REVOCATION_CHECKS] = True
+    #vrq.debug_dump()
+    test_assert_eq('vrq[ATTR_ASSERTION]', vrq[ATTR_ASSERTION], ASSERTION_PROXIMITY)
+    test_assert_eq('vrq[ATTR_CREATED_ON]', vrq[ATTR_CREATED_ON], 1599086034)
+    test_assert_eq('None for vrq[ATTR_EXPIRES_ON]', vrq[ATTR_EXPIRES_ON], None)
+    test_assert_eq('None for vrq[ATTR_LAST_RENEWAL_DATE]', vrq[ATTR_LAST_RENEWAL_DATE], None)
+    test_assert_eq('vrq[ATTR_DOMAIN_CERT_REVOCATION_CHECKS]', vrq[ATTR_DOMAIN_CERT_REVOCATION_CHECKS], True)
+    test_assert_eq('None for vrq[ATTR_IDEVID_ISSUER]', vrq[ATTR_IDEVID_ISSUER], None)
+    test_assert_eq('vrq[ATTR_NONCE]', vrq[ATTR_NONCE], b'\x11\x22\x33')
+    test_assert_eq('None for vrq[ATTR_PINNED_DOMAIN_CERT]', vrq[ATTR_PINNED_DOMAIN_CERT], None)
+    test_assert_eq('None for vrq[ATTR_PINNED_DOMAIN_PUBK_SHA256]', vrq[ATTR_PINNED_DOMAIN_PUBK_SHA256], None)
+    test_assert_eq('None for vrq[ATTR_PRIOR_SIGNED_VOUCHER_REQUEST]', vrq[ATTR_PRIOR_SIGNED_VOUCHER_REQUEST], None)
+    test_assert_eq('None for vrq[ATTR_PROXIMITY_REGISTRAR_CERT]', vrq[ATTR_PROXIMITY_REGISTRAR_CERT], None)
+    test_assert_eq('None for vrq[ATTR_PROXIMITY_REGISTRAR_PUBK]', vrq[ATTR_PROXIMITY_REGISTRAR_PUBK], None)
+    test_assert_eq('None for vrq[ATTR_PROXIMITY_REGISTRAR_PUBK_SHA256]', vrq[ATTR_PROXIMITY_REGISTRAR_PUBK_SHA256], None)
+    test_assert_eq('vrq[ATTR_SERIAL_NUMBER]', vrq[ATTR_SERIAL_NUMBER], b'00-D0-E5-F2-00-02')
 
-        try:
-            ret = vch[0:1]
-        except ValueError:
-            ret = None
-        test_assert_eq('.subscr-based slicing is N/A', ret, None)
+    try:
+        ret = vch[0:1]
+    except ValueError:
+        ret = None
+    test_assert_eq('.subscr-based slicing is N/A', ret, None)
 
     if 1:  # WIP
-        ### `.print` _print   >>>> micropython
-        ### `.print` __repr__ >>>> python3
+        ### `.print` _print   <<<< micropython
+        ### `.print` __repr__ <<<< python3
         print(vch)
         print(vrq)
 

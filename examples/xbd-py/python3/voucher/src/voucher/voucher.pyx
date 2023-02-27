@@ -72,6 +72,18 @@ COSE signer cert: %s
             key = _vou.vi_provider_attr_key_at(self.provider_ptr, idx)
             yield (key, self.get(key))
 
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            raise ValueError("slicing is not supported")
+
+        return self.get(key)
+
+    def __setitem__(self, key, val):
+        if isinstance(key, slice):
+            raise ValueError("slicing is not supported")
+
+        self.set(key, val)
+
     def init_provider_ptr(self, uintptr_t ptr, is_vrq):
         if ptr == Vou.UINTPTR_NULL:
             _vou.vi_provider_allocate(&self.provider_ptr, is_vrq)
