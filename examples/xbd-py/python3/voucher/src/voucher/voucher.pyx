@@ -41,7 +41,7 @@ cdef class Vou:
 
     def __repr__(self):
         attrs = "\n"
-        for (key, val) in self:
+        for key, val in self:
             val_str = val if key != ATTR_ASSERTION else Vou.attr_assertion_to_str(val)
             attrs += f"  [{Vou.attr_key_to_str(key)}] {val_str}\n"
 
