@@ -4,11 +4,12 @@ PYTHON := LD_LIBRARY_PATH=../local/lib:$(LD_LIBRARY_PATH) python3
 test: dist
 	cd ./dist && $(PYTHON) < ../test.py
 
+VOUCHER_IF_CRATE_PATH := ../../voucher/if
 local:
-	cd ../.. && cargo build --lib --release --features python3
+	make build-std -C $(VOUCHER_IF_CRATE_PATH)
 	mkdir -p local
-	mkdir -p local/lib && cp ../../target/release/libvoucher_if.a local/lib/
-	mkdir -p local/include && cp -r ../../include/* local/include/
+	mkdir -p local/lib && cp $(VOUCHER_IF_CRATE_PATH)/target/release/libvoucher_if.a local/lib/
+	mkdir -p local/include && cp -r $(VOUCHER_IF_CRATE_PATH)/include/* local/include/
 
 # exports for 'setup.py'
 export C_INCLUDE_PATH := local/include
