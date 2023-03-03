@@ -2,8 +2,8 @@ SHELL := /bin/bash
 RUST_MODULE_STUDIO := $(shell realpath ../..)
 
 native-build-module:
-	cargo build --lib --release --target i686-unknown-linux-gnu $(CARGO_FEATURES)
-	ls -lrt target/i686-unknown-linux-gnu/release/*.a
+	@echo "Building 'target/i686-unknown-linux-gnu/release/*.a'"
+	cargo build --lib --release --target i686-unknown-linux-gnu $(CARGO_OPTS)
 
 RIOT_NATIVE_ELF ?= ./riot/bin/native/riot.elf
 native-build-riot:

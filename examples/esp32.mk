@@ -4,10 +4,10 @@ RUST_MODULE_STUDIO := $(shell realpath ../..)
 TOOLCHAIN_XTENSA := $(RUST_MODULE_STUDIO)/toolchain/xtensa
 
 esp32-build-module:
+	@echo "Buidling 'target/xtensa-esp32-none-elf/release/*.a'"
 	RUST_MODULE_STUDIO=$(RUST_MODULE_STUDIO) source ../esp32.setup && \
         XTENSA_GCC=$(TOOLCHAIN_XTENSA)/riot/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc \
-		cargo +esp xbuild --lib --release --target xtensa-esp32-none-elf $(CARGO_FEATURES)
-	ls -lrt target/xtensa-esp32-none-elf/release/*.a
+		cargo +esp xbuild --lib --release --target xtensa-esp32-none-elf $(CARGO_OPTS)
 
 RIOT_PATH := $(TOOLCHAIN_XTENSA)/riot
 RIOT_BASE ?= $(RUST_MODULE_STUDIO)/RIOT
