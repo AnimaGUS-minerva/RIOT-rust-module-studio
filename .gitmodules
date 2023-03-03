@@ -10,3 +10,6 @@
 [submodule "toolchain/xtensa/rust-build"]
 	path = toolchain/xtensa/rust-build
 	url = https://github.com/AnimaGUS-minerva/rust-build
+[submodule "examples/xbd-py/voucher"]
+	path = examples/xbd-py/voucher
+	url = https://github.com/AnimaGUS-minerva/voucher
