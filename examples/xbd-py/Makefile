@@ -18,7 +18,7 @@ get-python-voucher:
         (git submodule init python-rfc8366-voucher && git submodule update)
 sync-python-voucher:
 	git submodule update --remote python-rfc8366-voucher && \
-        cd voucher && git checkout master && git pull
+        cd python-rfc8366-voucher && git checkout main && git pull
 get-voucher: get-python-voucher
 	[ -e "python-rfc8366-voucher/voucher/.git" ] || \
         (cd python-rfc8366-voucher && git submodule init voucher && git submodule update)
