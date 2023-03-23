@@ -22,6 +22,7 @@ sync-python-voucher:
 get-voucher: get-python-voucher
 	[ -e "python-rfc8366-voucher/voucher/.git" ] || \
         (cd python-rfc8366-voucher && git submodule init voucher && git submodule update)
+PYTHON_VOUCHER_REPO := $(CURDIR)/python-rfc8366-voucher
 
 micropython: get-micropython
 get-micropython:
@@ -35,9 +36,9 @@ MP_PORTS_RIOT_DIR := $(CURDIR)/micropython/ports/riot
 # native
 
 build-native: get-voucher micropython clone-RIOT
-	CARGO_OPTS="--manifest-path ./python-rfc8366-voucher/voucher/if/Cargo.toml"  make native-build-module
+	CARGO_OPTS="--manifest-path $(PYTHON_VOUCHER_REPO)/voucher/if/Cargo.toml"  make native-build-module
 	ln -sf ../../../RIOT $(MP_PORTS_RIOT_DIR)/
-	make -C $(MP_PORTS_RIOT_DIR)
+	PYTHON_VOUCHER_REPO=$(PYTHON_VOUCHER_REPO)  make -C $(MP_PORTS_RIOT_DIR)
 
 RIOT_NATIVE_ELF := $(MP_PORTS_RIOT_DIR)/main/bin/native/main.elf
 
@@ -50,7 +51,7 @@ test-native:
 # esp32
 
 build-esp32: get-voucher micropython clone-RIOT
-	CARGO_OPTS="--manifest-path ./python-rfc8366-voucher/voucher/if/Cargo.toml"  make esp32-build-module
+	CARGO_OPTS="--manifest-path $(PYTHON_VOUCHER_REPO)/voucher/if/Cargo.toml"  make esp32-build-module
 	ln -sf ../../../RIOT $(MP_PORTS_RIOT_DIR)/
 	RIOT_BASE=$(MP_PORTS_RIOT_DIR)/RIOT \
 		RIOT_ESP32_IMG=$(CURDIR)/riot.esp32.bin \
