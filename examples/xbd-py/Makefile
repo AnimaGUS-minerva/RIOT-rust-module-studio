@@ -56,7 +56,7 @@ build-esp32: get-voucher micropython clone-RIOT
 	RIOT_BASE=$(MP_PORTS_RIOT_DIR)/RIOT \
 		RIOT_ESP32_IMG=$(CURDIR)/riot.esp32.bin \
 		RIOT_ESP32_ELF=$(MP_PORTS_RIOT_DIR)/main/bin/esp32-wroom-32/main.elf \
-		make esp32-build-riot-micropython
+		PYTHON_VOUCHER_REPO=$(PYTHON_VOUCHER_REPO)  make esp32-build-riot-micropython
 
 run-esp32: build-esp32
 	make esp32-run-riot
