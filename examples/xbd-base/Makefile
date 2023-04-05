@@ -36,4 +36,4 @@ test:
 	##make test-esp32
 
 clean:
-	rm -rf target ./riot/bin
+	rm -rf target ./main/bin
