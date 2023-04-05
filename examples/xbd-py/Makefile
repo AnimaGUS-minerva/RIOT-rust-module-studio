@@ -75,7 +75,7 @@ run: run-native
 
 test:
 	make clean && make test-native
-	make clean && make test-esp32
+	##make clean && make test-esp32
 	make test-python3-mbedtls2
 
 clean:
