@@ -1,4 +1,4 @@
-APPLICATION = riot
+APPLICATION = main
 BOARD ?= native
 RIOTBASE ?= $(CURDIR)/../../../RIOT
 
