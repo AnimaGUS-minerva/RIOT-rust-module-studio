@@ -12,7 +12,7 @@ esp32-build-module:
 RIOT_PATH := $(TOOLCHAIN_XTENSA)/riot
 RIOT_BASE ?= $(RUST_MODULE_STUDIO)/RIOT
 esp32-build-riot:
-	RUST_MODULE_STUDIO=$(RUST_MODULE_STUDIO) source ../esp32.setup && cd ./riot && \
+	RUST_MODULE_STUDIO=$(RUST_MODULE_STUDIO) source ../esp32.setup && cd ./main && \
 		RIOT_PATH=${RIOT_PATH} RIOT_BASE=${RIOT_BASE} CONTINUE_ON_EXPECTED_ERRORS=1 \
 		$(TOOLCHAIN_XTENSA)/riot/riot-build
 esp32-build-riot-micropython:
