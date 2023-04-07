@@ -68,9 +68,7 @@ init-rust-toolchains:
 	rustup default nightly
 	rustup show
 
-##NAMES := esp32-no_std xbd-base xbd-psa xbd-py \
-##
-NAMES := xbd-base xbd-psa xbd-py \
+NAMES := esp32-no_std xbd-base xbd-psa xbd-py \
 	native-sockets native-lwip
 test:
 	for name in $(NAMES); do \
