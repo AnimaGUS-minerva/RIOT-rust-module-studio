@@ -3,14 +3,6 @@ all: build-native
 include ../native.mk
 include ../esp32.mk
 
-# TODO bump RIOT version across the upper layers
-RIOT_TAG := 2021.10
-clone-RIOT:
-	@if [ ! -e RIOT ]; then \
-		git clone https://github.com/RIOT-OS/RIOT RIOT; \
-		cd RIOT && git checkout -q $(RIOT_TAG); \
-	fi
-
 # submodules
 
 get-python-voucher:
@@ -33,11 +25,13 @@ sync-micropython:
 		cd micropython && git checkout v1.17-riot-voucher && git pull
 MP_PORTS_RIOT_DIR := $(CURDIR)/micropython/ports/riot
 
+RIOT_RELATIVE_PATH := ../../../../../RIOT
+
 # native
 
-build-native: get-voucher micropython clone-RIOT
+build-native: get-voucher micropython
 	CARGO_OPTS="--manifest-path $(PYTHON_VOUCHER_REPO)/voucher/if/Cargo.toml"  make native-build-module
-	ln -sf ../../../RIOT $(MP_PORTS_RIOT_DIR)/
+	ln -sf $(RIOT_RELATIVE_PATH) $(MP_PORTS_RIOT_DIR)/
 	PYTHON_VOUCHER_REPO=$(PYTHON_VOUCHER_REPO)  make -C $(MP_PORTS_RIOT_DIR)
 
 RIOT_NATIVE_ELF := $(MP_PORTS_RIOT_DIR)/main/bin/native/main.elf
@@ -50,9 +44,9 @@ test-native:
 
 # esp32
 
-build-esp32: get-voucher micropython clone-RIOT
+build-esp32: get-voucher micropython
 	CARGO_OPTS="--manifest-path $(PYTHON_VOUCHER_REPO)/voucher/if/Cargo.toml"  make esp32-build-module
-	ln -sf ../../../RIOT $(MP_PORTS_RIOT_DIR)/
+	ln -sf $(RIOT_RELATIVE_PATH) $(MP_PORTS_RIOT_DIR)/
 	RIOT_BASE=$(MP_PORTS_RIOT_DIR)/RIOT \
 		RIOT_ESP32_IMG=$(CURDIR)/riot.esp32.bin \
 		RIOT_ESP32_ELF=$(MP_PORTS_RIOT_DIR)/main/bin/esp32-wroom-32/main.elf \
