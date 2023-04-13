@@ -33,7 +33,7 @@ run: run-native
 
 test:
 	make test-native
-	##make test-esp32
+	make test-esp32
 
 clean:
 	rm -rf target ./main/bin
