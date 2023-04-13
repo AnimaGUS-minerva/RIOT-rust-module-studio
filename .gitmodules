@@ -10,3 +10,6 @@
 [submodule "examples/xbd-py/python-rfc8366-voucher"]
 	path = examples/xbd-py/python-rfc8366-voucher
 	url = https://github.com/AnimaGUS-minerva/python-rfc8366-voucher
+[submodule "toolchain/xtensa/esptool"]
+	path = toolchain/xtensa/esptool
+	url = https://github.com/espressif/esptool
