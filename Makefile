@@ -22,10 +22,8 @@ init-rust-xtensa:
 	git submodule init $(RUST_BUILD_MODULE) && git submodule update
 	cd $(RUST_BUILD_MODULE) && ./install-rust-toolchain.sh
 	@echo "Testing rustc esp ..."
-	@RUST_MODULE_STUDIO=$(CURDIR) source ./examples/esp32.setup && \
-        if [[ `rustc +esp --version` =~ rustc.* ]]; then \
-            echo rustc esp version LGTM; else false; \
-            fi
+	if [[ `rustc +esp --version` =~ rustc.* ]]; then \
+       echo rustc esp version LGTM; else false; fi
 	cargo install cargo-xbuild
 
 DL_ASSETS := https://github.com/AnimaGUS-minerva/RIOT-rust-module-studio/releases/download/assets-0.1
