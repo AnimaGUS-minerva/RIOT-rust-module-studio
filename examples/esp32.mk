@@ -20,7 +20,7 @@ esp32-build-riot-micropython:
 		RIOT_PATH=${RIOT_PATH} RIOT_BASE=${RIOT_BASE} CONTINUE_ON_EXPECTED_ERRORS=1 \
 		CUSTOM_BOARD=esp32  $(TOOLCHAIN_XTENSA)/riot/riot-build
 
-RIOT_ESP32_BIN ?= ./riot.esp32.bin
+RIOT_ESP32_BIN ?= ./main.esp32.bin
 esp32-run-riot:
 	RIOT_ESP32_BIN=$(RIOT_ESP32_BIN) \
 		cargo run --manifest-path ../runner/Cargo.toml esp32 $(EMU_TIMEOUT)
