@@ -3,6 +3,7 @@ SHELL := /bin/bash
 # 'test' or 'ci'
 TARGET ?= test
 ci:
+	make init
 	TARGET=ci make test
 
 init:

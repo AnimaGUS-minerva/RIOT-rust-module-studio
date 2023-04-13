@@ -28,16 +28,6 @@ jobs:
         curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
         rustup toolchain install ${{ matrix.rust }}
         rustup default ${{ matrix.rust }}
-    - name: make init-rust-xtensa
-      run: make init-rust-xtensa
-    - name: make init-esp-idf
-      run: make init-esp-idf
-    - name: make init-riot-xtensa
-      run: make init-riot-xtensa
-    - name: make init-qemu-xtensa
-      run: make init-qemu-xtensa
-    - name: make init-rust-toolchains
-      run: make init-rust-toolchains
     - name: Run test
       run: |
           sudo apt update
