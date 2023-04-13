@@ -6,7 +6,7 @@ echo RIOT_PATH: $RIOT_PATH
 echo RIOT_BASE: $RIOT_BASE
 
 #echo $PATH
-RIOT_XTENSA_ESP32_ELF_BIN=/home/a/.espressif/tools/xtensa-esp32-elf-clang/esp-13.0.0-20211203-x86_64-unknown-linux-gnu/bin
+RIOT_XTENSA_ESP32_ELF_BIN=~/.espressif/tools/xtensa-esp32-elf-clang/esp-13.0.0-20211203-x86_64-unknown-linux-gnu/bin
 echo riot-build: updating PATH to use $RIOT_XTENSA_ESP32_ELF_BIN
 PATH=$RIOT_XTENSA_ESP32_ELF_BIN:$PATH
 
