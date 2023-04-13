@@ -42,4 +42,5 @@ jobs:
       run: |
           sudo apt update
           sudo apt install gcc-multilib
+          sudo apt install python3-serial
           make ci

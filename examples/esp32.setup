@@ -2,7 +2,4 @@
 
 export XARGO_RUST_SRC=$RUST_MODULE_STUDIO/toolchain/xtensa/rust-build/rust-src-1.57.0.2/rust-src/lib/rustlib/src/rust/library
 export LIBCLANG_PATH=$HOME/.espressif/tools/xtensa-esp32-elf-clang/esp-13.0.0-20211203-x86_64-unknown-linux-gnu/lib
-
 export CARGO_HOME=$RUST_MODULE_STUDIO/target/cargo
-
-export IDF_PATH=$RUST_MODULE_STUDIO/toolchain/xtensa/esp-idf

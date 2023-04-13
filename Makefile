@@ -6,9 +6,8 @@ ci:
 	TARGET=ci make test
 
 init:
+	git submodule init RIOT && git submodule update
 	make init-rust-xtensa
-	make init-esp-idf
-	make init-riot-xtensa
 	make init-qemu-xtensa
 	make init-rust-toolchains
 
@@ -16,9 +15,10 @@ TOOLCHAIN_XTENSA := toolchain/xtensa
 
 RUST_BUILD_MODULE := $(TOOLCHAIN_XTENSA)/rust-build
 init-rust-xtensa:
-	git submodule init $(RUST_BUILD_MODULE)
-	git submodule update
+	@echo "Configuring esptool ..."
+	git submodule init $(TOOLCHAIN_XTENSA)/esptool && git submodule update
 	@echo "Configuring rustc esp ..."
+	git submodule init $(RUST_BUILD_MODULE) && git submodule update
 	cd $(RUST_BUILD_MODULE) && ./install-rust-toolchain.sh
 	@echo "Testing rustc esp ..."
 	@RUST_MODULE_STUDIO=$(CURDIR) source ./examples/esp32.setup && \
@@ -26,29 +26,6 @@ init-rust-xtensa:
             echo rustc esp version LGTM; else false; \
             fi
 	cargo install cargo-xbuild
-
-IDF_MODULE := $(TOOLCHAIN_XTENSA)/esp-idf
-init-esp-idf:
-	git submodule init $(IDF_MODULE)
-	git submodule update
-	@#cd $(IDF_MODULE) && git submodule update --init --recursive
-	@#====
-	cd $(IDF_MODULE) && git submodule update --init components/esptool_py/esptool
-	$(IDF_MODULE)/install.sh
-
-XTENSA_ESP32_ELF_RIOT_TGZ := xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
-init-riot-xtensa:
-	git submodule init RIOT
-	git submodule update
-	@echo "Setting up xtensa-esp32-elf for RIOT per https://github.com/espressif/esp-at/issues/215#issuecomment-508597652"
-	@if [ ! -e "$(TOOLCHAIN_XTENSA)/riot/$(XTENSA_ESP32_ELF_RIOT_TGZ)" ]; then \
-        echo "Setting up xtensa/riot/xtensa-esp32-elf ..."; \
-        (cd $(TOOLCHAIN_XTENSA)/riot; curl -O -L $(DL_ASSETS)/$(XTENSA_ESP32_ELF_RIOT_TGZ); tar xfz $(XTENSA_ESP32_ELF_RIOT_TGZ)); \
-        fi
-	##@echo "Setting up esp-idf (f198339ec; v3.1) headers for RIOT per https://github.com/gschorcht/riotdocker-Xtensa-ESP/blob/master/Dockerfile"
-	git clone $(IDF_MODULE) $(TOOLCHAIN_XTENSA)/riot/esp-idf
-	##cd $(TOOLCHAIN_XTENSA)/riot/esp-idf && git checkout -q f198339ec09e90666150672884535802304d23ec
-	cd $(TOOLCHAIN_XTENSA)/riot/esp-idf && git checkout -q 1329b19fe494500aeb79d19b27cfd99b40c37aec  # v4.4.1
 
 DL_ASSETS := https://github.com/AnimaGUS-minerva/RIOT-rust-module-studio/releases/download/assets-0.1
 

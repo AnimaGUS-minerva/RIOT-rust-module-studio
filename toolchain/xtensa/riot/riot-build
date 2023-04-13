@@ -2,26 +2,19 @@
 
 set -e
 
-[ -z "$IDF_TOOLS_EXPORT_CMD" ] && source "$IDF_PATH/export.sh"
-
-echo IDF_PATH: $IDF_PATH
 echo RIOT_PATH: $RIOT_PATH
 echo RIOT_BASE: $RIOT_BASE
 
 #echo $PATH
-# https://github.com/espressif/esp-at/issues/215#issuecomment-508597652
-RIOT_XTENSA_ESP32_ELF_BIN=$RIOT_PATH/xtensa-esp32-elf/bin
+RIOT_XTENSA_ESP32_ELF_BIN=/home/a/.espressif/tools/xtensa-esp32-elf-clang/esp-13.0.0-20211203-x86_64-unknown-linux-gnu/bin
 echo riot-build: updating PATH to use $RIOT_XTENSA_ESP32_ELF_BIN
 PATH=$RIOT_XTENSA_ESP32_ELF_BIN:$PATH
 
-make WERROR=0 \
-    ESP32_SDK_DIR=$RIOT_PATH/esp-idf \
-    BOARD=esp32-wroom-32 \
-    RIOTBASE=$RIOT_BASE
+WERROR=0 BOARD=esp32-wroom-32 RIOTBASE=$RIOT_BASE  make
 
 pwd
-if [ -z $RIOT_ESP32_IMG ]; then RIOT_ESP32_IMG=../riot.esp32.bin; fi
-if [ -z $RIOT_ESP32_ELF ]; then RIOT_ESP32_ELF=./bin/esp32-wroom-32/riot.elf; fi
-"$IDF_PATH/components/esptool_py/esptool/esptool.py" --chip esp32 \
-    elf2image -o $RIOT_ESP32_IMG $RIOT_ESP32_ELF
+if [ -z $RIOT_ESP32_IMG ]; then RIOT_ESP32_IMG=../main.esp32.bin; fi
+if [ -z $RIOT_ESP32_ELF ]; then RIOT_ESP32_ELF=./bin/esp32-wroom-32/main.elf; fi
+python3 "$RIOT_PATH/../esptool/esptool.py" --chip esp32 elf2image -o $RIOT_ESP32_IMG $RIOT_ESP32_ELF
+
 ls -l $RIOT_ESP32_IMG
