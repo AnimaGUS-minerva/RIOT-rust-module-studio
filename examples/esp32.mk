@@ -2,7 +2,12 @@ SHELL := /bin/bash
 STUDIO := $(shell realpath ../..)
 
 TOOLCHAIN_XTENSA := $(STUDIO)/toolchain/xtensa
+
+#==== clang esp from 'toolchain/xtensa/rust-build'
 CLANG_ESP := $(HOME)/.espressif/tools/xtensa-esp32-elf-clang/esp-13.0.0-20211203-x86_64-unknown-linux-gnu
+#==== clang esp from https://github.com/gschorcht/riotdocker-Xtensa-ESP/blob/master/riotbuild/Dockerfile
+#CLANG_ESP :=
+#====
 
 export CARGO_HOME := $(STUDIO)/target/cargo
 export LIBCLANG_PATH := $(CLANG_ESP)/lib
