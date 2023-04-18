@@ -47,13 +47,14 @@ test-native:
 build-esp32: get-voucher micropython
 	CARGO_OPTS="--manifest-path $(PYTHON_VOUCHER_REPO)/voucher/if/Cargo.toml"  make esp32-build-module
 	ln -sf $(RIOT_RELATIVE_PATH) $(MP_PORTS_RIOT_DIR)/
-	RIOT_BASE=$(MP_PORTS_RIOT_DIR)/RIOT \
-		RIOT_ESP32_IMG=$(CURDIR)/riot.esp32.bin \
+	RIOT_ESP32_BIN=$(CURDIR)/main.esp32.bin \
 		RIOT_ESP32_ELF=$(MP_PORTS_RIOT_DIR)/main/bin/esp32-wroom-32/main.elf \
-		PYTHON_VOUCHER_REPO=$(PYTHON_VOUCHER_REPO)  make esp32-build-riot-micropython
+		PYTHON_VOUCHER_REPO=$(PYTHON_VOUCHER_REPO) \
+		CUSTOM_BOARD=esp32 SRC_DIR=$(MP_PORTS_RIOT_DIR)  make esp32-build-riot
 
 run-esp32: build-esp32
-	make esp32-run-riot
+	RIOT_ESP32_ELF=$(MP_PORTS_RIOT_DIR)/main/bin/esp32-wroom-32/main.elf \
+		make esp32-run-riot
 
 test-esp32:
 	EMU_TIMEOUT=16000  make run-esp32
