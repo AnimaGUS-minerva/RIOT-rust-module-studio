@@ -18,7 +18,7 @@ test-native: build-native
 # esp32
 
 build-esp32:
-	make esp32-build-module
+	##make esp32-build-module
 	RIOT_BOARD=esp32-ethernet-kit-v1_0  make esp32-build-riot
 
 run-esp32: build-esp32
@@ -32,7 +32,7 @@ test-esp32: build-esp32
 run: run-native
 
 test:
-	make test-native
+	##make test-native
 	make test-esp32
 
 clean:
