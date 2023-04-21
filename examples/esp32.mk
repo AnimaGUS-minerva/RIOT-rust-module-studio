@@ -20,13 +20,14 @@ esp32-build-module:
 		cargo +esp xbuild --lib --release --target xtensa-esp32-none-elf $(CARGO_OPTS)
 
 RIOT_BASE ?= $(STUDIO)/RIOT
+RIOT_BOARD ?= esp32-wroom-32
 SRC_DIR ?= ./main
 esp32-build-riot:
-	CONTINUE_ON_EXPECTED_ERRORS=1 WERROR=0 BOARD=esp32-wroom-32 \
+	CONTINUE_ON_EXPECTED_ERRORS=1 WERROR=0 BOARD=$(RIOT_BOARD) \
 		RIOTBASE=$(RIOT_BASE) make -C $(SRC_DIR)
 
 RIOT_ESP32_BIN ?= ./main.esp32.bin
-RIOT_ESP32_ELF ?= ./main/bin/esp32-wroom-32/main.elf
+RIOT_ESP32_ELF ?= ./main/bin/$(RIOT_BOARD)/main.elf
 esp32-build-flash:
 	python3 $(TOOLCHAIN_XTENSA)/esptool/esptool.py --chip esp32 elf2image \
 		-o $(RIOT_ESP32_BIN) $(RIOT_ESP32_ELF)

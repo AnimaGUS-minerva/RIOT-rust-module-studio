@@ -19,13 +19,13 @@ test-native: build-native
 
 build-esp32:
 	make esp32-build-module
-	make esp32-build-riot
+	RIOT_BOARD=esp32-ethernet-kit-v1_0  make esp32-build-riot
 
 run-esp32: build-esp32
-	make esp32-run-riot
+	RIOT_BOARD=esp32-ethernet-kit-v1_0  make esp32-run-riot
 
 test-esp32: build-esp32
-	EMU_TIMEOUT=4000  make esp32-run-riot
+	EMU_TIMEOUT=4000 RIOT_BOARD=esp32-ethernet-kit-v1_0  make esp32-run-riot
 
 #
 
