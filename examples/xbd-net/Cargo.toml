@@ -1,0 +1,12 @@
+[package]
+name = "xbd-net"
+version = "0.1.0"
+edition = "2021"
+authors = ["ANIMA Minerva toolkit"]
+
+[lib]
+name = "rustmod"
+crate-type = ["staticlib"]
+
+[dependencies]
+mcu-if = { git = "https://github.com/AnimaGUS-minerva/mcu-if", rev = "7f30df8", features=["allocator"] }
