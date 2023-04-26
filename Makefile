@@ -20,7 +20,7 @@ init-rust-xtensa:
 	git submodule init $(TOOLCHAIN_XTENSA)/esptool && git submodule update
 	@echo "Configuring rustc esp ..."
 	git submodule init $(RUST_BUILD_MODULE) && git submodule update
-	cd $(RUST_BUILD_MODULE) && ./install-rust-toolchain.sh
+	cd $(RUST_BUILD_MODULE) && ./install-rust-toolchain.sh --installation-mode reinstall
 	@echo "Testing rustc esp ..."
 	if [[ `rustc +esp --version` =~ rustc.* ]]; then \
        echo rustc esp version LGTM; else false; fi
