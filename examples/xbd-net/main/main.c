@@ -21,7 +21,7 @@
 #include <stdio.h>
 
 #include "shell.h"
-#include "test_utils/netdev_eth_minimal.h"
+#include "netdev_eth_minimal.h"
 #include "init_dev.h"
 #include "assert.h"
 #include "net/netdev.h"
@@ -52,6 +52,15 @@
 extern void esp_eth_setup(esp_eth_netdev_t* dev);
 extern esp_eth_netdev_t _esp_eth_dev;
 
+//--------@@
+#include "net/gnrc/netif/ethernet.h"
+
+/** statically allocated memory for the MAC layer thread */
+static char _esp_eth_stack[ESP_ETH_STACKSIZE];
+
+static gnrc_netif_t _netif;
+//--------@@
+
 int netdev_eth_minimal_init_devs(netdev_event_cb_t cb) {
     netdev_t *device = &_esp_eth_dev.netdev;
 
@@ -61,10 +70,16 @@ int netdev_eth_minimal_init_devs(netdev_event_cb_t cb) {
     /* set the application-provided callback */
     device->event_callback = cb;
 
+#if WIP_ADHOC_GNRC//--------@@
+    printf("@@ &_netif: %p\n", &_netif);
+    gnrc_netif_ethernet_create(&_netif, _esp_eth_stack, ESP_ETH_STACKSIZE, ESP_ETH_PRIO,
+                               "netif-esp-eth", device);
+#else//--------@@
     /* initialize the device driver */
     int res = device->driver->init(device);
     puts(res == 0 ? "ok" : "oh no"); // @@
     assert(!res);
+#endif//--------@@
 
     return 0;
 }
@@ -83,9 +98,10 @@ static int find_interfaces(void)
     outer_interface = inner_interface = NULL;
 
     while ((netif = gnrc_netif_iter(netif))) {
-        printf("@@11 netif: %p\n", netif);
-        //@@ FIXME build                vvvvvvvvvvvvvvvvvvvvvv
-        //@@gnrc_netapi_get(netif->pid, NETOPT_MAX_PACKET_SIZE, 0, &mtu, sizeof(mtu));
+        printf("@@ (found) netif: %p\n", netif);
+        gnrc_netapi_get(netif->pid, NETOPT_MAX_PDU_SIZE, 0, &mtu, sizeof(mtu));
+        printf("@@ mtu: %d\n", mtu);
+        printf("@@ ETHERNET_DATA_LEN: %d\n", ETHERNET_DATA_LEN);
 
         if (!outer_interface && (mtu == ETHERNET_DATA_LEN)) {
             outer_interface = netif;
@@ -96,12 +112,14 @@ static int find_interfaces(void)
         if (outer_interface && inner_interface)
             break;
     }
-    printf("@@22 netif: %p\n", netif);
+    printf("@@ (esp-eth|esp-wifi) outer_interface: %p\n", outer_interface);
+    printf("@@ (esp-now) inner_interface: %p\n", inner_interface);
 
-    if (!outer_interface || !inner_interface) {
-        printf("Unable to find interfaces.\n");
-        return -1;
-    }
+    // @@ ignore `inner_interface`
+//    if (!outer_interface || !inner_interface) {
+//        printf("Unable to find interfaces.\n");
+//        return -1;
+//    }
 
     return 0;
 }
@@ -132,18 +150,19 @@ static int set_ips(void)
     gnrc_ipv6_nib_change_rtr_adv_iface(outer_interface, false);
 
     /* Add inner address based on prefix and interface iid */
-    eui64_t iid;
-    ipv6_addr_t prefix;
-    ipv6_addr_from_str(&prefix, BR_IPV6_PREFIX);
-    if (gnrc_netapi_get(inner_interface->pid, NETOPT_IPV6_IID, 0, &iid, sizeof(iid)) < 0) {
-        printf("Failed getting wireless interface iid.\n");
-        return -1;
-    }
-    ipv6_addr_set_aiid(&prefix, iid.uint8);
-    if (gnrc_netif_ipv6_addr_add(inner_interface, &prefix, 64, 0) < 0) {
-        printf("Failed setting outer address.\n");
-        return -1;
-    }
+    // @@ ignore `inner_interface`
+//    eui64_t iid;
+//    ipv6_addr_t prefix;
+//    ipv6_addr_from_str(&prefix, BR_IPV6_PREFIX);
+//    if (gnrc_netapi_get(inner_interface->pid, NETOPT_IPV6_IID, 0, &iid, sizeof(iid)) < 0) {
+//        printf("Failed getting wireless interface iid.\n");
+//        return -1;
+//    }
+//    ipv6_addr_set_aiid(&prefix, iid.uint8);
+//    if (gnrc_netif_ipv6_addr_add(inner_interface, &prefix, 64, 0) < 0) {
+//        printf("Failed setting outer address.\n");
+//        return -1;
+//    }
 
 #if GNRC_IPV6_NIB_CONF_MULTIHOP_P6C
     /* Add as authoritative border router */

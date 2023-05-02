@@ -4,7 +4,12 @@ RIOTBASE ?= $(CURDIR)/../../../RIOT# @@
 
 #@@ include ../Makefile.tests_common
 
-USEMODULE += test_utils_netdev_eth_minimal
+#@@ cf. RIOT/sys/test_utils/netdev_eth_minimal/Makefile.dep
+USEMODULE += event
+USEMODULE += event_thread
+USEMODULE += l2util
+USEMODULE += od
+USEMODULE += od_string
 
 # the driver to test
 USEMODULE += esp_eth
@@ -32,8 +37,8 @@ USEMODULE += fib
 # Additional networking modules that can be dropped if not needed
 USEMODULE += gnrc_icmpv6_echo
 # Add also the shell, some shell commands
-#@@USEMODULE += shell
-#@@USEMODULE += shell_commands
+USEMODULE += shell
+USEMODULE += shell_commands
 USEMODULE += ps
 
 # Optionally include RPL as a routing protocol.
@@ -52,6 +57,7 @@ IPV6_PREFIX ?= 2001:db8::
 
 # Outer address of the router and the length of its prefix if IPV6_AUTO=0
 IPV6_AUTO ?= 1
+#IPV6_AUTO ?= 0# @@
 IPV6_ADDR ?= fd19:aaaa::1
 IPV6_ADDR_LEN ?= 64
 IPV6_DEF_RT ?= fd19:aaaa::2
