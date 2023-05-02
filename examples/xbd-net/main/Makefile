@@ -4,6 +4,18 @@ RIOTBASE ?= $(CURDIR)/../../../RIOT# @@
 
 #@@ include ../Makefile.tests_common
 
+#----@@
+USE_ADHOC_GNRC ?= 1
+ifeq ($(USE_ADHOC_GNRC),1)
+    CFLAGS += -DWIP_ADHOC_GNRC
+else
+    #@@ vvvvv---- FIXME: crashes when using internalized one instread of the vanilla module
+    USEMODULE += test_utils_netdev_eth_minimal
+
+    #@@ TODO: get debug `ifconfig` (in 'main/shell_commands.c--') to work
+endif
+#----@@
+
 #@@ cf. RIOT/sys/test_utils/netdev_eth_minimal/Makefile.dep
 USEMODULE += event
 USEMODULE += event_thread

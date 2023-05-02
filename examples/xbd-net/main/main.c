@@ -28,9 +28,8 @@
 #include "esp_eth_netdev.h"
 #include "esp_eth_params.h"
 
-#define WIP_ADHOC_GNRC 1//@@ https://github.com/gschorcht/RIOT_ESP_NOW_WiFi_Border_Router
-
-#if WIP_ADHOC_GNRC//--------@@
+//@@ cf. https://github.com/gschorcht/RIOT_ESP_NOW_WiFi_Border_Router
+#ifdef WIP_ADHOC_GNRC//--------@@
 //@@#include <stdio.h>
 
 #include <net/gnrc/ipv6/nib.h>
@@ -52,14 +51,14 @@
 extern void esp_eth_setup(esp_eth_netdev_t* dev);
 extern esp_eth_netdev_t _esp_eth_dev;
 
-//--------@@
+#ifdef WIP_ADHOC_GNRC//--------@@
 #include "net/gnrc/netif/ethernet.h"
 
 /** statically allocated memory for the MAC layer thread */
 static char _esp_eth_stack[ESP_ETH_STACKSIZE];
 
 static gnrc_netif_t _netif;
-//--------@@
+#endif//--------@@
 
 int netdev_eth_minimal_init_devs(netdev_event_cb_t cb) {
     netdev_t *device = &_esp_eth_dev.netdev;
@@ -70,7 +69,7 @@ int netdev_eth_minimal_init_devs(netdev_event_cb_t cb) {
     /* set the application-provided callback */
     device->event_callback = cb;
 
-#if WIP_ADHOC_GNRC//--------@@
+#ifdef WIP_ADHOC_GNRC//--------@@
     printf("@@ &_netif: %p\n", &_netif);
     gnrc_netif_ethernet_create(&_netif, _esp_eth_stack, ESP_ETH_STACKSIZE, ESP_ETH_PRIO,
                                "netif-esp-eth", device);
@@ -84,7 +83,7 @@ int netdev_eth_minimal_init_devs(netdev_event_cb_t cb) {
     return 0;
 }
 
-#if WIP_ADHOC_GNRC//--------@@
+#ifdef WIP_ADHOC_GNRC//--------@@
 static msg_t main_msg_queue[16];
 
 static gnrc_netif_t *outer_interface = NULL;
@@ -205,7 +204,7 @@ int main(void)
     }
     puts("@@ after `netdev_eth_minimal_init()`");
 
-#if WIP_ADHOC_GNRC//--------@@
+#ifdef WIP_ADHOC_GNRC//--------@@
     /* we need a message queue for the thread running the shell in order to
      * receive potentially fast incoming networking packets */
     msg_init_queue(main_msg_queue, sizeof(main_msg_queue) / sizeof(main_msg_queue[0]));

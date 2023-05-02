@@ -16,6 +16,8 @@
  * @author      Leandro Lanzieri <leandro.lanzieri@haw-hamburg.de>
  */
 
+#ifdef WIP_ADHOC_GNRC//@@
+
 #include <stdio.h>
 
 #include "event.h"
@@ -26,7 +28,7 @@
 #include "net/l2util.h"
 #include "net/netdev.h"
 #include "net/netdev/eth.h"
-#include "test_utils/netdev_eth_minimal.h"
+#include "netdev_eth_minimal.h"
 #include "netdev_eth_minimal_internal.h"
 
 /* provided by the test application */
@@ -107,4 +109,5 @@ int netdev_eth_minimal_init(void)
     return netdev_eth_minimal_init_devs(_event_cb);
 }
 
+#endif//@@
 /** @} */
