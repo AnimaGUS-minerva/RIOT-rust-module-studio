@@ -16,6 +16,7 @@
  * @author      Leandro Lanzieri <leandro.lanzieri@haw-hamburg.de>
  */
 
+#ifndef WIP_ADHOC_GNRC//@@ TODO cleanup
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -118,3 +119,4 @@ static int cmd_txtsnd(int argc, char **argv)
 
 SHELL_COMMAND(txtsnd, "Send an Ethernet frame", cmd_txtsnd);
 SHELL_COMMAND(ifconfig, "List interfaces", cmd_ifconfig);
+#endif//@@

@@ -8,9 +8,11 @@ RIOTBASE ?= $(CURDIR)/../../../RIOT# @@
 USE_ADHOC_GNRC ?= 1
 ifeq ($(USE_ADHOC_GNRC),1)
     CFLAGS += -DWIP_ADHOC_GNRC
-else
-    # TODO: get debug `ifconfig` (in 'main/shell_commands.c--') to work
 
+    USEMODULE += shell
+    USEMODULE += shell_commands
+    USEMODULE += ps
+else
     # cf. 'RIOT/sys/Makefile.include'
     CFLAGS += -DCONFIG_NETDEV_REGISTER_SIGNAL
 
@@ -20,6 +22,9 @@ else
     USEMODULE += l2util
     USEMODULE += od
     USEMODULE += od_string
+
+    # Use the custom implementation in 'shell_commands.c'
+    USEMODULE += shell
 endif
 #----@@
 
@@ -49,10 +54,6 @@ USEMODULE += gnrc_sixlowpan_border_router_default
 USEMODULE += fib
 # Additional networking modules that can be dropped if not needed
 USEMODULE += gnrc_icmpv6_echo
-# Add also the shell, some shell commands
-USEMODULE += shell
-USEMODULE += shell_commands
-USEMODULE += ps
 
 # Optionally include RPL as a routing protocol.
 #USEMODULE += gnrc_rpl
