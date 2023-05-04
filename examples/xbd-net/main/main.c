@@ -59,7 +59,7 @@ static char _esp_eth_stack[ESP_ETH_STACKSIZE];
 
 static gnrc_netif_t _netif;
 
-int netdev_eth_gnrc_init_devs() { // @@
+int netdev_eth_gnrc_init_devs(void) { // @@
     netdev_t *device = &_esp_eth_dev.netdev;
 
     printf("@@ &_netif: %p\n", &_netif);
