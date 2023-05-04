@@ -28,8 +28,7 @@
 #include "esp_eth_netdev.h"
 #include "esp_eth_params.h"
 
-//@@ cf. https://github.com/gschorcht/RIOT_ESP_NOW_WiFi_Border_Router
-#ifdef WIP_ADHOC_GNRC//--------@@
+#ifdef WIP_ADHOC_GNRC//--------@@ cf. https://github.com/gschorcht/RIOT_ESP_NOW_WiFi_Border_Router
 //@@#include <stdio.h>
 
 #include <net/gnrc/ipv6/nib.h>
@@ -51,6 +50,7 @@
 extern void esp_eth_setup(esp_eth_netdev_t* dev);
 extern esp_eth_netdev_t _esp_eth_dev;
 
+
 #ifdef WIP_ADHOC_GNRC//--------@@
 #include "net/gnrc/netif/ethernet.h"
 
@@ -58,8 +58,20 @@ extern esp_eth_netdev_t _esp_eth_dev;
 static char _esp_eth_stack[ESP_ETH_STACKSIZE];
 
 static gnrc_netif_t _netif;
-#endif//--------@@
 
+int netdev_eth_gnrc_init_devs() { // @@
+    netdev_t *device = &_esp_eth_dev.netdev;
+
+    printf("@@ &_netif: %p\n", &_netif);
+
+    // cf. 'RIOT/sys/net/gnrc/netif/init_devs/auto_init_esp_eth.c'
+    esp_eth_setup(&_esp_eth_dev);
+    gnrc_netif_ethernet_create(&_netif, _esp_eth_stack, ESP_ETH_STACKSIZE, ESP_ETH_PRIO,
+                               "netif-esp-eth", device);
+
+    return 0;
+}
+#else//--------@@
 int netdev_eth_minimal_init_devs(netdev_event_cb_t cb) {
     netdev_t *device = &_esp_eth_dev.netdev;
 
@@ -69,19 +81,15 @@ int netdev_eth_minimal_init_devs(netdev_event_cb_t cb) {
     /* set the application-provided callback */
     device->event_callback = cb;
 
-#ifdef WIP_ADHOC_GNRC//--------@@
-    printf("@@ &_netif: %p\n", &_netif);
-    gnrc_netif_ethernet_create(&_netif, _esp_eth_stack, ESP_ETH_STACKSIZE, ESP_ETH_PRIO,
-                               "netif-esp-eth", device);
-#else//--------@@
     /* initialize the device driver */
     int res = device->driver->init(device);
     puts(res == 0 ? "ok" : "oh no"); // @@
     assert(!res);
-#endif//--------@@
 
     return 0;
 }
+#endif//--------@@
+
 
 #ifdef WIP_ADHOC_GNRC//--------@@
 static msg_t main_msg_queue[16];
@@ -195,14 +203,15 @@ int main(void)
 {
     puts("Test application for ESP ethernet peripheral");
 
-    puts("@@ before `netdev_eth_minimal_init()`");
-    //@@ NOTE: "#! exit 1: powering off" when with `USEMODULE += auto_init_gnrc_netif`
+#ifdef WIP_ADHOC_GNRC
+    int res = netdev_eth_gnrc_init_devs();
+#else
     int res = netdev_eth_minimal_init();
+#endif
     if (res) {
         puts("Error initializing devices");
         return 1;
     }
-    puts("@@ after `netdev_eth_minimal_init()`");
 
 #ifdef WIP_ADHOC_GNRC//--------@@
     /* we need a message queue for the thread running the shell in order to
@@ -214,6 +223,7 @@ int main(void)
     {
         set_ips();
     }
+#else
 #endif//--------@@
 
     /* start the shell */

@@ -16,7 +16,7 @@
  * @author      Leandro Lanzieri <leandro.lanzieri@haw-hamburg.de>
  */
 
-#ifdef WIP_ADHOC_GNRC//@@
+#ifndef WIP_ADHOC_GNRC//@@ TODO cleanup
 
 #include <stdio.h>
 
@@ -70,10 +70,12 @@ static void _isr_event_handler(event_t *event)
     netdev->driver->isr(netdev);
 }
 
+//@@ requires `CFLAGS += -DCONFIG_NETDEV_REGISTER_SIGNAL`
 static void _event_cb(netdev_t *dev, netdev_event_t event)
 {
     device_reg_entry_t *device = dev->context;
-
+    printf("@@ _event_cb(): dev: %p\n", dev);
+    printf("@@ _event_cb(): device: %p\n", device);
     switch (event) {
     case NETDEV_EVENT_ISR:
         event_post(EVENT_PRIO_HIGHEST, &device->event);

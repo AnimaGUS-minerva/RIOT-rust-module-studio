@@ -9,19 +9,20 @@ USE_ADHOC_GNRC ?= 1
 ifeq ($(USE_ADHOC_GNRC),1)
     CFLAGS += -DWIP_ADHOC_GNRC
 else
-    #@@ vvvvv---- FIXME: crashes when using internalized one instread of the vanilla module
-    USEMODULE += test_utils_netdev_eth_minimal
+    # TODO: get debug `ifconfig` (in 'main/shell_commands.c--') to work
 
-    #@@ TODO: get debug `ifconfig` (in 'main/shell_commands.c--') to work
+    # cf. 'RIOT/sys/Makefile.include'
+    CFLAGS += -DCONFIG_NETDEV_REGISTER_SIGNAL
+
+    # cf. 'RIOT/sys/test_utils/netdev_eth_minimal/Makefile.dep'
+    USEMODULE += event
+    USEMODULE += event_thread
+    USEMODULE += l2util
+    USEMODULE += od
+    USEMODULE += od_string
 endif
 #----@@
 
-#@@ cf. RIOT/sys/test_utils/netdev_eth_minimal/Makefile.dep
-USEMODULE += event
-USEMODULE += event_thread
-USEMODULE += l2util
-USEMODULE += od
-USEMODULE += od_string
 
 # the driver to test
 USEMODULE += esp_eth
