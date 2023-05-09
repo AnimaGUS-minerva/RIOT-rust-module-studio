@@ -28,10 +28,10 @@ esp32-build-riot:
 
 RIOT_ESP32_BIN ?= ./main.esp32.bin
 RIOT_ESP32_ELF ?= ./main/bin/$(RIOT_BOARD)/main.elf
-esp32-build-flash:
+esp32-build-bin:
 	python3 $(TOOLCHAIN_XTENSA)/esptool/esptool.py --chip esp32 elf2image \
 		-o $(RIOT_ESP32_BIN) $(RIOT_ESP32_ELF)
 
-esp32-run-riot: esp32-build-flash
+esp32-run-riot: esp32-build-bin
 	RIOT_ESP32_BIN=$(RIOT_ESP32_BIN) \
 		cargo run --manifest-path ../runner/Cargo.toml esp32 $(EMU_TIMEOUT)
