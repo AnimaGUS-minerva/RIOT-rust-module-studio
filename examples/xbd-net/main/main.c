@@ -59,6 +59,7 @@ static char _esp_eth_stack[ESP_ETH_STACKSIZE];
 
 static gnrc_netif_t _netif;
 
+//@@ todo?? refactor with `auto_init_esp_eth()` ?? RIOT/sys/net/gnrc/netif/init_devs/auto_init_esp_eth.c
 int netdev_eth_gnrc_init_devs(void) { // @@
     netdev_t *device = &_esp_eth_dev.netdev;
 
@@ -219,11 +220,9 @@ int main(void)
     msg_init_queue(main_msg_queue, sizeof(main_msg_queue) / sizeof(main_msg_queue[0]));
     puts("RIOT border router example application");
 
-    if (find_interfaces() >= 0)
-    {
+    if (find_interfaces() >= 0) {
         set_ips();
     }
-#else
 #endif//--------@@
 
     /* start the shell */
