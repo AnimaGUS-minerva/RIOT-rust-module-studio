@@ -34,7 +34,35 @@ run-esp32-debug: build-esp32-debug
 test-esp32: build-esp32
 	EMU_TIMEOUT=4000 RIOT_BOARD=esp32-ethernet-kit-v1_0  make esp32-run-riot
 
-#
+#--------@@ begin: bridged networking
+#ETH_IF := enp0sN
+ETH_IF := enp0s8
+
+run-esp32-tap: build-esp32
+	make tap-setup
+	RIOT_BOARD=esp32-ethernet-kit-v1_0 \
+ EMU_ESP32_NIC="tap,model=open_eth,ifname=tap0,script=no,downscript=no" \
+ make esp32-run-riot
+	make tap-cleanup
+
+tap-setup:
+	@echo "tap-setup..."
+	sudo ip link add br0 type bridge
+	sudo ip addr flush dev $(ETH_IF)
+	sudo ip link set $(ETH_IF) master br0
+	sudo ip tuntap add dev tap0 mode tap user $$(whoami)
+	sudo ip link set tap0 master br0
+	sudo ip link set dev br0 up
+	sudo ip link set dev tap0 up
+	ip a && brctl show
+
+tap-cleanup:
+	@echo "tap-cleanup..."
+	sudo ip link del tap0
+	sudo ip link del br0
+	##sudo dhclient $(ETH_IF)
+	ip a && brctl show
+#--------@@ end: bridged networking
 
 run: run-native
 
