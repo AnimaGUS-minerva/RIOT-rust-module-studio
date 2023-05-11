@@ -8,13 +8,13 @@ use std::{thread, time};
 static QEMU_RES_DIR: &str = "../../toolchain/xtensa/qemu";
 static FLASH_BIN: &str = "esp32flash.bin";
 
-pub fn run_esp32(riot_bin: &str, timeout_ms: Option<u64>) -> std::io::Result<()> {
+pub fn run_esp32(riot_bin: &str, timeout_ms: Option<u64>, nic: Option<&str>) -> std::io::Result<()> {
     generate_esp32flash(riot_bin, FLASH_BIN)?;
 
     if let Some(ms) = timeout_ms {
-        Qemu::new().run_with_timeout(ms)?;
+        Qemu::new(nic).run_with_timeout(ms)?;
     } else {
-        Qemu::new().run()?;
+        Qemu::new(nic).run()?;
     }
 
     Ok(())
@@ -25,15 +25,12 @@ pub fn run_esp32(riot_bin: &str, timeout_ms: Option<u64>) -> std::io::Result<()>
 pub struct Qemu(Command);
 
 impl Qemu {
-    pub fn new() -> Self {
-        let nic = "user,model=open_eth,id=lo0"; // SLIRP
-        // let nic = "user,model=open_eth,id=lo0,hostfwd=tcp:127.0.0.1:60080-:80"; // SLIRP_HOSTFWD
-
+    pub fn new(nic: Option<&str>) -> Self {
         let mut cmd = Command::new(&format!("{}/qemu/bin/qemu-system-xtensa", QEMU_RES_DIR));
         cmd.args(&["-nographic",
             "-machine", "esp32",
             "-drive", &format!("file={},if=mtd,format=raw", FLASH_BIN),
-            "-nic", nic,
+            "-nic", nic.unwrap(),
             "-global", "driver=timer.esp32.timg,property=wdt_disable,value=true"]);
 
         Self(cmd)

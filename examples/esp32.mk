@@ -32,6 +32,8 @@ esp32-build-bin:
 	python3 $(TOOLCHAIN_XTENSA)/esptool/esptool.py --chip esp32 elf2image \
 		-o $(RIOT_ESP32_BIN) $(RIOT_ESP32_ELF)
 
+EMU_TIMEOUT ?= 0
+EMU_ESP32_NIC ?= user,model=open_eth,id=lo
 esp32-run-riot: esp32-build-bin
 	RIOT_ESP32_BIN=$(RIOT_ESP32_BIN) \
-		cargo run --manifest-path ../runner/Cargo.toml esp32 $(EMU_TIMEOUT)
+		cargo run --manifest-path ../runner/Cargo.toml esp32 $(EMU_TIMEOUT) $(EMU_ESP32_NIC)
