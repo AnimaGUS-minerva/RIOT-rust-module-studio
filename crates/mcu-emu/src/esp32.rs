@@ -4,12 +4,16 @@ use std::io::prelude::*;
 use std::path::Path;
 use std::process::{Command, ExitStatus, Stdio};
 use std::{thread, time};
+use crate::NetOpt;
 
 static QEMU_RES_DIR: &str = "../../toolchain/xtensa/qemu";
 static FLASH_BIN: &str = "esp32flash.bin";
 
-pub fn run_esp32(riot_bin: &str, timeout_ms: Option<u64>, nic: Option<&str>) -> std::io::Result<()> {
+pub fn run_esp32(riot_bin: &str, timeout_ms: Option<u64>, net: NetOpt) -> std::io::Result<()> {
     generate_esp32flash(riot_bin, FLASH_BIN)?;
+
+    let nic = if let NetOpt::Nic(x) = net { x } else { panic!() };
+    let nic = nic.as_deref();
 
     if let Some(ms) = timeout_ms {
         Qemu::new(nic).run_with_timeout(ms)?;
