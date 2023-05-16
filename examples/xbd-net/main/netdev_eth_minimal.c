@@ -16,6 +16,7 @@
  * @author      Leandro Lanzieri <leandro.lanzieri@haw-hamburg.de>
  */
 
+typedef int make_iso_compilers_happy; //@@ https://stackoverflow.com/questions/26541150/warning-iso-c-forbids-an-empty-translation-unit
 #ifndef WIP_ADHOC_GNRC//@@ TODO cleanup
 
 #include <stdio.h>

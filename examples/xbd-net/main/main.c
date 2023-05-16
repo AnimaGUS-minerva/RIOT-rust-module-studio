@@ -21,12 +21,14 @@
 #include <stdio.h>
 
 #include "shell.h"
+#ifdef MINERVA_BOARD_ESP32
 #include "netdev_eth_minimal.h"
 #include "init_dev.h"
 #include "assert.h"
 #include "net/netdev.h"
 #include "esp_eth_netdev.h"
 #include "esp_eth_params.h"
+#endif
 
 #ifdef WIP_ADHOC_GNRC//--------@@ cf. https://github.com/gschorcht/RIOT_ESP_NOW_WiFi_Border_Router
 //@@#include <stdio.h>
@@ -47,10 +49,12 @@
 #include <msg.h>
 #endif//--------@@
 
+#ifdef MINERVA_BOARD_ESP32
 extern void esp_eth_setup(esp_eth_netdev_t* dev);
 extern esp_eth_netdev_t _esp_eth_dev;
+#endif
 
-
+#ifdef MINERVA_BOARD_ESP32
 #ifdef WIP_ADHOC_GNRC//--------@@
 #include "net/gnrc/netif/ethernet.h"
 
@@ -90,6 +94,7 @@ int netdev_eth_minimal_init_devs(netdev_event_cb_t cb) {
     return 0;
 }
 #endif//--------@@
+#endif//MINERVA_BOARD_ESP32
 
 
 #ifdef WIP_ADHOC_GNRC//--------@@
@@ -106,10 +111,9 @@ static int find_interfaces(void)
     outer_interface = inner_interface = NULL;
 
     while ((netif = gnrc_netif_iter(netif))) {
-        printf("@@ (found) netif: %p\n", netif);
+        printf("@@ (found) netif: %p\n", (void *)netif);
         gnrc_netapi_get(netif->pid, NETOPT_MAX_PDU_SIZE, 0, &mtu, sizeof(mtu));
-        printf("@@ mtu: %d\n", mtu);
-        printf("@@ ETHERNET_DATA_LEN: %d\n", ETHERNET_DATA_LEN);
+        printf("@@ mtu: %d (ETHERNET_DATA_LEN=%d)\n", mtu, ETHERNET_DATA_LEN);
 
         if (!outer_interface && (mtu == ETHERNET_DATA_LEN)) {
             outer_interface = netif;
@@ -120,8 +124,23 @@ static int find_interfaces(void)
         if (outer_interface && inner_interface)
             break;
     }
-    printf("@@ (esp-eth|esp-wifi) outer_interface: %p\n", outer_interface);
-    printf("@@ (esp-now) inner_interface: %p\n", inner_interface);
+    printf("@@ (native|esp-eth|esp-wifi) outer_interface: %p\n", (void *)outer_interface);
+    printf("@@ (esp-now) inner_interface: %p\n", (void *)inner_interface);
+
+    if (outer_interface) { // @@
+        ipv6_addr_t addrs[GNRC_NETIF_IPV6_ADDRS_NUMOF];
+
+        printf("@@ GNRC_NETIF_IPV6_ADDRS_NUMOF: %d\n", GNRC_NETIF_IPV6_ADDRS_NUMOF); // @@ via Makefile
+        gnrc_netapi_get(outer_interface->pid, NETOPT_IPV6_ADDR, 0, &addrs, sizeof(addrs));
+
+        char addrstr[IPV6_ADDR_MAX_STR_LEN];
+        printf("@@ addrs[0]: %s\n", ipv6_addr_to_str(addrstr, &addrs[0], sizeof(addrstr)));
+#if defined(MINERVA_BOARD_NATIVE)
+        printf("@@ hint - for `native` board, try `ping6 %s%%tap1` in a new shell\n", addrstr);
+#elif defined(MINERVA_BOARD_ESP32)
+        printf("@@ hint - for `esp32` board, try `ping6 %s%%br0` in a new shell\n", addrstr);
+#endif
+    }
 
     // @@ ignore `inner_interface`
 //    if (!outer_interface || !inner_interface) {
@@ -132,6 +151,7 @@ static int find_interfaces(void)
     return 0;
 }
 
+#ifdef MINERVA_BOARD_ESP32
 static int set_ips(void)
 {
 #if defined(BR_IPV6_ADDR) && defined(BR_IPV6_ADDR_LEN)
@@ -198,12 +218,15 @@ static int set_ips(void)
 
     return 0;
 }
+#endif//MINERVA_BOARD_ESP32
+
 #endif//--------@@
 
 int main(void)
 {
     puts("Test application for ESP ethernet peripheral");
 
+#ifdef MINERVA_BOARD_ESP32
 #ifdef WIP_ADHOC_GNRC
     int res = netdev_eth_gnrc_init_devs();
 #else
@@ -213,6 +236,7 @@ int main(void)
         puts("Error initializing devices");
         return 1;
     }
+#endif//MINERVA_BOARD_ESP32
 
 #ifdef WIP_ADHOC_GNRC//--------@@
     /* we need a message queue for the thread running the shell in order to
@@ -221,7 +245,9 @@ int main(void)
     puts("RIOT border router example application");
 
     if (find_interfaces() >= 0) {
+#ifdef MINERVA_BOARD_ESP32
         set_ips();
+#endif
     }
 #endif//--------@@
 

@@ -29,10 +29,6 @@ endif
 #----@@
 
 
-# the driver to test
-USEMODULE += esp_eth
-FEATURES_REQUIRED += arch_esp32
-
 INCLUDES += -I$(APPDIR)
 INCLUDES += -I$(CURDIR)/../include# @@
 
@@ -41,13 +37,30 @@ SHOULD_RUN_KCONFIG =?
 #-------- @@ begin WIP_ADHOC_GNRC
 # platform specific modules and settings
 GNRC_NETIF_NUMOF := 2
-#@@USEMODULE += esp_wifi
-#@@USEMODULE += esp_now
 
 # Include packages that pull up and auto-init the link layer.
 # NOTE: 6LoWPAN will be included if IEEE802.15.4 devices are present
 USEMODULE += gnrc_netdev_default
-#!!!!@@USEMODULE += auto_init_gnrc_netif#@@--> "#! exit 1: powering off"; conflicting with `netdev_eth_minimal_init()`
+
+ifeq ($(BOARD),native)
+  CFLAGS += -DMINERVA_BOARD_NATIVE
+
+  USEMODULE += auto_init_gnrc_netif
+else ifeq ($(BOARD),esp32-ethernet-kit-v1_0)
+  CFLAGS += -DMINERVA_BOARD_ESP32
+
+  # @@ uses one of
+  # int res = netdev_eth_gnrc_init_devs();
+  # int res = netdev_eth_minimal_init();
+
+  USEMODULE += esp_eth
+  FEATURES_REQUIRED += arch_esp32
+  #@@USEMODULE += esp_wifi
+  #@@USEMODULE += esp_now
+else
+  $(error BOARD set is not supported)
+endif
+
 # Specify the mandatory networking modules for 6LoWPAN border router
 USEMODULE += gnrc_sixlowpan_border_router_default
 # Add forwarding table
