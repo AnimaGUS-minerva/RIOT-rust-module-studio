@@ -11,6 +11,7 @@ native-build-riot:
 	ldd $(RIOT_NATIVE_ELF) && file $(RIOT_NATIVE_ELF)
 
 EMU_TIMEOUT ?= 0
+EMU_NATIVE_TAP ?=
 native-run-riot:
 	RIOT_NATIVE_ELF=$(RIOT_NATIVE_ELF) \
-		cargo run --manifest-path ../runner/Cargo.toml native $(EMU_TIMEOUT)
+		cargo run --manifest-path ../runner/Cargo.toml native $(EMU_TIMEOUT) $(EMU_NATIVE_TAP)

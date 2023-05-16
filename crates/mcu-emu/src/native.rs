@@ -1,8 +1,11 @@
 use std::process::{Command, Stdio};
 use std::{thread, time};
 
-pub fn run_native(riot_elf: &str, timeout_ms: Option<u64>) -> std::io::Result<()> {
+pub fn run_native(riot_elf: &str, timeout_ms: Option<u64>, tap: Option<&str>) -> std::io::Result<()> {
     let mut cmd = Command::new(riot_elf);
+    if let Some(tap) = tap {
+        cmd.args(&[tap]);
+    }
 
     if let Some(ms) = timeout_ms {
         println!("Running native... (timeout {} ms)", ms);
