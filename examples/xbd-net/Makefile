@@ -10,13 +10,13 @@ build-native:
 	make native-build-riot
 
 #====!!!!
-run-native-first: build-native
+run-native-tap-first: build-native
 	sudo ip tuntap add dev tap1 mode tap user $$(whoami)
 	@echo "[hint] > ifconfig"  # e.g. fe80::58d6:7dff:fe0f:6923
 	@echo "[hint] > udp server start 1333"  # TODO
 	EMU_NATIVE_TAP=tap1  make native-run-riot
 	sudo ip link del tap1
-run-native-second:# in second shell
+run-native-tap-second:# in second shell
 	sudo ip link set tap1 down  # (in case - Temporary failure in name resolution)"
 	sudo ip link set tap1 up  # make sure `ip a` shows "state UP" for tap1
 	@echo [hint] ping6 fe80::58d6:7dff:fe0f:6923%tap1
@@ -31,19 +31,19 @@ test-native: build-native
 build-esp32:
 	##make esp32-build-module
 	RIOT_BOARD=esp32-ethernet-kit-v1_0  make esp32-build-riot
-
 build-esp32-minimal:
 	##make esp32-build-module
 	RIOT_BOARD=esp32-ethernet-kit-v1_0 DEBUG_ETH_MINIMAL=1  make esp32-build-riot
 
 run-esp32: build-esp32
 	RIOT_BOARD=esp32-ethernet-kit-v1_0  make esp32-run-riot
-
 run-esp32-minimal: build-esp32-minimal
 	RIOT_BOARD=esp32-ethernet-kit-v1_0  make esp32-run-riot
 
-test-esp32: build-esp32
-	EMU_TIMEOUT=4000 RIOT_BOARD=esp32-ethernet-kit-v1_0  make esp32-run-riot
+test-esp32:
+	EMU_TIMEOUT=4000  make run-esp32
+test-esp32-minimal:
+	EMU_TIMEOUT=4000  make run-esp32-minimal
 
 #--------@@ begin: bridged networking
 #ETH_IF := enp0sN
@@ -78,8 +78,9 @@ tap-cleanup:
 run: run-native
 
 test:
-	##make test-native
+	make test-native
 	make test-esp32
+	make test-esp32-minimal
 
 clean:
 	rm -rf target ./main/bin
