@@ -18,21 +18,8 @@
  * @}
  */
 
-#include <stdio.h>
-
-#include "shell.h"
-#ifdef MINERVA_BOARD_ESP32
-#include "netdev_eth_minimal.h"
-#include "init_dev.h"
-#include "assert.h"
-#include "net/netdev.h"
-#include "esp_eth_netdev.h"
-#include "esp_eth_params.h"
-#endif
-
 //--------@@
-//@@#include <stdio.h>
-
+#include <stdio.h>
 #include <net/gnrc/ipv6/nib.h>
 #include <net/gnrc/ipv6.h>
 #include <net/gnrc/netapi.h>
@@ -45,11 +32,18 @@
 //@@#include <net/netdev.h>
 #include <net/netopt.h>
 #include <xtimer.h>
-//@@#include <shell.h>
+#include <shell.h>
 #include <msg.h>
 //--------@@
 
 #ifdef MINERVA_BOARD_ESP32
+#include "netdev_eth_minimal.h"
+#include "init_dev.h"
+#include "assert.h"
+#include "net/netdev.h"
+#include "esp_eth_netdev.h"
+#include "esp_eth_params.h"
+
 extern void esp_eth_setup(esp_eth_netdev_t* dev);
 extern esp_eth_netdev_t _esp_eth_dev;
 
