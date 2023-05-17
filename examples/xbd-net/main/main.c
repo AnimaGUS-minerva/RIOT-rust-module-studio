@@ -52,9 +52,7 @@
 #ifdef MINERVA_BOARD_ESP32
 extern void esp_eth_setup(esp_eth_netdev_t* dev);
 extern esp_eth_netdev_t _esp_eth_dev;
-#endif
 
-#ifdef MINERVA_BOARD_ESP32
 #ifdef MINERVA_DEBUG_ETH_MINIMAL//--------@@
 int netdev_eth_minimal_init_devs(netdev_event_cb_t cb) {
     netdev_t *device = &_esp_eth_dev.netdev;
@@ -103,8 +101,7 @@ static msg_t main_msg_queue[16];
 static gnrc_netif_t *outer_interface = NULL;
 static gnrc_netif_t *inner_interface = NULL;
 
-static int find_interfaces(void)
-{
+static int find_interfaces(void) {
     uint16_t mtu;
     gnrc_netif_t *netif = NULL;
 
@@ -152,8 +149,7 @@ static int find_interfaces(void)
 }
 
 #ifdef MINERVA_BOARD_ESP32
-static int set_ips(void)
-{
+static int set_ips(void) {
 #if defined(BR_IPV6_ADDR) && defined(BR_IPV6_ADDR_LEN)
     /* Add configured outer address */
     ipv6_addr_t addr;
@@ -242,7 +238,10 @@ void start_shell(void) {
 
 int main(void)
 {
-    puts("Test application for ESP ethernet peripheral");
+    /* we need a message queue for the thread running the shell in order to
+     * receive potentially fast incoming networking packets */
+    msg_init_queue(main_msg_queue, sizeof(main_msg_queue) / sizeof(main_msg_queue[0]));
+    puts("@@ [xbd-net] main(): ^^");
 
 #ifdef MINERVA_BOARD_ESP32
 #ifdef MINERVA_DEBUG_ETH_MINIMAL
@@ -257,21 +256,12 @@ int main(void)
 #endif
 #endif//MINERVA_BOARD_ESP32
 
-    //--------@@
-    /* we need a message queue for the thread running the shell in order to
-     * receive potentially fast incoming networking packets */
-    msg_init_queue(main_msg_queue, sizeof(main_msg_queue) / sizeof(main_msg_queue[0]));
-    puts("RIOT border router example application");
-
     if (find_interfaces() >= 0) {
 #ifdef MINERVA_BOARD_ESP32
         set_ips();
 #endif
     }
-    //--------@@
 
-//    /* start the shell */
-//    puts("Initialization successful - starting the shell now");
     start_shell();
     return 0;
 }
