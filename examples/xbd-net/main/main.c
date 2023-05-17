@@ -30,7 +30,7 @@
 #include "esp_eth_params.h"
 #endif
 
-#ifdef WIP_ADHOC_GNRC//--------@@ cf. https://github.com/gschorcht/RIOT_ESP_NOW_WiFi_Border_Router
+//--------@@
 //@@#include <stdio.h>
 
 #include <net/gnrc/ipv6/nib.h>
@@ -47,7 +47,7 @@
 #include <xtimer.h>
 //@@#include <shell.h>
 #include <msg.h>
-#endif//--------@@
+//--------@@
 
 #ifdef MINERVA_BOARD_ESP32
 extern void esp_eth_setup(esp_eth_netdev_t* dev);
@@ -55,7 +55,24 @@ extern esp_eth_netdev_t _esp_eth_dev;
 #endif
 
 #ifdef MINERVA_BOARD_ESP32
-#ifdef WIP_ADHOC_GNRC//--------@@
+#ifdef MINERVA_DEBUG_ETH_MINIMAL//--------@@
+int netdev_eth_minimal_init_devs(netdev_event_cb_t cb) {
+    netdev_t *device = &_esp_eth_dev.netdev;
+
+    /* setup the specific driver */
+    esp_eth_setup(&_esp_eth_dev);
+
+    /* set the application-provided callback */
+    device->event_callback = cb;
+
+    /* initialize the device driver */
+    int res = device->driver->init(device);
+    puts(res == 0 ? "ok" : "oh no"); // @@
+    assert(!res);
+
+    return 0;
+}
+#else//--------@@
 #include "net/gnrc/netif/ethernet.h"
 
 /** statically allocated memory for the MAC layer thread */
@@ -76,28 +93,11 @@ int netdev_eth_gnrc_init_devs(void) { // @@
 
     return 0;
 }
-#else//--------@@
-int netdev_eth_minimal_init_devs(netdev_event_cb_t cb) {
-    netdev_t *device = &_esp_eth_dev.netdev;
-
-    /* setup the specific driver */
-    esp_eth_setup(&_esp_eth_dev);
-
-    /* set the application-provided callback */
-    device->event_callback = cb;
-
-    /* initialize the device driver */
-    int res = device->driver->init(device);
-    puts(res == 0 ? "ok" : "oh no"); // @@
-    assert(!res);
-
-    return 0;
-}
 #endif//--------@@
 #endif//MINERVA_BOARD_ESP32
 
 
-#ifdef WIP_ADHOC_GNRC//--------@@
+//--------@@
 static msg_t main_msg_queue[16];
 
 static gnrc_netif_t *outer_interface = NULL;
@@ -219,26 +219,45 @@ static int set_ips(void)
     return 0;
 }
 #endif//MINERVA_BOARD_ESP32
+//--------@@
 
-#endif//--------@@
+/* @@
+ * todo - netdev_eth_minimal code dir-structure orgnize
+ * todo - clearn up MINERVA_BOARD_ESP32 and MINERVA_BOARD_NATIVE refactor into c-files??
+ *
+ * todo - integrate native-sockets' 'udp.c'
+ *      - riot udp server
+ *      - riot udp client
+ *
+ * todo - more stuff........
+ *      - RIOT/tests/nanocoap_cli
+ *      - RIOT/examples/rust-gcoap
+ *
+ */
+
+void start_shell(void) {
+    char line_buf[SHELL_DEFAULT_BUFSIZE];
+    shell_run(NULL, line_buf, SHELL_DEFAULT_BUFSIZE);
+}
 
 int main(void)
 {
     puts("Test application for ESP ethernet peripheral");
 
 #ifdef MINERVA_BOARD_ESP32
-#ifdef WIP_ADHOC_GNRC
-    int res = netdev_eth_gnrc_init_devs();
+#ifdef MINERVA_DEBUG_ETH_MINIMAL
+    if (netdev_eth_minimal_init()) { puts("Error initializing devices"); return 1; }
+
+    //> ifconfig
+    //Iface   0  HWaddr: 00:00:00:00:00:03
+    start_shell();
+    return 0;
 #else
-    int res = netdev_eth_minimal_init();
+    if (netdev_eth_gnrc_init_devs()) { puts("Error initializing devices"); return 1; }
 #endif
-    if (res) {
-        puts("Error initializing devices");
-        return 1;
-    }
 #endif//MINERVA_BOARD_ESP32
 
-#ifdef WIP_ADHOC_GNRC//--------@@
+    //--------@@
     /* we need a message queue for the thread running the shell in order to
      * receive potentially fast incoming networking packets */
     msg_init_queue(main_msg_queue, sizeof(main_msg_queue) / sizeof(main_msg_queue[0]));
@@ -249,13 +268,10 @@ int main(void)
         set_ips();
 #endif
     }
-#endif//--------@@
+    //--------@@
 
-    /* start the shell */
-    puts("Initialization successful - starting the shell now");
-
-    char line_buf[SHELL_DEFAULT_BUFSIZE];
-    shell_run(NULL, line_buf, SHELL_DEFAULT_BUFSIZE);
-
+//    /* start the shell */
+//    puts("Initialization successful - starting the shell now");
+    start_shell();
     return 0;
 }

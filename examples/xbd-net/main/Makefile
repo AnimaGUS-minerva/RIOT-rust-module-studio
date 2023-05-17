@@ -5,14 +5,10 @@ RIOTBASE ?= $(CURDIR)/../../../RIOT# @@
 #@@ include ../Makefile.tests_common
 
 #----@@
-USE_ADHOC_GNRC ?= 1
-ifeq ($(USE_ADHOC_GNRC),1)
-    CFLAGS += -DWIP_ADHOC_GNRC
+DEBUG_ETH_MINIMAL ?= 0
+ifeq ($(DEBUG_ETH_MINIMAL),1)
+    CFLAGS += -DMINERVA_DEBUG_ETH_MINIMAL
 
-    USEMODULE += shell
-    USEMODULE += shell_commands
-    USEMODULE += ps
-else
     # cf. 'RIOT/sys/Makefile.include'
     CFLAGS += -DCONFIG_NETDEV_REGISTER_SIGNAL
 
@@ -25,6 +21,10 @@ else
 
     # Use the custom implementation in 'shell_commands.c'
     USEMODULE += shell
+else
+    USEMODULE += shell
+    USEMODULE += shell_commands
+    USEMODULE += ps
 endif
 #----@@
 
@@ -34,7 +34,7 @@ INCLUDES += -I$(CURDIR)/../include# @@
 
 SHOULD_RUN_KCONFIG =?
 
-#-------- @@ begin WIP_ADHOC_GNRC
+#-------- @@ cf. https://github.com/gschorcht/RIOT_ESP_NOW_WiFi_Border_Router
 # platform specific modules and settings
 GNRC_NETIF_NUMOF := 2
 
@@ -97,6 +97,6 @@ endif
 
 # Might need more than the default of 2 addresses.
 CFLAGS += -DGNRC_NETIF_IPV6_ADDRS_NUMOF=4
-#-------- @@ end WIP_ADHOC_GNRC
+#-------- @@
 
 include $(RIOTBASE)/Makefile.include

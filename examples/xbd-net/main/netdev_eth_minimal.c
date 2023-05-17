@@ -17,7 +17,7 @@
  */
 
 typedef int make_iso_compilers_happy; //@@ https://stackoverflow.com/questions/26541150/warning-iso-c-forbids-an-empty-translation-unit
-#ifndef WIP_ADHOC_GNRC//@@ TODO cleanup
+#ifdef MINERVA_DEBUG_ETH_MINIMAL//@@
 
 #include <stdio.h>
 
@@ -75,8 +75,8 @@ static void _isr_event_handler(event_t *event)
 static void _event_cb(netdev_t *dev, netdev_event_t event)
 {
     device_reg_entry_t *device = dev->context;
-    printf("@@ _event_cb(): dev: %p\n", dev);
-    printf("@@ _event_cb(): device: %p\n", device);
+    printf("@@ _event_cb(): dev: %p\n", (void *)dev);
+    printf("@@ _event_cb(): device: %p\n", (void *)device);
     switch (event) {
     case NETDEV_EVENT_ISR:
         event_post(EVENT_PRIO_HIGHEST, &device->event);

@@ -32,14 +32,14 @@ build-esp32:
 	##make esp32-build-module
 	RIOT_BOARD=esp32-ethernet-kit-v1_0  make esp32-build-riot
 
-build-esp32-debug:
+build-esp32-minimal:
 	##make esp32-build-module
-	RIOT_BOARD=esp32-ethernet-kit-v1_0 USE_ADHOC_GNRC=0  make esp32-build-riot
+	RIOT_BOARD=esp32-ethernet-kit-v1_0 DEBUG_ETH_MINIMAL=1  make esp32-build-riot
 
 run-esp32: build-esp32
 	RIOT_BOARD=esp32-ethernet-kit-v1_0  make esp32-run-riot
 
-run-esp32-debug: build-esp32-debug
+run-esp32-minimal: build-esp32-minimal
 	RIOT_BOARD=esp32-ethernet-kit-v1_0  make esp32-run-riot
 
 test-esp32: build-esp32
