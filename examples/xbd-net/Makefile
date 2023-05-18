@@ -9,6 +9,12 @@ build-native:
 	##make native-build-module
 	make native-build-riot
 
+
+run-native-notap: build-native
+	make native-run-riot
+test-native-notap:
+	EMU_TIMEOUT=4000  make run-native-notap
+
 #====!!!!
 run-native-tap-first: build-native
 	sudo ip tuntap add dev tap1 mode tap user $$(whoami)
@@ -22,9 +28,6 @@ run-native-tap-second:# in second shell
 	@echo [hint] ping6 fe80::58d6:7dff:fe0f:6923%tap1
 	@echo [hint] nc -6uv fe80::58d6:7dff:fe0f:6923%tap1 1333  # TODO
 #====!!!!
-
-test-native: build-native
-	EMU_TIMEOUT=4000  make native-run-riot
 
 # esp32
 
@@ -78,7 +81,7 @@ tap-cleanup:
 run: run-native
 
 test:
-	make test-native
+	make test-native-notap
 	make test-esp32
 	make test-esp32-minimal
 
