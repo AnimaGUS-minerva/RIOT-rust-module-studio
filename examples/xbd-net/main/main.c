@@ -212,17 +212,11 @@ static int set_ips(void) {
 //--------@@
 
 /* @@
- * todo - netdev_eth_minimal code dir-structure orgnize
+ * todo - netdev_eth_minimal code dir-structure organize
  * todo - clearn up MINERVA_BOARD_ESP32 and MINERVA_BOARD_NATIVE refactor into c-files??
- *
- * todo - integrate native-sockets' 'udp.c'
- *      - riot udp server
- *      - riot udp client
- *
  * todo - more stuff........
  *      - RIOT/tests/nanocoap_cli
  *      - RIOT/examples/rust-gcoap
- *
  */
 
 //
