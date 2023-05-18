@@ -25,22 +25,6 @@ else
     USEMODULE += shell
     USEMODULE += shell_commands
     USEMODULE += ps
-
-    USEMODULE += shell_cmd_gnrc_udp
-    #==== native (using tap1)
-    #---- linux-to-riot, ok
-    # > udp server start 8899
-    # $ nc -6uv fe80::2cca:caff:fe9f:13c6%tap1 8899  # send to riot udp server
-    #---- riot-to-linux, ok
-    # $ nc -6ul 8877  # linux udp server
-    # > udp send fe80::2cca:caff:fe9f:13c5 8877 hello  # send to linux tap1
-    #==== esp32 (using tap0/br0)
-    #---- linux-to-riot, ok
-    # > udp server start 8899
-    # $ nc -6uv fe80::200:ff:fe00:3%br0 8899  # send to riot udp server
-    #---- riot-to-linux, ok
-    # $ nc -6ul 8877  # linux udp server
-    # > udp send fe80::a00:27ff:fefd:b6f8 8877 hello  # send to linux br0
 endif
 #----@@
 
@@ -81,8 +65,32 @@ endif
 USEMODULE += gnrc_sixlowpan_border_router_default
 # Add forwarding table
 USEMODULE += fib
-# Additional networking modules that can be dropped if not needed
+
+#-------- Additional networking modules that can be dropped if not needed
 USEMODULE += gnrc_icmpv6_echo
+#==== native (using tap1), ok
+# > ping fe80::2cca:caff:fe9f:13c5  # ping to linux tap1
+#==== esp32 (using tap0/br0), ok
+# > ping fe80::a00:27ff:fefd:b6f8  # ping to linux br0
+
+USEMODULE += shell_cmd_gnrc_udp
+#==== native (using tap1)
+#---- linux-to-riot, ok
+# > udp server start 8899
+# $ nc -6uv fe80::2cca:caff:fe9f:13c6%tap1 8899  # send to riot udp server
+#---- riot-to-linux, ok
+# $ nc -6ul 8877  # linux udp server
+# > udp send fe80::2cca:caff:fe9f:13c5 8877 hello  # send to linux tap1
+# > ping     fe80::2cca:caff:fe9f:13c5 8877 hello  # ping to linux tap1
+#==== esp32 (using tap0/br0)
+#---- linux-to-riot, ok
+# > udp server start 8899
+# $ nc -6uv fe80::200:ff:fe00:3%br0 8899  # send to riot udp server
+#---- riot-to-linux, ok
+# $ nc -6ul 8877  # linux udp server
+# > udp send fe80::a00:27ff:fefd:b6f8 8877 hello  # send to linux br0
+# > ping     fe80::a00:27ff:fefd:b6f8             # ping to linux br0
+#--------
 
 # Optionally include RPL as a routing protocol.
 #USEMODULE += gnrc_rpl
