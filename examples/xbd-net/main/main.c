@@ -227,10 +227,16 @@ static int set_ips(void) {
 
 //
 
-extern int udp_cmd(int argc, char **argv);
+//extern int foo_cmd(int argc, char **argv);
+static int foo_cmd(int argc, char **argv) {
+    (void)argc;
+    (void)argv;
+    puts("foo");
+    return 0;
+}
 
 static const shell_command_t shell_commands_minerva[] = {
-    { "udp", "send data over UDP and listen on UDP ports", udp_cmd },
+    { "foo", "print foo", foo_cmd },
     { NULL, NULL, NULL }
 };
 
