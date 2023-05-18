@@ -59,6 +59,8 @@ int netdev_eth_minimal_init_devs(netdev_event_cb_t cb);
  */
 int netdev_eth_minimal_init(void);
 
+int cmd_ifconfig(int argc, char **argv);//@@
+
 #ifdef __cplusplus
 }
 #endif

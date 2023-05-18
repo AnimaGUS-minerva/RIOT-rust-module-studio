@@ -230,8 +230,7 @@ void start_shell(void) {
     shell_run(NULL, line_buf, SHELL_DEFAULT_BUFSIZE);
 }
 
-int main(void)
-{
+int main(void) {
     /* we need a message queue for the thread running the shell in order to
      * receive potentially fast incoming networking packets */
     msg_init_queue(main_msg_queue, sizeof(main_msg_queue) / sizeof(main_msg_queue[0]));
@@ -241,8 +240,8 @@ int main(void)
 #ifdef MINERVA_DEBUG_ETH_MINIMAL
     if (netdev_eth_minimal_init()) { puts("Error initializing devices"); return 1; }
 
-    //> ifconfig
-    //Iface   0  HWaddr: 00:00:00:00:00:03
+    cmd_ifconfig(0, NULL);//@@ Iface   0  HWaddr: 00:00:00:00:00:03
+
     start_shell();
     return 0;
 #else
