@@ -225,10 +225,21 @@ static int set_ips(void) {
  *
  */
 
-void start_shell(void) {
+//
+
+extern int udp_cmd(int argc, char **argv);
+
+static const shell_command_t shell_commands_minerva[] = {
+    { "udp", "send data over UDP and listen on UDP ports", udp_cmd },
+    { NULL, NULL, NULL }
+};
+
+void start_shell(const shell_command_t *shell_commands) {
     char line_buf[SHELL_DEFAULT_BUFSIZE];
-    shell_run(NULL, line_buf, SHELL_DEFAULT_BUFSIZE);
+    shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
 }
+
+//
 
 int main(void) {
     /* we need a message queue for the thread running the shell in order to
@@ -242,7 +253,7 @@ int main(void) {
 
     cmd_ifconfig(0, NULL);//@@ Iface   0  HWaddr: 00:00:00:00:00:03
 
-    start_shell();
+    start_shell(NULL);
     return 0;
 #else
     if (netdev_eth_gnrc_init_devs()) { puts("Error initializing devices"); return 1; }
@@ -255,6 +266,6 @@ int main(void) {
 #endif
     }
 
-    start_shell();
+    start_shell(shell_commands_minerva);
     return 0;
 }

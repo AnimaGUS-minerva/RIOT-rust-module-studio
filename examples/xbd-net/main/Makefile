@@ -42,6 +42,13 @@ GNRC_NETIF_NUMOF := 2
 # NOTE: 6LoWPAN will be included if IEEE802.15.4 devices are present
 USEMODULE += gnrc_netdev_default
 
+#----@@ for 'udp.c' to work.  cf. 'native-sockets/main/Makefile'
+USEMODULE += sock_udp
+USEMODULE += posix_sockets
+USEMODULE += posix_sleep
+USEMODULE += posix_inet
+#----@@
+
 ifeq ($(BOARD),native)
   CFLAGS += -DMINERVA_BOARD_NATIVE
 
