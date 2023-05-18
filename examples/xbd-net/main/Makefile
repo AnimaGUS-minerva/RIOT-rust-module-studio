@@ -25,6 +25,22 @@ else
     USEMODULE += shell
     USEMODULE += shell_commands
     USEMODULE += ps
+
+    USEMODULE += shell_cmd_gnrc_udp
+    #==== native (using tap1)
+    #---- linux-to-riot, ok
+    # > udp server start 8899
+    # $ nc -6uv fe80::2cca:caff:fe9f:13c6%tap1 8899  # send to riot udp server
+    #---- riot-to-linux, ok
+    # $ nc -6ul 8877  # linux udp server
+    # > udp send fe80::2cca:caff:fe9f:13c5 8877 hello  # send to linux tap1
+    #==== esp32 (using tap0/br0)
+    #---- linux-to-riot, ok
+    # > udp server start 8899
+    # $ nc -6uv fe80::200:ff:fe00:3%br0 8899  # send to riot udp server
+    #---- riot-to-linux, ok
+    # $ nc -6ul 8877  # linux udp server
+    # > udp send fe80::a00:27ff:fefd:b6f8 8877 hello  # send to linux br0
 endif
 #----@@
 
@@ -41,13 +57,6 @@ GNRC_NETIF_NUMOF := 2
 # Include packages that pull up and auto-init the link layer.
 # NOTE: 6LoWPAN will be included if IEEE802.15.4 devices are present
 USEMODULE += gnrc_netdev_default
-
-#----@@ for 'udp.c' to work.  cf. 'native-sockets/main/Makefile'
-USEMODULE += sock_udp
-USEMODULE += posix_sockets
-USEMODULE += posix_sleep
-USEMODULE += posix_inet
-#----@@
 
 ifeq ($(BOARD),native)
   CFLAGS += -DMINERVA_BOARD_NATIVE
