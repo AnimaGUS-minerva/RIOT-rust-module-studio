@@ -223,14 +223,11 @@ static int set_ips(void) {
 
 //extern int foo_cmd(int argc, char **argv);
 static int foo_cmd(int argc, char **argv) {
-    (void)argc;
-    (void)argv;
-    puts("foo");
-    return 0;
+    (void)argc; (void)argv; puts("foo"); return 0;
 }
 
 static const shell_command_t shell_commands_minerva[] = {
-    { "foo", "print foo", foo_cmd },
+    { "foo", "Prints foo once", foo_cmd },
     { NULL, NULL, NULL }
 };
 

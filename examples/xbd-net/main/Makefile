@@ -81,7 +81,6 @@ USEMODULE += shell_cmd_gnrc_udp
 #---- riot-to-linux, ok
 # $ nc -6ul 8877  # linux udp server
 # > udp send fe80::2cca:caff:fe9f:13c5 8877 hello  # send to linux tap1
-# > ping     fe80::2cca:caff:fe9f:13c5 8877 hello  # ping to linux tap1
 #==== esp32 (using tap0/br0)
 #---- linux-to-riot, ok
 # > udp server start 8899
@@ -89,7 +88,6 @@ USEMODULE += shell_cmd_gnrc_udp
 #---- riot-to-linux, ok
 # $ nc -6ul 8877  # linux udp server
 # > udp send fe80::a00:27ff:fefd:b6f8 8877 hello  # send to linux br0
-# > ping     fe80::a00:27ff:fefd:b6f8             # ping to linux br0
 #--------
 
 # Optionally include RPL as a routing protocol.
