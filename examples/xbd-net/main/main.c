@@ -45,7 +45,7 @@ extern esp_eth_netdev_t _esp_eth_dev;
 extern void esp_eth_setup(esp_eth_netdev_t* dev);
 
 
-#ifdef MINERVA_DEBUG_ETH_MINIMAL//--------@@
+#ifdef MINERVA_DEBUG_ETH_MINIMAL//--------@@ minimal/gnrc
 #include "netdev_eth_minimal.h"
 #include "assert.h"
 int netdev_eth_minimal_init_devs(netdev_t *device, netdev_event_cb_t cb) {
@@ -60,17 +60,14 @@ int netdev_eth_minimal_init_devs(netdev_t *device, netdev_event_cb_t cb) {
 
     return 0;
 }
-#else//--------@@
+#else//--------@@ minimal/gnrc
 #include "net/gnrc/netif/ethernet.h"
 
 /** statically allocated memory for the MAC layer thread */
 static char _esp_eth_stack[ESP_ETH_STACKSIZE];
 
 static gnrc_netif_t _netif;
-
-//@@ cf. `auto_init_esp_eth()` in RIOT/sys/net/gnrc/netif/init_devs/auto_init_esp_eth.c
-int netdev_eth_gnrc_init_devs(netdev_t *device) { // @@
-
+static int netdev_eth_gnrc_init(netdev_t *device) { // @@
     // cf. 'RIOT/sys/net/gnrc/netif/init_devs/auto_init_esp_eth.c'
     printf("@@ &_netif: %p\n", &_netif);
     gnrc_netif_ethernet_create(
@@ -78,7 +75,19 @@ int netdev_eth_gnrc_init_devs(netdev_t *device) { // @@
 
     return 0;
 }
-#endif//--------@@
+#endif//--------@@ minimal/gnrc
+
+static int esp_eth_dev_init(void) { // @@
+    netdev_t *device = &_esp_eth_dev.netdev;
+    esp_eth_setup(&_esp_eth_dev);
+
+#ifdef MINERVA_DEBUG_ETH_MINIMAL
+    return netdev_eth_minimal_init(device);
+#else
+    return netdev_eth_gnrc_init(device);
+#endif
+}
+
 #endif//MINERVA_BOARD_ESP32
 
 
@@ -238,21 +247,16 @@ int main(void) {
     puts("@@ [xbd-net] main(): ^^");
 
 #ifdef MINERVA_BOARD_ESP32
-    {
-        netdev_t *device = &_esp_eth_dev.netdev;
-        esp_eth_setup(&_esp_eth_dev);
+    if (esp_eth_dev_init()) {
+        puts("Error initializing devices");
+        return 1;
+    }
 
 #ifdef MINERVA_DEBUG_ETH_MINIMAL
-        if (netdev_eth_minimal_init(device)) { puts("Error initializing devices"); return 1; }
-
-        start_shell(NULL);
-        return 0;
-#else
-        if (netdev_eth_gnrc_init_devs(device)) { puts("Error initializing devices"); return 1; }
+    start_shell(NULL);
+    return 0;
 #endif
-
-    }
-#endif//MINERVA_BOARD_ESP32
+#endif
 
     if (find_interfaces() >= 0) {
 #ifdef MINERVA_BOARD_ESP32
