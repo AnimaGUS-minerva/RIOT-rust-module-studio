@@ -18,15 +18,11 @@ test-native-notap:
 #====!!!!
 run-native-tap-first: build-native
 	sudo ip tuntap add dev tap1 mode tap user $$(whoami)
-	@echo "[hint] > ifconfig"  # e.g. fe80::58d6:7dff:fe0f:6923
-	@echo "[hint] > udp server start 1333"  # TODO
 	EMU_NATIVE_TAP=tap1  make native-run-riot
 	sudo ip link del tap1
 run-native-tap-second:# in second shell
 	sudo ip link set tap1 down  # (in case - Temporary failure in name resolution)"
 	sudo ip link set tap1 up  # make sure `ip a` shows "state UP" for tap1
-	@echo [hint] ping6 fe80::58d6:7dff:fe0f:6923%tap1
-	@echo [hint] nc -6uv fe80::58d6:7dff:fe0f:6923%tap1 1333  # TODO
 #====!!!!
 
 # esp32
