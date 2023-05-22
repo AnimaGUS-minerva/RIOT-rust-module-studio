@@ -109,7 +109,11 @@ void netdev_register_signal(struct netdev *dev, netdev_type_t type, uint8_t inde
 
 int netdev_eth_minimal_init(void)
 {
-    return netdev_eth_minimal_init_devs(_event_cb);
+    int res = netdev_eth_minimal_init_devs(_event_cb);
+    if (res == 0) {
+        cmd_ifconfig(0, NULL);//@@ Iface   0  HWaddr: 00:00:00:00:00:03
+    }
+    return res;
 }
 
 #endif//@@

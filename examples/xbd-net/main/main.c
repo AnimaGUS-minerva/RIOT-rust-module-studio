@@ -37,17 +37,17 @@
 //--------@@
 
 #ifdef MINERVA_BOARD_ESP32
-#include "netdev_eth_minimal.h"
-#include "init_dev.h"
-#include "assert.h"
+
 #include "net/netdev.h"
 #include "esp_eth_netdev.h"
 #include "esp_eth_params.h"
-
-extern void esp_eth_setup(esp_eth_netdev_t* dev);
 extern esp_eth_netdev_t _esp_eth_dev;
+extern void esp_eth_setup(esp_eth_netdev_t* dev);
+
 
 #ifdef MINERVA_DEBUG_ETH_MINIMAL//--------@@
+#include "netdev_eth_minimal.h"
+#include "assert.h"
 int netdev_eth_minimal_init_devs(netdev_event_cb_t cb) {
     netdev_t *device = &_esp_eth_dev.netdev;
 
@@ -247,8 +247,6 @@ int main(void) {
 #ifdef MINERVA_BOARD_ESP32
 #ifdef MINERVA_DEBUG_ETH_MINIMAL
     if (netdev_eth_minimal_init()) { puts("Error initializing devices"); return 1; }
-
-    cmd_ifconfig(0, NULL);//@@ Iface   0  HWaddr: 00:00:00:00:00:03
 
     start_shell(NULL);
     return 0;
