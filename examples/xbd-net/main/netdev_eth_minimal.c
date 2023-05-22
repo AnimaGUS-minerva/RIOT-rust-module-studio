@@ -107,9 +107,9 @@ void netdev_register_signal(struct netdev *dev, netdev_type_t type, uint8_t inde
     _devices[index].event.handler = _isr_event_handler;
 }
 
-int netdev_eth_minimal_init(void)
+int netdev_eth_minimal_init(netdev_t *device)
 {
-    int res = netdev_eth_minimal_init_devs(_event_cb);
+    int res = netdev_eth_minimal_init_devs(device, _event_cb);
     if (res == 0) {
         cmd_ifconfig(0, NULL);//@@ Iface   0  HWaddr: 00:00:00:00:00:03
     }
