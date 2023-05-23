@@ -35,11 +35,11 @@ ifeq ($(DEBUG_ETH_MINIMAL),1)
   CFLAGS += -DMINERVA_DEBUG_ETH_MINIMAL
 
   # Use `minerva_netdev_eth_minimal_init()`
-  USEMODULE += minerva_esp32_netdev_debug
-  INCLUDES += -I$(CURDIR)/../modules/minerva_esp32_netdev_debug/include
+  USEMODULE += minerva_esp32_minimal
+  INCLUDES += -I$(CURDIR)/../modules/minerva_esp32_minimal/include
 else
   # Use `minerva_netdev_eth_gnrc_init()`
-#  USEMODULE += minerva_esp32_netdev
+#  USEMODULE += minerva_esp32_gnrc
 #  INCLUDES += -I$(CURDIR)/../modules/minerva_esp32_netdev/include
 endif
 
