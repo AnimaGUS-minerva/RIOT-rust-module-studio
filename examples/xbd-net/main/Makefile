@@ -2,7 +2,8 @@ APPLICATION = main
 BOARD ?= esp32-ethernet-kit-v1_0
 RIOTBASE ?= $(CURDIR)/../../../RIOT
 
-EXTERNAL_MODULE_DIRS += $(CURDIR)/../modules
+MINERVA_NET_MODULE_DIR := $(CURDIR)/../modules
+EXTERNAL_MODULE_DIRS += $(MINERVA_NET_MODULE_DIR)
 
 DEBUG_ETH_MINIMAL ?= 0
 ifeq ($(DEBUG_ETH_MINIMAL),0)
@@ -31,22 +32,21 @@ ifeq ($(BOARD),native)
 else ifeq ($(BOARD),esp32-ethernet-kit-v1_0)
   CFLAGS += -DMINERVA_BOARD_ESP32
 
-ifeq ($(DEBUG_ETH_MINIMAL),1)
-  CFLAGS += -DMINERVA_DEBUG_ETH_MINIMAL
-
-  # Use `minerva_netdev_eth_minimal_init()`
-  USEMODULE += minerva_esp32_minimal
-  INCLUDES += -I$(CURDIR)/../modules/minerva_esp32_minimal/include
-else
-  # Use `minerva_netdev_eth_gnrc_init()`
-#  USEMODULE += minerva_esp32_gnrc
-#  INCLUDES += -I$(CURDIR)/../modules/minerva_esp32_netdev/include
-endif
-
+  #USEMODULE += esp_wifi
+  #USEMODULE += esp_now
   USEMODULE += esp_eth
   FEATURES_REQUIRED += arch_esp32
-  #@@USEMODULE += esp_wifi
-  #@@USEMODULE += esp_now
+
+  ifeq ($(DEBUG_ETH_MINIMAL),1)
+    CFLAGS += -DMINERVA_DEBUG_ETH_MINIMAL
+    # Use `minerva_netdev_eth_minimal_init()`
+    USEMODULE += minerva_esp32_minimal
+    INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_esp32_minimal/include
+  else
+    # Use `minerva_netdev_eth_gnrc_init()`
+    USEMODULE += minerva_esp32_gnrc
+    INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_esp32_gnrc/include
+  endif
 else
   $(error BOARD set is not supported)
 endif

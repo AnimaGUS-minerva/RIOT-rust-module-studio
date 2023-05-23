@@ -36,45 +36,23 @@
 //--------@@
 
 #ifdef MINERVA_BOARD_ESP32
+#ifdef MINERVA_DEBUG_ETH_MINIMAL
+  #include "netdev_eth_minimal.h"
+  #define MINERVA_NETDEV_ETH_INIT minerva_netdev_eth_minimal_init
+#else
+  #include "netdev_eth_gnrc.h"
+  #define MINERVA_NETDEV_ETH_INIT minerva_netdev_eth_gnrc_init
+#endif
 
-#include "net/netdev.h"
 #include "esp_eth_netdev.h"
-#include "esp_eth_params.h"
 extern esp_eth_netdev_t _esp_eth_dev;
 extern void esp_eth_setup(esp_eth_netdev_t* dev);
 
-
-#ifdef MINERVA_DEBUG_ETH_MINIMAL//--------@@ minimal/gnrc
-#include "netdev_eth_minimal.h"
-#else//--------@@ minimal/gnrc
-#include "net/gnrc/netif/ethernet.h"
-
-/** statically allocated memory for the MAC layer thread */
-static char _esp_eth_stack[ESP_ETH_STACKSIZE];
-
-static gnrc_netif_t _netif;
-static int minerva_netdev_eth_gnrc_init(netdev_t *device) {
-    // cf. 'RIOT/sys/net/gnrc/netif/init_devs/auto_init_esp_eth.c'
-    printf("@@ &_netif: %p\n", &_netif);
-    gnrc_netif_ethernet_create(
-            &_netif, _esp_eth_stack, ESP_ETH_STACKSIZE, ESP_ETH_PRIO, "netif-esp-eth", device);
-
-    return 0;
-}
-#endif//--------@@ minimal/gnrc
-
-static int esp_eth_init(void) {
-    netdev_t *device = &_esp_eth_dev.netdev;
+static int esp32_eth_init(void) {
     esp_eth_setup(&_esp_eth_dev);
-
-#ifdef MINERVA_DEBUG_ETH_MINIMAL
-    return minerva_netdev_eth_minimal_init(device);
-#else
-    return minerva_netdev_eth_gnrc_init(device);
-#endif
+    return MINERVA_NETDEV_ETH_INIT(&_esp_eth_dev.netdev);
 }
-
-#endif//MINERVA_BOARD_ESP32
+#endif
 
 //--------@@
 static msg_t main_msg_queue[16];
@@ -232,7 +210,7 @@ int main(void) {
     puts("@@ [xbd-net] main(): ^^");
 
 #ifdef MINERVA_BOARD_ESP32
-    if (esp_eth_init()) {
+    if (esp32_eth_init()) {
         puts("Error initializing devices");
         return 1;
     }
