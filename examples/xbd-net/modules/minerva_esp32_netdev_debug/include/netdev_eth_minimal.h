@@ -49,7 +49,7 @@ extern "C" {
  * @retval 0 on success
  * @retval != 0 on error
  */
-int netdev_eth_minimal_init_devs(netdev_t *device, netdev_event_cb_t cb);
+int netdev_eth_minimal_init_devs(netdev_event_cb_t cb);
 
 /**
  * @brief   Initialize the module.
@@ -57,7 +57,9 @@ int netdev_eth_minimal_init_devs(netdev_t *device, netdev_event_cb_t cb);
  * @retval 0 on success
  * @retval != 0 on error
  */
-int netdev_eth_minimal_init(netdev_t *device);
+int netdev_eth_minimal_init(void);
+
+int minerva_netdev_eth_minimal_init(netdev_t *device);
 
 #ifdef __cplusplus
 }

@@ -46,19 +46,6 @@ extern void esp_eth_setup(esp_eth_netdev_t* dev);
 
 #ifdef MINERVA_DEBUG_ETH_MINIMAL//--------@@ minimal/gnrc
 #include "netdev_eth_minimal.h"
-#include "assert.h"
-int netdev_eth_minimal_init_devs(netdev_t *device, netdev_event_cb_t cb) {
-
-    /* set the application-provided callback */
-    device->event_callback = cb;
-
-    /* initialize the device driver */
-    int res = device->driver->init(device);
-    puts(res == 0 ? "ok" : "oh no"); // @@
-    assert(!res);
-
-    return 0;
-}
 #else//--------@@ minimal/gnrc
 #include "net/gnrc/netif/ethernet.h"
 
@@ -81,7 +68,7 @@ static int esp_eth_dev_init(void) { // @@
     esp_eth_setup(&_esp_eth_dev);
 
 #ifdef MINERVA_DEBUG_ETH_MINIMAL
-    return netdev_eth_minimal_init(device);
+    return minerva_netdev_eth_minimal_init(device);
 #else
     return netdev_eth_gnrc_init(device);
 #endif
