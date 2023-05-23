@@ -53,7 +53,7 @@ extern void esp_eth_setup(esp_eth_netdev_t* dev);
 static char _esp_eth_stack[ESP_ETH_STACKSIZE];
 
 static gnrc_netif_t _netif;
-static int netdev_eth_gnrc_init(netdev_t *device) { // @@
+static int minerva_netdev_eth_gnrc_init(netdev_t *device) {
     // cf. 'RIOT/sys/net/gnrc/netif/init_devs/auto_init_esp_eth.c'
     printf("@@ &_netif: %p\n", &_netif);
     gnrc_netif_ethernet_create(
@@ -63,14 +63,14 @@ static int netdev_eth_gnrc_init(netdev_t *device) { // @@
 }
 #endif//--------@@ minimal/gnrc
 
-static int esp_eth_dev_init(void) { // @@
+static int esp_eth_init(void) {
     netdev_t *device = &_esp_eth_dev.netdev;
     esp_eth_setup(&_esp_eth_dev);
 
 #ifdef MINERVA_DEBUG_ETH_MINIMAL
     return minerva_netdev_eth_minimal_init(device);
 #else
-    return netdev_eth_gnrc_init(device);
+    return minerva_netdev_eth_gnrc_init(device);
 #endif
 }
 
@@ -232,7 +232,7 @@ int main(void) {
     puts("@@ [xbd-net] main(): ^^");
 
 #ifdef MINERVA_BOARD_ESP32
-    if (esp_eth_dev_init()) {
+    if (esp_eth_init()) {
         puts("Error initializing devices");
         return 1;
     }

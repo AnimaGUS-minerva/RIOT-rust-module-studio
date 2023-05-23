@@ -5,14 +5,10 @@ RIOTBASE ?= $(CURDIR)/../../../RIOT
 EXTERNAL_MODULE_DIRS += $(CURDIR)/../modules
 
 DEBUG_ETH_MINIMAL ?= 0
-ifeq ($(DEBUG_ETH_MINIMAL),1)
-    CFLAGS += -DMINERVA_DEBUG_ETH_MINIMAL
-    USEMODULE += minerva_esp32_netdev_debug
-    INCLUDES += -I$(CURDIR)/../modules/minerva_esp32_netdev_debug/include
-else
-    USEMODULE += shell
-    USEMODULE += shell_commands
-    USEMODULE += ps
+ifeq ($(DEBUG_ETH_MINIMAL),0)
+  USEMODULE += shell
+  USEMODULE += shell_commands
+  USEMODULE += ps
 endif
 
 INCLUDES += -I$(APPDIR)
@@ -35,9 +31,17 @@ ifeq ($(BOARD),native)
 else ifeq ($(BOARD),esp32-ethernet-kit-v1_0)
   CFLAGS += -DMINERVA_BOARD_ESP32
 
-  # @@ uses one of
-  # int res = netdev_eth_gnrc_init_devs();
-  # int res = netdev_eth_minimal_init();
+ifeq ($(DEBUG_ETH_MINIMAL),1)
+  CFLAGS += -DMINERVA_DEBUG_ETH_MINIMAL
+
+  # Use `minerva_netdev_eth_minimal_init()`
+  USEMODULE += minerva_esp32_netdev_debug
+  INCLUDES += -I$(CURDIR)/../modules/minerva_esp32_netdev_debug/include
+else
+  # Use `minerva_netdev_eth_gnrc_init()`
+#  USEMODULE += minerva_esp32_netdev
+#  INCLUDES += -I$(CURDIR)/../modules/minerva_esp32_netdev/include
+endif
 
   USEMODULE += esp_eth
   FEATURES_REQUIRED += arch_esp32
