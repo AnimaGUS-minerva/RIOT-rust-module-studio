@@ -1,33 +1,19 @@
-APPLICATION = main# @@
+APPLICATION = main
 BOARD ?= esp32-ethernet-kit-v1_0
-RIOTBASE ?= $(CURDIR)/../../../RIOT# @@
+RIOTBASE ?= $(CURDIR)/../../../RIOT
 
-#@@ include ../Makefile.tests_common
+EXTERNAL_MODULE_DIRS += $(CURDIR)/../modules
 
-#----@@
 DEBUG_ETH_MINIMAL ?= 0
 ifeq ($(DEBUG_ETH_MINIMAL),1)
     CFLAGS += -DMINERVA_DEBUG_ETH_MINIMAL
-
-    # cf. 'RIOT/sys/Makefile.include'
-    CFLAGS += -DCONFIG_NETDEV_REGISTER_SIGNAL
-
-    # cf. 'RIOT/sys/test_utils/netdev_eth_minimal/Makefile.dep'
-    USEMODULE += event
-    USEMODULE += event_thread
-    USEMODULE += l2util
-    USEMODULE += od
-    USEMODULE += od_string
-
-    # Use the custom implementation in 'shell_commands.c'
-    USEMODULE += shell
+    USEMODULE += minerva_esp32_netdev_debug
+    INCLUDES += -I$(CURDIR)/../modules/minerva_esp32_netdev_debug/include
 else
     USEMODULE += shell
     USEMODULE += shell_commands
     USEMODULE += ps
 endif
-#----@@
-
 
 INCLUDES += -I$(APPDIR)
 INCLUDES += -I$(CURDIR)/../include# @@

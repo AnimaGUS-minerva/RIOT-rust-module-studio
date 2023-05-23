@@ -1,0 +1,2 @@
+# cf. 'RIOT/sys/Makefile.include'
+CFLAGS += -DCONFIG_NETDEV_REGISTER_SIGNAL

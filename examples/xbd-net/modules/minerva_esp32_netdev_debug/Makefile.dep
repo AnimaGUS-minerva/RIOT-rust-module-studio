@@ -1,0 +1,7 @@
+# cf. 'RIOT/sys/test_utils/netdev_eth_minimal/Makefile.dep'
+USEMODULE += event
+USEMODULE += event_thread
+USEMODULE += l2util
+USEMODULE += od
+USEMODULE += od_string
+USEMODULE += shell

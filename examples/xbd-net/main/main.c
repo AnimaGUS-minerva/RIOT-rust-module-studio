@@ -29,7 +29,6 @@
 #endif
 #include <net/ethernet.h>
 #include <net/ipv6/addr.h>
-//@@#include <net/netdev.h>
 #include <net/netopt.h>
 #include <xtimer.h>
 #include <shell.h>
@@ -89,7 +88,6 @@ static int esp_eth_dev_init(void) { // @@
 }
 
 #endif//MINERVA_BOARD_ESP32
-
 
 //--------@@
 static msg_t main_msg_queue[16];

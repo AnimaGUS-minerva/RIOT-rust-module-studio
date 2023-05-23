@@ -16,9 +16,6 @@
  * @author      Leandro Lanzieri <leandro.lanzieri@haw-hamburg.de>
  */
 
-typedef int make_iso_compilers_happy; //@@ https://stackoverflow.com/questions/26541150/warning-iso-c-forbids-an-empty-translation-unit
-#ifdef MINERVA_DEBUG_ETH_MINIMAL//@@
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -121,4 +118,3 @@ static int cmd_txtsnd(int argc, char **argv)
 
 SHELL_COMMAND(txtsnd, "Send an Ethernet frame", cmd_txtsnd);
 SHELL_COMMAND(ifconfig, "List interfaces", cmd_ifconfig);
-#endif//@@

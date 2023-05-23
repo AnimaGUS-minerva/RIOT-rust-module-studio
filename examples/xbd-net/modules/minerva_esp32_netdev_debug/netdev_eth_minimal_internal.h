@@ -42,6 +42,8 @@ typedef struct {
  */
 extern device_reg_entry_t _devices[NETDEV_ETH_MINIMAL_NUMOF];
 
+int cmd_ifconfig(int argc, char **argv);//@@
+
 #ifdef __cplusplus
 }
 #endif

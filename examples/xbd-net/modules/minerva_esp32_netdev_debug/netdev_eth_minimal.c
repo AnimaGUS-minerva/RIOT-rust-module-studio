@@ -16,9 +16,6 @@
  * @author      Leandro Lanzieri <leandro.lanzieri@haw-hamburg.de>
  */
 
-typedef int make_iso_compilers_happy; //@@ https://stackoverflow.com/questions/26541150/warning-iso-c-forbids-an-empty-translation-unit
-#ifdef MINERVA_DEBUG_ETH_MINIMAL//@@
-
 #include <stdio.h>
 
 #include "event.h"
@@ -116,5 +113,4 @@ int netdev_eth_minimal_init(netdev_t *device)
     return res;
 }
 
-#endif//@@
 /** @} */
