@@ -17,7 +17,7 @@ test-native-notap:
 
 #====!!!!
 run-native-tap-first: build-native
-	sudo ip tuntap add dev tap1 mode tap user $$(whoami)
+	sudo ip tuntap add dev tap1 mode tap user $$(whoami)  # (after `modprobe tun` on archlinux)
 	EMU_NATIVE_TAP=tap1  make native-run-riot
 	sudo ip link del tap1
 run-native-tap-second:# in second shell

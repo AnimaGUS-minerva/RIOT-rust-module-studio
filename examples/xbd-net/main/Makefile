@@ -13,7 +13,7 @@ ifeq ($(DEBUG_ETH_MINIMAL),0)
 endif
 
 INCLUDES += -I$(APPDIR)
-INCLUDES += -I$(CURDIR)/../include# @@
+INCLUDES += -I$(CURDIR)/../include# @@ rustmod
 
 SHOULD_RUN_KCONFIG =?
 
@@ -28,6 +28,7 @@ USEMODULE += gnrc_netdev_default
 ifeq ($(BOARD),native)
   CFLAGS += -DMINERVA_BOARD_NATIVE
 
+  # cf. https://github.com/RIOT-OS/RIOT/tree/master/cpu/native#setting-up-a-virtual-network
   USEMODULE += auto_init_gnrc_netif
 else ifeq ($(BOARD),esp32-ethernet-kit-v1_0)
   CFLAGS += -DMINERVA_BOARD_ESP32

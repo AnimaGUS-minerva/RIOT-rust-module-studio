@@ -60,6 +60,7 @@ static msg_t main_msg_queue[16];
 static gnrc_netif_t *outer_interface = NULL;
 static gnrc_netif_t *inner_interface = NULL;
 
+// TODO refactor into 'modules/minerva_esp32_gnrc'
 static int find_interfaces(void) {
     uint16_t mtu;
     gnrc_netif_t *netif = NULL;
@@ -177,8 +178,6 @@ static int set_ips(void) {
 //--------@@
 
 /* @@
- * todo - netdev_eth_minimal code dir-structure organize
- * todo - clearn up MINERVA_BOARD_ESP32 and MINERVA_BOARD_NATIVE refactor into c-files??
  * todo - more stuff........
  *      - RIOT/tests/nanocoap_cli
  *      - RIOT/examples/rust-gcoap
