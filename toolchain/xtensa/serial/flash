@@ -1,0 +1,17 @@
+#!/bin/bash
+
+TOOLCHAIN_XTENSA=../../toolchain/xtensa
+
+#PYTHON=python2.7
+#ESPTOOL_PY=$TOOLCHAIN_XTENSA/serial/esptool.py--2.7
+#====
+PYTHON=python3
+ESPTOOL_PY=$TOOLCHAIN_XTENSA/esptool/esptool.py
+
+BUILD=$TOOLCHAIN_XTENSA/qemu/build-dio-riot
+$PYTHON $ESPTOOL_PY \
+    -p /dev/cu.SLAB_USBtoUART -b 460800 --after hard_reset \
+    write_flash --flash_mode dio --flash_size 2MB --flash_freq 40m \
+    0x1000 $BUILD/bootloader/bootloader.bin \
+    0x8000 $BUILD/partition_table/partition-table.bin \
+    0x10000 $1

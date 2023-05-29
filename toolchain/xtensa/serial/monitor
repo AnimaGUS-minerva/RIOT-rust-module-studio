@@ -1,0 +1,4 @@
+#!/bin/bash
+
+#python2.7 /opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/serial/tools/miniterm.py /dev/cu.SLAB_USBtoUART 115200
+python3 -m serial.tools.miniterm /dev/cu.SLAB_USBtoUART 115200  # after `pip3 install pyserial`
