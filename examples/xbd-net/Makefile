@@ -33,16 +33,23 @@ build-esp32:
 build-esp32-minimal:
 	##make esp32-build-module
 	RIOT_BOARD=esp32-ethernet-kit-v1_0 DEBUG_ETH_MINIMAL=1  make esp32-build-riot
+build-esp32-wroom32:
+	##make esp32-build-module
+	RIOT_BOARD=esp32-wroom-32  make esp32-build-riot
 
 run-esp32: build-esp32
 	RIOT_BOARD=esp32-ethernet-kit-v1_0  make esp32-run-riot
 run-esp32-minimal: build-esp32-minimal
 	RIOT_BOARD=esp32-ethernet-kit-v1_0  make esp32-run-riot
+run-esp32-wroom32: build-esp32-wroom32
+	RIOT_BOARD=esp32-wroom-32  make esp32-run-riot
 
 test-esp32:
 	EMU_TIMEOUT=4000  make run-esp32
 test-esp32-minimal:
 	EMU_TIMEOUT=4000  make run-esp32-minimal
+test-esp32-wroom32:
+	EMU_TIMEOUT=4000  make run-esp32-wroom32
 
 #--------@@ begin: bridged networking
 #ETH_IF := enp0sN

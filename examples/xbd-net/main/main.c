@@ -35,7 +35,7 @@
 #include <msg.h>
 //--------@@
 
-#ifdef MINERVA_BOARD_ESP32
+#ifdef MINERVA_BOARD_ESP32_ETH
 #ifdef MINERVA_DEBUG_ETH_MINIMAL
   #include "netdev_eth_minimal.h"
   #define MINERVA_NETDEV_ETH_INIT minerva_netdev_eth_minimal_init
@@ -94,7 +94,7 @@ static int find_interfaces(void) {
         printf("@@ addrs[0]: %s\n", ipv6_addr_to_str(addrstr, &addrs[0], sizeof(addrstr)));
 #if defined(MINERVA_BOARD_NATIVE)
         printf("@@ hint - for `native` board, try `ping6 %s%%tap1` in a new shell\n", addrstr);
-#elif defined(MINERVA_BOARD_ESP32)
+#elif defined(MINERVA_BOARD_ESP32_ETH)
         printf("@@ hint - for `esp32` board, try `ping6 %s%%br0` in a new shell\n", addrstr);
 #endif
     }
@@ -108,7 +108,7 @@ static int find_interfaces(void) {
     return 0;
 }
 
-#ifdef MINERVA_BOARD_ESP32
+#if defined(MINERVA_BOARD_ESP32_ETH) || defined(MINERVA_BOARD_ESP32_WROOM32)
 static int set_ips(void) {
 #if defined(BR_IPV6_ADDR) && defined(BR_IPV6_ADDR_LEN)
     /* Add configured outer address */
@@ -174,7 +174,7 @@ static int set_ips(void) {
 
     return 0;
 }
-#endif//MINERVA_BOARD_ESP32
+#endif// esp32 eth || wifi
 //--------@@
 
 /* @@
@@ -208,7 +208,7 @@ int main(void) {
     msg_init_queue(main_msg_queue, sizeof(main_msg_queue) / sizeof(main_msg_queue[0]));
     puts("@@ [xbd-net] main(): ^^");
 
-#ifdef MINERVA_BOARD_ESP32
+#ifdef MINERVA_BOARD_ESP32_ETH
     if (esp32_eth_init()) {
         puts("Error initializing devices");
         return 1;
@@ -221,7 +221,7 @@ int main(void) {
 #endif
 
     if (find_interfaces() >= 0) {
-#ifdef MINERVA_BOARD_ESP32
+#if defined(MINERVA_BOARD_ESP32_ETH) || defined(MINERVA_BOARD_ESP32_WROOM32)
         set_ips();
 #endif
     }

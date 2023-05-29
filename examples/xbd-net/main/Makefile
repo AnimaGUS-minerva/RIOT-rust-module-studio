@@ -28,13 +28,24 @@ USEMODULE += gnrc_netdev_default
 ifeq ($(BOARD),native)
   CFLAGS += -DMINERVA_BOARD_NATIVE
 
-  # cf. https://github.com/RIOT-OS/RIOT/tree/master/cpu/native#setting-up-a-virtual-network
+  USEMODULE += auto_init_gnrc_netif# cf. https://github.com/RIOT-OS/RIOT/tree/master/cpu/native#setting-up-a-virtual-network
+else ifeq ($(BOARD),esp32-wroom-32)
+  CFLAGS += -DMINERVA_BOARD_ESP32_WROOM32
+
+  CFLAGS += -DESP_WIFI_SSID=\"xxxx\"
+  CFLAGS += -DESP_WIFI_PASS=\"yyyy\"
+
+  # "use the same channel as it is used by the AP of the infrastructure-mode WiFi network"
+  #CFLAGS += -DESP_NOW_CHANNEL=\"9\"
+
+  USEMODULE += esp_wifi
+  USEMODULE += esp_now
+  FEATURES_REQUIRED += arch_esp32
+
   USEMODULE += auto_init_gnrc_netif
 else ifeq ($(BOARD),esp32-ethernet-kit-v1_0)
-  CFLAGS += -DMINERVA_BOARD_ESP32
+  CFLAGS += -DMINERVA_BOARD_ESP32_ETH
 
-  #USEMODULE += esp_wifi
-  #USEMODULE += esp_now
   USEMODULE += esp_eth
   FEATURES_REQUIRED += arch_esp32
 
