@@ -57,11 +57,6 @@ static int esp32_eth_init(void) {
 
 //--------@@
 
-static gnrc_netif_t *outer_interface = NULL;
-static gnrc_netif_t *inner_interface = NULL;
-
-// TODO refactor into 'modules/minerva_esp32_gnrc'
-
 static void print_ifce(gnrc_netif_t *ifce) {
     printf("print_ifce(): ifce: %p\n", (void *)ifce);
     if (!ifce) return;
@@ -76,40 +71,31 @@ static void print_ifce(gnrc_netif_t *ifce) {
     //printf("  hint - for `esp32` board, try `ping6 %s%%br0` in a new shell\n", addrstr);
 }
 
-static int find_interfaces(void) {
+static void find_ifces(gnrc_netif_t **outer, gnrc_netif_t **inner) {
     uint16_t mtu;
     gnrc_netif_t *netif = NULL;
 
-    outer_interface = inner_interface = NULL;
-
+    *outer = *inner = NULL;
     while ((netif = gnrc_netif_iter(netif))) {
         printf("@@ (found) netif: %p\n", (void *)netif);
         gnrc_netapi_get(netif->pid, NETOPT_MAX_PDU_SIZE, 0, &mtu, sizeof(mtu));
         printf("@@ mtu: %d (ETHERNET_DATA_LEN=%d)\n", mtu, ETHERNET_DATA_LEN);
 
-        if (!outer_interface && (mtu == ETHERNET_DATA_LEN)) {
-            outer_interface = netif;
-        } else if (!inner_interface && (mtu != ETHERNET_DATA_LEN)) {
-            inner_interface = netif;
+        if (!*outer && (mtu == ETHERNET_DATA_LEN)) {
+            *outer = netif;
+        } else if (!*inner && (mtu != ETHERNET_DATA_LEN)) {
+            *inner = netif;
         }
 
-        if (outer_interface && inner_interface)
+        if (*outer && *inner)
             break;
     }
 
-    printf("@@ (native|esp-eth|esp-wifi) outer_interface: %p\n", (void *)outer_interface);
-    print_ifce(outer_interface);
+    printf("@@ (native|esp-eth|esp-wifi) outer: %p\n", (void *)*outer);
+    print_ifce(*outer);
 
-    printf("@@ (esp-now) inner_interface: %p\n", (void *)inner_interface);
-    print_ifce(inner_interface);
-
-    // @@ ignore `inner_interface`
-//    if (!outer_interface || !inner_interface) {
-//        printf("Unable to find interfaces.\n");
-//        return -1;
-//    }
-
-    return 0;
+    printf("@@ (esp-now) inner: %p\n", (void *)*inner);
+    print_ifce(*inner);
 }
 
 #if defined(MINERVA_BOARD_ESP32_ETH) || defined(MINERVA_BOARD_ESP32_WROOM32)
@@ -207,6 +193,8 @@ void start_shell(const shell_command_t *shell_commands) {
 //
 
 static msg_t main_msg_queue[16];
+static gnrc_netif_t *outer_interface = NULL;
+static gnrc_netif_t *inner_interface = NULL;
 
 int main(void) {
     /* we need a message queue for the thread running the shell in order to
@@ -226,11 +214,10 @@ int main(void) {
 #endif
 #endif
 
-    if (find_interfaces() >= 0) {
+    find_ifces(&outer_interface, &inner_interface);
 #if defined(MINERVA_BOARD_ESP32_ETH) || defined(MINERVA_BOARD_ESP32_WROOM32)
-        set_ips();
+    set_ips();
 #endif
-    }
 
     start_shell(shell_commands_minerva);
     return 0;
