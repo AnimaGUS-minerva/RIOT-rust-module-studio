@@ -61,6 +61,21 @@ static gnrc_netif_t *outer_interface = NULL;
 static gnrc_netif_t *inner_interface = NULL;
 
 // TODO refactor into 'modules/minerva_esp32_gnrc'
+
+static void print_ifce(gnrc_netif_t *ifce) {
+    printf("print_ifce(): ifce: %p\n", (void *)ifce);
+    if (!ifce) return;
+
+    ipv6_addr_t addrs[GNRC_NETIF_IPV6_ADDRS_NUMOF];
+    printf("  GNRC_NETIF_IPV6_ADDRS_NUMOF: %d\n", GNRC_NETIF_IPV6_ADDRS_NUMOF); // @@ via Makefile
+    gnrc_netapi_get(ifce->pid, NETOPT_IPV6_ADDR, 0, &addrs, sizeof(addrs));
+
+    char addrstr[IPV6_ADDR_MAX_STR_LEN];
+    printf("  addrs[0]: %s\n", ipv6_addr_to_str(addrstr, &addrs[0], sizeof(addrstr)));
+    //printf("  hint - for `native` board, try `ping6 %s%%tap1` in a new shell\n", addrstr);
+    //printf("  hint - for `esp32` board, try `ping6 %s%%br0` in a new shell\n", addrstr);
+}
+
 static int find_interfaces(void) {
     uint16_t mtu;
     gnrc_netif_t *netif = NULL;
@@ -81,23 +96,12 @@ static int find_interfaces(void) {
         if (outer_interface && inner_interface)
             break;
     }
+
     printf("@@ (native|esp-eth|esp-wifi) outer_interface: %p\n", (void *)outer_interface);
+    print_ifce(outer_interface);
+
     printf("@@ (esp-now) inner_interface: %p\n", (void *)inner_interface);
-
-    if (outer_interface) { // @@
-        ipv6_addr_t addrs[GNRC_NETIF_IPV6_ADDRS_NUMOF];
-
-        printf("@@ GNRC_NETIF_IPV6_ADDRS_NUMOF: %d\n", GNRC_NETIF_IPV6_ADDRS_NUMOF); // @@ via Makefile
-        gnrc_netapi_get(outer_interface->pid, NETOPT_IPV6_ADDR, 0, &addrs, sizeof(addrs));
-
-        char addrstr[IPV6_ADDR_MAX_STR_LEN];
-        printf("@@ addrs[0]: %s\n", ipv6_addr_to_str(addrstr, &addrs[0], sizeof(addrstr)));
-#if defined(MINERVA_BOARD_NATIVE)
-        printf("@@ hint - for `native` board, try `ping6 %s%%tap1` in a new shell\n", addrstr);
-#elif defined(MINERVA_BOARD_ESP32_ETH)
-        printf("@@ hint - for `esp32` board, try `ping6 %s%%br0` in a new shell\n", addrstr);
-#endif
-    }
+    print_ifce(inner_interface);
 
     // @@ ignore `inner_interface`
 //    if (!outer_interface || !inner_interface) {
