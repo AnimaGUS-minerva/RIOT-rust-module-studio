@@ -23,7 +23,9 @@
 //--------@@
 
 #if defined(MINERVA_BOARD_ESP32_ETH) || defined(MINERVA_BOARD_ESP32_WROOM32)
+#ifndef MINERVA_DEBUG_ETH_MINIMAL
   #include "border_router.h"
+#endif
 #endif
 
 #ifdef MINERVA_BOARD_ESP32_ETH
