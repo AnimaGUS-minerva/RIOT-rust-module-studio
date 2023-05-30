@@ -25,11 +25,12 @@
 #include <net/gnrc/netapi.h>
 #include <net/gnrc/netif.h>
 #ifdef MODULE_GNRC_RPL
-#include <net/gnrc/rpl.h>
+  #include <net/gnrc/rpl.h>
 #endif
 #include <net/ethernet.h>
 #include <net/ipv6/addr.h>
 #include <net/netopt.h>
+
 #include <xtimer.h>
 #include <shell.h>
 #include <msg.h>
@@ -55,7 +56,6 @@ static int esp32_eth_init(void) {
 #endif
 
 //--------@@
-static msg_t main_msg_queue[16];
 
 static gnrc_netif_t *outer_interface = NULL;
 static gnrc_netif_t *inner_interface = NULL;
@@ -202,6 +202,8 @@ void start_shell(const shell_command_t *shell_commands) {
 
 //
 
+static msg_t main_msg_queue[16];
+
 int main(void) {
     /* we need a message queue for the thread running the shell in order to
      * receive potentially fast incoming networking packets */
@@ -210,7 +212,7 @@ int main(void) {
 
 #ifdef MINERVA_BOARD_ESP32_ETH
     if (esp32_eth_init()) {
-        puts("Error initializing devices");
+        puts("Error initializing eth devices");
         return 1;
     }
 
