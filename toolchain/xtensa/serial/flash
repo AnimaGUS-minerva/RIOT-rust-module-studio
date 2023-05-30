@@ -2,9 +2,6 @@
 
 TOOLCHAIN_XTENSA=../../toolchain/xtensa
 
-#PYTHON=python2.7
-#ESPTOOL_PY=$TOOLCHAIN_XTENSA/serial/esptool.py--2.7
-#====
 PYTHON=python3
 ESPTOOL_PY=$TOOLCHAIN_XTENSA/esptool/esptool.py
 
