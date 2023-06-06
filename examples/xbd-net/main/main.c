@@ -12,8 +12,8 @@
 #include "netdev_eth_minimal.h"
 #define MINERVA_NETDEV_ETH_INIT minerva_netdev_eth_minimal_init
 #elif defined(MINERVA_BOARD_ESP32_ETH)
-#include "netdev_eth_gnrc.h"
-#define MINERVA_NETDEV_ETH_INIT minerva_netdev_eth_gnrc_init
+#include "minerva_gnrc_esp.h"
+#define MINERVA_NETDEV_ETH_INIT minerva_gnrc_esp_eth_init
 #endif
 
 #ifdef MINERVA_BOARD_ESP32_ETH
