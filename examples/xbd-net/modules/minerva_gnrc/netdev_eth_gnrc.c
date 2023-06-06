@@ -1,3 +1,6 @@
+typedef int workaround_empty_translation_unit;
+#ifdef MINERVA_BOARD_ESP32_ETH
+
 #include <stdio.h>
 #include "esp_eth_params.h"
 #include "net/gnrc/netif/ethernet.h"
@@ -15,3 +18,5 @@ int minerva_netdev_eth_gnrc_init(netdev_t *device) {
 
     return 0;
 }
+
+#endif//MINERVA_BOARD_ESP32_ETH

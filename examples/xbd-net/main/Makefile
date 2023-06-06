@@ -25,6 +25,9 @@ GNRC_NETIF_NUMOF := 2
 # NOTE: 6LoWPAN will be included if IEEE802.15.4 devices are present
 USEMODULE += gnrc_netdev_default
 
+USEMODULE += minerva_gnrc
+INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_gnrc/include
+
 ifeq ($(BOARD),native)
   CFLAGS += -DMINERVA_BOARD_NATIVE
 
@@ -51,13 +54,8 @@ else ifeq ($(BOARD),esp32-ethernet-kit-v1_0)
 
   ifeq ($(DEBUG_ETH_MINIMAL),1)
     CFLAGS += -DMINERVA_DEBUG_ETH_MINIMAL
-    # Use `minerva_netdev_eth_minimal_init()`
     USEMODULE += minerva_esp32_minimal
     INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_esp32_minimal/include
-  else
-    # Use `minerva_netdev_eth_gnrc_init()`
-    USEMODULE += minerva_esp32_gnrc
-    INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_esp32_gnrc/include
   endif
 else
   $(error BOARD set is not supported)

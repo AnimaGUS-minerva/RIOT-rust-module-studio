@@ -7,6 +7,7 @@
 extern "C" {
 #endif
 
+void find_ifces(gnrc_netif_t **outer, gnrc_netif_t **inner);
 int set_ips(gnrc_netif_t *outer, gnrc_netif_t *inner);
 
 #ifdef __cplusplus

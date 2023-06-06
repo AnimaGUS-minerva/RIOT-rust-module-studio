@@ -1,3 +1,27 @@
+/*
+ * Copyright (C) 2015 Freie Universität Berlin
+ *
+ * This file is subject to the terms and conditions of the GNU Lesser
+ * General Public License v2.1. See the file LICENSE in the top level
+ * directory for more details.
+ */
+
+/**
+ * @ingroup     examples
+ * @{
+ *
+ * @file
+ * @brief       Example application for demonstrating the RIOT network stack
+ *
+ * @author      Hauke Petersen <hauke.petersen@fu-berlin.de>
+ *
+ * @}
+ */
+
+/*
+ * Copyright (C) 2023 ANIMA Minerva toolkit
+ */
+
 #include <stdio.h>
 #include <net/gnrc/ipv6/nib.h>
 #include <net/gnrc/ipv6.h>
@@ -6,8 +30,55 @@
 #ifdef MODULE_GNRC_RPL
   #include <net/gnrc/rpl.h>
 #endif
+#include <net/ethernet.h>
+#include <net/ipv6/addr.h>
+#include <net/netdev.h>
+#include <net/netopt.h>
+
+static void print_ifce(gnrc_netif_t *ifce) {
+    printf("print_ifce(): ifce: %p\n", (void *)ifce);
+    if (!ifce) return;
+
+    ipv6_addr_t addrs[GNRC_NETIF_IPV6_ADDRS_NUMOF];
+    printf("  GNRC_NETIF_IPV6_ADDRS_NUMOF: %d\n", GNRC_NETIF_IPV6_ADDRS_NUMOF); // @@ via Makefile
+    gnrc_netapi_get(ifce->pid, NETOPT_IPV6_ADDR, 0, &addrs, sizeof(addrs));
+
+    char addrstr[IPV6_ADDR_MAX_STR_LEN];
+    printf("  addrs[0]: %s\n", ipv6_addr_to_str(addrstr, &addrs[0], sizeof(addrstr)));
+}
+
+void find_ifces(gnrc_netif_t **outer, gnrc_netif_t **inner) {
+    uint16_t mtu;
+    gnrc_netif_t *netif = NULL;
+
+    *outer = *inner = NULL;
+    while ((netif = gnrc_netif_iter(netif))) {
+        printf("@@ (found) netif: %p\n", (void *)netif);
+        gnrc_netapi_get(netif->pid, NETOPT_MAX_PDU_SIZE, 0, &mtu, sizeof(mtu));
+        printf("@@ mtu: %d (ETHERNET_DATA_LEN=%d)\n", mtu, ETHERNET_DATA_LEN);
+
+        if (!*outer && (mtu == ETHERNET_DATA_LEN)) {
+            *outer = netif;
+        } else if (!*inner && (mtu != ETHERNET_DATA_LEN)) {
+            *inner = netif;
+        }
+
+        if (*outer && *inner)
+            break;
+    }
+
+    printf("@@ (native|esp-eth|esp-wifi) outer: %p\n", (void *)*outer);
+    print_ifce(*outer);
+
+    printf("@@ (esp-now) inner: %p\n", (void *)*inner);
+    print_ifce(*inner);
+}
 
 int set_ips(gnrc_netif_t *outer, gnrc_netif_t *inner) {
+    if (!outer) {
+        printf("Failed getting outer gnrc interface.\n");
+        return -1;
+    }
 
 #if defined(BR_IPV6_ADDR) && defined(BR_IPV6_ADDR_LEN)
     /* Add configured outer address */
