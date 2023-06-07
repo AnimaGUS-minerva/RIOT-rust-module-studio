@@ -15,18 +15,7 @@ endif
 INCLUDES += -I$(APPDIR)
 INCLUDES += -I$(CURDIR)/../include# @@ rustmod
 
-SHOULD_RUN_KCONFIG =?
-
-#-------- @@ cf. https://github.com/gschorcht/RIOT_ESP_NOW_WiFi_Border_Router
-# platform specific modules and settings
-GNRC_NETIF_NUMOF := 2
-
-# Include packages that pull up and auto-init the link layer.
-# NOTE: 6LoWPAN will be included if IEEE802.15.4 devices are present
-USEMODULE += gnrc_netdev_default
-
-USEMODULE += minerva_gnrc
-INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_gnrc/include
+##
 
 ifeq ($(BOARD),native)
   CFLAGS += -DMINERVA_BOARD_NATIVE
@@ -61,12 +50,30 @@ else
   $(error BOARD set is not supported)
 endif
 
+##
+
+USEMODULE += minerva_gnrc
+INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_gnrc/include
+
+# @@ cf. https://github.com/gschorcht/RIOT_ESP_NOW_WiFi_Border_Router
+
+# platform specific modules and settings
+GNRC_NETIF_NUMOF := 2
+
+# Include packages that pull up and auto-init the link layer.
+# NOTE: 6LoWPAN will be included if IEEE802.15.4 devices are present
+USEMODULE += gnrc_netdev_default
+
 # Specify the mandatory networking modules for 6LoWPAN border router
 USEMODULE += gnrc_sixlowpan_border_router_default
 # Add forwarding table
 USEMODULE += fib
 
-#-------- Additional networking modules that can be dropped if not needed
+# Optionally include RPL as a routing protocol.
+#USEMODULE += gnrc_rpl
+
+##
+
 USEMODULE += gnrc_icmpv6_echo
 #==== native (using tap1), ok
 # > ping fe80::2cca:caff:fe9f:13c5  # ping to linux tap1
@@ -90,8 +97,7 @@ USEMODULE += shell_cmd_gnrc_udp
 # > udp send fe80::a00:27ff:fefd:b6f8 8877 hello  # send to linux br0
 #--------
 
-# Optionally include RPL as a routing protocol.
-#USEMODULE += gnrc_rpl
+##
 
 # Comment this out to disable code in RIOT that does safety checking
 # which is not needed in a production environment but helps in the
@@ -100,25 +106,5 @@ DEVELHELP ?= 1
 
 # Change this to 0 show compiler invocation lines by default:
 QUIET ?= 1
-
-# Prefix has to be /64
-IPV6_PREFIX ?= 2001:db8::
-
-# Outer address of the router and the length of its prefix if IPV6_AUTO=0
-IPV6_AUTO ?= 1
-#IPV6_AUTO ?= 0# @@
-IPV6_ADDR ?= fd19:aaaa::1
-IPV6_ADDR_LEN ?= 64
-IPV6_DEF_RT ?= fd19:aaaa::2
-
-# Pass as CFLAGS to program
-CFLAGS += -DBR_IPV6_PREFIX=\"$(IPV6_PREFIX)\"
-ifeq (0,$(IPV6_AUTO))
-  CFLAGS += -DBR_IPV6_ADDR=\"$(IPV6_ADDR)\" -DBR_IPV6_ADDR_LEN=$(IPV6_ADDR_LEN) -DBR_IPV6_DEF_RT=\"$(IPV6_DEF_RT)\"
-endif
-
-# Might need more than the default of 2 addresses.
-CFLAGS += -DGNRC_NETIF_IPV6_ADDRS_NUMOF=4
-#-------- @@
 
 include $(RIOTBASE)/Makefile.include

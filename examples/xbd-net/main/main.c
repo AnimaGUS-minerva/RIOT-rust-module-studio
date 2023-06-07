@@ -1,10 +1,8 @@
-
-// TODO refactor BR_* constants into 'minerva_gnrc/Makefile'
-
 #include <stdio.h>
 #include <xtimer.h>
 #include <shell.h>
 #include <msg.h>
+
 #include "border_router.h"
 
 #if defined(MINERVA_DEBUG_ETH_MINIMAL)
