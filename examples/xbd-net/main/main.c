@@ -1,5 +1,4 @@
 
-// TODO !!!! test esp-{wifi,now} on MCU
 // TODO refactor BR_* constants into 'minerva_gnrc/Makefile'
 
 #include <stdio.h>
@@ -12,7 +11,7 @@
 #include "netdev_eth_minimal.h"
 #define MINERVA_NETDEV_ETH_INIT minerva_netdev_eth_minimal_init
 #elif defined(MINERVA_BOARD_ESP32_ETH)
-#include "minerva_gnrc_esp.h"
+#include "minerva_esp_eth.h"
 #define MINERVA_NETDEV_ETH_INIT minerva_gnrc_esp_eth_init
 #endif
 

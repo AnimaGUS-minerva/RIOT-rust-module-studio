@@ -56,10 +56,6 @@ else ifeq ($(BOARD),esp32-ethernet-kit-v1_0)
     CFLAGS += -DMINERVA_DEBUG_ETH_MINIMAL
     USEMODULE += minerva_esp32_minimal
     INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_esp32_minimal/include
-  else
-    USEMODULE += minerva_gnrc_esp
-    INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_gnrc/esp
-    FEATURES_REQUIRED += minerva_gnrc_esp
   endif
 else
   $(error BOARD set is not supported)

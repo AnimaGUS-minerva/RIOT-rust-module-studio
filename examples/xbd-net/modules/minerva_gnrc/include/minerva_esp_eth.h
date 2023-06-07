@@ -1,5 +1,5 @@
-#ifndef MINERVA_GNRC_ESP_H
-#define MINERVA_GNRC_ESP_H
+#ifndef MINERVA_ESP_ETH_H
+#define MINERVA_ESP_ETH_H
 
 #include "net/netdev.h"
 
@@ -13,4 +13,4 @@ int minerva_gnrc_esp_eth_init(netdev_t *device);
 }
 #endif
 
-#endif /* MINERVA_GNRC_ESP_H */
+#endif /* MINERVA_ESP_ETH_H */

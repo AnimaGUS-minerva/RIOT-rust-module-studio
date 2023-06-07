@@ -1,9 +1,8 @@
 MODULE = minerva_gnrc
 
 SRC = border_router.c
-
-ifneq (,$(filter minerva_gnrc_esp,$(FEATURES_USED)))
-  DIRS += esp
+ifneq (,$(filter esp_eth,$(FEATURES_USED)))
+  SRC += esp_eth_init.c
 endif
 
 include $(RIOTBASE)/Makefile.base
