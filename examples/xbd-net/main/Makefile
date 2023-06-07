@@ -19,30 +19,21 @@ INCLUDES += -I$(CURDIR)/../include# @@ rustmod
 
 ifeq ($(BOARD),native)
   CFLAGS += -DMINERVA_BOARD_NATIVE
-
-  USEMODULE += auto_init_gnrc_netif# cf. https://github.com/RIOT-OS/RIOT/tree/master/cpu/native#setting-up-a-virtual-network
 else ifeq ($(BOARD),esp32-wroom-32)
   CFLAGS += -DMINERVA_BOARD_ESP32_WROOM32
 
+  # cf. https://github.com/gschorcht/RIOT_ESP_NOW_WiFi_Border_Router
   CFLAGS += -DESP_WIFI_SSID=\"xxxx\"
   CFLAGS += -DESP_WIFI_PASS=\"yyyy\"
 
   # "use the same channel as it is used by the AP of the infrastructure-mode WiFi network"
   #CFLAGS += -DESP_NOW_CHANNEL=\"9\"
-
-  USEMODULE += esp_wifi
-  USEMODULE += esp_now
-  FEATURES_REQUIRED += arch_esp32
-
-  USEMODULE += auto_init_gnrc_netif
 else ifeq ($(BOARD),esp32-ethernet-kit-v1_0)
   CFLAGS += -DMINERVA_BOARD_ESP32_ETH
 
-  USEMODULE += esp_eth
-  FEATURES_REQUIRED += arch_esp32
-
   ifeq ($(DEBUG_ETH_MINIMAL),1)
     CFLAGS += -DMINERVA_DEBUG_ETH_MINIMAL
+
     USEMODULE += minerva_esp32_minimal
     INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_esp32_minimal/include
   endif
@@ -50,27 +41,8 @@ else
   $(error BOARD set is not supported)
 endif
 
-##
-
 USEMODULE += minerva_gnrc
 INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_gnrc/include
-
-# @@ cf. https://github.com/gschorcht/RIOT_ESP_NOW_WiFi_Border_Router
-
-# platform specific modules and settings
-GNRC_NETIF_NUMOF := 2
-
-# Include packages that pull up and auto-init the link layer.
-# NOTE: 6LoWPAN will be included if IEEE802.15.4 devices are present
-USEMODULE += gnrc_netdev_default
-
-# Specify the mandatory networking modules for 6LoWPAN border router
-USEMODULE += gnrc_sixlowpan_border_router_default
-# Add forwarding table
-USEMODULE += fib
-
-# Optionally include RPL as a routing protocol.
-#USEMODULE += gnrc_rpl
 
 ##
 
