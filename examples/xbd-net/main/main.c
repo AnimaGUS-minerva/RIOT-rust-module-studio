@@ -8,12 +8,12 @@
 #if defined(MINERVA_DEBUG_ETH_MINIMAL)
 #include "netdev_eth_minimal.h"
 #define MINERVA_NETDEV_ETH_INIT minerva_netdev_eth_minimal_init
-#elif defined(MINERVA_BOARD_ESP32_ETH)
+#elif defined(MINERVA_BOARD_ESP32_ETHKIT)
 #include "minerva_esp_eth.h"
 #define MINERVA_NETDEV_ETH_INIT minerva_gnrc_esp_eth_init
 #endif
 
-#ifdef MINERVA_BOARD_ESP32_ETH
+#ifdef MINERVA_BOARD_ESP32_ETHKIT
 #include "esp_eth_netdev.h"
 extern esp_eth_netdev_t _esp_eth_dev;
 extern void esp_eth_setup(esp_eth_netdev_t* dev);
@@ -22,12 +22,6 @@ static int esp32_eth_init(void) {
     return MINERVA_NETDEV_ETH_INIT(&_esp_eth_dev.netdev);
 }
 #endif
-
-/* @@
- * todo - more stuff........
- *      - RIOT/tests/nanocoap_cli
- *      - RIOT/examples/rust-gcoap
- */
 
 //
 
@@ -55,7 +49,7 @@ int main(void) {
     msg_init_queue(main_msg_queue, sizeof(main_msg_queue) / sizeof(main_msg_queue[0]));
     puts("@@ [xbd-net] main(): ^^");
 
-#ifdef MINERVA_BOARD_ESP32_ETH
+#ifdef MINERVA_BOARD_ESP32_ETHKIT
     if (esp32_eth_init()) {
         puts("Error initializing eth devices");
         return 1;

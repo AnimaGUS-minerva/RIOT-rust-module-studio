@@ -1,4 +1,4 @@
-# iot-rust-module-studio
+# Minerva Studio
 
 [![MIT licensed][mit-badge]][mit-url]
 [![CI][actions-badge]][actions-url]
@@ -19,9 +19,10 @@ Robust IoT development with Rust and RIOT-OS.
     mcu-emu            .... emulator runner (`qemu-system-xtensa` or RIOT `native` board binary)
   examples/
     esp32-no_std       .... bare `no_std` firmware with a minimal Rust module 'librustmod.a'
-    xbd-base           .... cross-`BOARD` (esp32/native) firmware for 'librustmod.a' demo
-    xbd-psa            .... cross-`BOARD` (esp32/native) firmware for PSA demo
+    xbd-base           .... cross-`BOARD` (i.e. native/esp32) firmware for 'librustmod.a' demo
+    xbd-psa            .... cross-`BOARD` firmware for PSA demo
     xbd-py             .... cross-`BOARD` firmware featuring MicroPython with a RFC8995 module 'libvoucher.a'
+    xbd-net            .... cross-`BOARD` firmware to test/develop networking protocols
     ...
 ```
 
