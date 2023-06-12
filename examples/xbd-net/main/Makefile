@@ -29,8 +29,6 @@ else ifeq ($(BOARD),esp32-wroom-32)
   # "use the same channel as it is used by the AP of the infrastructure-mode WiFi network"
   #CFLAGS += -DESP_NOW_CHANNEL=\"9\"
 else ifeq ($(BOARD),esp32-ethernet-kit-v1_0)
-  CFLAGS += -DMINERVA_BOARD_ESP32_ETHKIT
-
   ifeq ($(DEBUG_ETH_MINIMAL),1)
     CFLAGS += -DMINERVA_DEBUG_ETH_MINIMAL
 

@@ -1,3 +1,7 @@
+
+# use `auto_init_gnrc_netif` by default
+ETH_MANUAL ?= 0
+
 ifeq ($(BOARD),native)
   USEMODULE += auto_init_gnrc_netif
 else ifeq ($(BOARD),esp32-wroom-32)
@@ -9,6 +13,12 @@ else ifeq ($(BOARD),esp32-wroom-32)
 else ifeq ($(BOARD),esp32-ethernet-kit-v1_0)
   USEMODULE += esp_eth
   FEATURES_REQUIRED += arch_esp32
+
+  ifeq (1,$(ETH_MANUAL))
+    CFLAGS += -DMINERVA_DEBUG_ETH_MANUAL
+  else
+    USEMODULE += auto_init_gnrc_netif
+  endif
 else
   $(error BOARD set is not supported)
 endif

@@ -8,16 +8,16 @@
 #if defined(MINERVA_DEBUG_ETH_MINIMAL)
 #include "netdev_eth_minimal.h"
 #define MINERVA_NETDEV_ETH_INIT minerva_netdev_eth_minimal_init
-#elif defined(MINERVA_BOARD_ESP32_ETHKIT)
+#elif defined(MINERVA_DEBUG_ETH_MANUAL)
 #include "minerva_esp_eth.h"
 #define MINERVA_NETDEV_ETH_INIT minerva_gnrc_esp_eth_init
 #endif
 
-#ifdef MINERVA_BOARD_ESP32_ETHKIT
+#if defined(MINERVA_DEBUG_ETH_MINIMAL) || defined(MINERVA_DEBUG_ETH_MANUAL)
 #include "esp_eth_netdev.h"
 extern esp_eth_netdev_t _esp_eth_dev;
 extern void esp_eth_setup(esp_eth_netdev_t* dev);
-static int esp32_eth_init(void) {
+static int debug_esp32_eth_init(void) {
     esp_eth_setup(&_esp_eth_dev);
     return MINERVA_NETDEV_ETH_INIT(&_esp_eth_dev.netdev);
 }
@@ -49,8 +49,8 @@ int main(void) {
     msg_init_queue(main_msg_queue, sizeof(main_msg_queue) / sizeof(main_msg_queue[0]));
     puts("@@ [xbd-net] main(): ^^");
 
-#ifdef MINERVA_BOARD_ESP32_ETHKIT
-    if (esp32_eth_init()) {
+#if defined(MINERVA_DEBUG_ETH_MINIMAL) || defined(MINERVA_DEBUG_ETH_MANUAL)
+    if (debug_esp32_eth_init()) {
         puts("Error initializing eth devices");
         return 1;
     }
