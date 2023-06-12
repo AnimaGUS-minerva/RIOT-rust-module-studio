@@ -5,6 +5,8 @@
 
 #include "border_router.h"
 
+//
+
 #if defined(MINERVA_DEBUG_ETH_MINIMAL)
 #include "netdev_eth_minimal.h"
 #define MINERVA_NETDEV_ETH_INIT minerva_netdev_eth_minimal_init
