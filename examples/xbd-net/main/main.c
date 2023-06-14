@@ -2,7 +2,6 @@
 #include <xtimer.h>
 #include <shell.h>
 #include <msg.h>
-
 #include "border_router.h"
 
 //

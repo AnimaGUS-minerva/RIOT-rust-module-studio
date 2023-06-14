@@ -2,8 +2,18 @@ APPLICATION = main
 BOARD ?= esp32-ethernet-kit-v1_0
 RIOTBASE ?= $(CURDIR)/../../../RIOT
 
+INCLUDES += -I$(APPDIR)
+INCLUDES += -I$(CURDIR)/../include# @@ rustmod
+
 MINERVA_NET_MODULE_DIR := $(CURDIR)/../modules
 EXTERNAL_MODULE_DIRS += $(MINERVA_NET_MODULE_DIR)
+
+##
+
+USEMODULE += minerva_gcoap
+INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_gcoap/include
+
+##
 
 DEBUG_ETH_MINIMAL ?= 0
 ifeq ($(DEBUG_ETH_MINIMAL),0)
@@ -12,10 +22,10 @@ ifeq ($(DEBUG_ETH_MINIMAL),0)
   USEMODULE += ps
 endif
 
-INCLUDES += -I$(APPDIR)
-INCLUDES += -I$(CURDIR)/../include# @@ rustmod
-
 ##
+
+USEMODULE += minerva_gnrc
+INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_gnrc/include
 
 ifeq ($(BOARD),native)
   CFLAGS += -DMINERVA_BOARD_NATIVE
@@ -38,9 +48,6 @@ else ifeq ($(BOARD),esp32-ethernet-kit-v1_0)
 else
   $(error BOARD set is not supported)
 endif
-
-USEMODULE += minerva_gnrc
-INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_gnrc/include
 
 ##
 
