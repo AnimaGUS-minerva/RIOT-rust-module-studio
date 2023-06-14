@@ -1,0 +1,7 @@
+USEMODULE += gcoap
+
+# Required by gcoap example
+USEMODULE += od
+USEMODULE += fmt
+USEMODULE += netutils
+USEMODULE += random
