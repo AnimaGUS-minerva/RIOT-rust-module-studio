@@ -2,7 +2,8 @@
 #include <xtimer.h>
 #include <shell.h>
 #include <msg.h>
-#include "border_router.h"
+#include "border_router.h" // via module 'minerva_gnrc'
+#include "gcoap_example.h" // via module 'minerva_gcoap'
 
 //
 
@@ -31,6 +32,7 @@ static int foo_cmd(int argc, char **argv) {
 }
 static const shell_command_t shell_commands_minerva[] = {
     { "foo", "Prints foo once", foo_cmd },
+    { "coap", "CoAP example", gcoap_cli_cmd },//!!!!!!!!
     { NULL, NULL, NULL }
 };
 void start_shell(const shell_command_t *shell_commands) {
@@ -59,6 +61,9 @@ int main(void) {
 
     find_ifces(&outer_interface, &inner_interface);
     set_ips(outer_interface, inner_interface);
+
+    server_init();//!!!!!!!!!
+
 
     //start_shell(null);
     start_shell(shell_commands_minerva);
