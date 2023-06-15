@@ -184,7 +184,7 @@ static size_t _send(uint8_t *buf, size_t len, char *addr_str)
 
 static int _print_usage(char **argv)
 {
-    printf("usage: %s <get|post|put|ping|proxy|info>\n", argv[0]);
+    printf("usage: %s <get|post|put|ping|proxy|info|server>\n", argv[0]);
     return 1;
 }
 
@@ -201,7 +201,13 @@ int gcoap_cli_cmd(int argc, char **argv)
         return _print_usage(argv);
     }
 
+    if (strcmp(argv[1], "server") == 0) {
+        return server_init();
+    }
+
     if (strcmp(argv[1], "info") == 0) {
+        printf("@@ server_state():%s initialized\n", server_state() ? "" : " NOT");
+
         uint8_t open_reqs = gcoap_op_state();
 
         if (IS_USED(MODULE_GCOAP_DTLS)) {

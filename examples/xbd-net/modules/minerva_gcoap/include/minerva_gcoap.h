@@ -52,7 +52,9 @@ int gcoap_cli_cmd(int argc, char **argv);
  *
  * Run this exactly one during startup.
  */
-void server_init(void);
+int server_init(void);
+
+int server_state(void);//@@
 
 /**
  * @brief   Notifies all observers registered to /cli/stats - if any

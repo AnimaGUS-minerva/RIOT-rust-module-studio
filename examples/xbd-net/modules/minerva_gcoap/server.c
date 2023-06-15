@@ -189,8 +189,21 @@ void notify_observers(void)
     }
 }
 
-void server_init(void)
+static bool _server_init_done = false;//@@
+
+int server_state(void) {
+    return _server_init_done;
+}
+
+int server_init(void)
 {
+    if (!_server_init_done) {
+        _server_init_done = true;
+    } else {
+        puts("@@ server_init(): already called, NOP");
+        return 1;
+    }
+
 #if IS_USED(MODULE_GCOAP_DTLS)
     int res = credman_add(&credential);
     if (res < 0 && res != CREDMAN_EXIST) {
@@ -206,4 +219,6 @@ void server_init(void)
 #endif
 
     gcoap_register_listener(&_listener);
+
+    return 0;
 }
