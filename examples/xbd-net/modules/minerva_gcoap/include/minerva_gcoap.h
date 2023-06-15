@@ -16,8 +16,12 @@
  * @author      Ken Bannister <kb2ma@runbox.com>
  */
 
-#ifndef GCOAP_EXAMPLE_H
-#define GCOAP_EXAMPLE_H
+/*
+ * Copyright (C) 2023 ANIMA Minerva toolkit
+ */
+
+#ifndef MINERVA_GCOAP_H
+#define MINERVA_GCOAP_H
 
 #include <stdint.h>
 #include <stdio.h>
@@ -61,5 +65,5 @@ void notify_observers(void);
 }
 #endif
 
-#endif /* GCOAP_EXAMPLE_H */
+#endif /* MINERVA_GCOAP_H */
 /** @} */

@@ -20,6 +20,10 @@
  * @}
  */
 
+/*
+ * Copyright (C) 2023 ANIMA Minerva toolkit
+ */
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,7 +37,7 @@
 #include "net/utils.h"
 #include "od.h"
 
-#include "gcoap_example.h"
+#include "minerva_gcoap.h"
 
 #define ENABLE_DEBUG 0
 #include "debug.h"

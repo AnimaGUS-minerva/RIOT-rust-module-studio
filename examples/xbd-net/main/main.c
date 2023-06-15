@@ -2,8 +2,8 @@
 #include <xtimer.h>
 #include <shell.h>
 #include <msg.h>
-#include "border_router.h" // via module 'minerva_gnrc'
-#include "gcoap_example.h" // via module 'minerva_gcoap'
+#include "minerva_border_router.h"
+#include "minerva_gcoap.h"
 
 //
 
