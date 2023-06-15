@@ -16,7 +16,9 @@ test-native-tap1:
 	sudo ip tuntap add dev tap1 mode tap user $$(whoami)
 	IPV6_AUTO=0 IPV6_ADDR=fe80::78ec:5fff:febd:add9  make build-native
 	EMU_TIMEOUT=8000 EMU_NATIVE_TAP=tap1  make native-run-riot &
-	sleep 4 && coap-client -N -m get -p 5683 coap://[fe80::78ec:5fff:febd:add9%tap1]/.well-known/core
+	sleep 1 && sudo ip link set tap1 down
+	sleep 1 && sudo ip link set tap1 up
+	sleep 2 && coap-client -N -m get -p 5683 coap://[fe80::78ec:5fff:febd:add9%tap1]/.well-known/core
 
 #====!!!!
 run-native-tap-first: build-native
