@@ -32,7 +32,7 @@ static int foo_cmd(int argc, char **argv) {
 }
 static const shell_command_t shell_commands_minerva[] = {
     { "foo", "Prints foo once", foo_cmd },
-    { "coap", "CoAP example", gcoap_cli_cmd },//!!!!!!!!
+    { "coap", "CoAP example", gcoap_cli_cmd },
     { NULL, NULL, NULL }
 };
 void start_shell(const shell_command_t *shell_commands) {
