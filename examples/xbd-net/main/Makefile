@@ -10,10 +10,11 @@ EXTERNAL_MODULE_DIRS += $(MINERVA_NET_MODULE_DIR)
 
 ##
 
+USEMODULE += minerva_gnrc
+INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_gnrc/include
+
 USEMODULE += minerva_gcoap
 INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_gcoap/include
-
-##
 
 DEBUG_ETH_MINIMAL ?= 0
 ifeq ($(DEBUG_ETH_MINIMAL),0)
@@ -21,11 +22,6 @@ ifeq ($(DEBUG_ETH_MINIMAL),0)
   USEMODULE += shell_commands
   USEMODULE += ps
 endif
-
-##
-
-USEMODULE += minerva_gnrc
-INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_gnrc/include
 
 ifeq ($(BOARD),native)
   CFLAGS += -DMINERVA_BOARD_NATIVE
