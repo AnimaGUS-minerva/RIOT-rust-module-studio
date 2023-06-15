@@ -206,7 +206,7 @@ int gcoap_cli_cmd(int argc, char **argv)
     }
 
     if (strcmp(argv[1], "info") == 0) {
-        printf("@@ server_state():%s initialized\n", server_state() ? "" : " NOT");
+        printf("@@ server_state(): %s initialized\n", server_state() ? "ALREADY" : "NOT");
 
         uint8_t open_reqs = gcoap_op_state();
 

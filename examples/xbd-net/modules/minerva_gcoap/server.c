@@ -200,7 +200,7 @@ int server_init(void)
     if (!_server_init_done) {
         _server_init_done = true;
     } else {
-        puts("@@ server_init(): already called, NOP");
+        puts("@@ server_init(): already initialized, NOP");
         return 1;
     }
 
