@@ -62,8 +62,10 @@ int main(void) {
     find_ifces(&outer_interface, &inner_interface);
     set_ips(outer_interface, inner_interface);
 
-    puts("@@ main(): initializing CoAP server (hint: check with `> coap info`)");
-    server_init();
+    if (outer_interface) {
+        puts("@@ main(): initializing CoAP server (hint: check with `> coap info`)");
+        server_init();
+    }
 
     //start_shell(null);
     start_shell(shell_commands_minerva);
