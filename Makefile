@@ -2,9 +2,16 @@ SHELL := /bin/bash
 
 # 'test' or 'ci'
 TARGET ?= test
-ci:
+ci--:
 	make init
 	TARGET=ci make test
+ci:#!!!!tmp
+	make init
+	sudo ip tuntap add dev tap1 mode tap user $$(whoami)
+	sleep 1 && sudo ip link set tap1 down
+	sleep 1 && sudo ip link set tap1 up
+	sudo ip a
+	make -C ./examples/xbd-net test
 
 init:
 	git submodule init RIOT && git submodule update
