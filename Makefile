@@ -9,8 +9,8 @@ ci:#!!!!tmp
 	make init
 	##---- tap0/br0 ^^
 	sudo ip link add br0 type bridge
-	###sudo ip addr flush dev eth0
-	sudo ip link set eth0 master br0
+	sudo ip addr flush dev enp0s8
+	sudo ip link set enp0s8 master br0
 	sudo ip tuntap add dev tap0 mode tap user $$(whoami)
 	sudo ip link set tap0 master br0
 	sudo ip link set dev br0 up
