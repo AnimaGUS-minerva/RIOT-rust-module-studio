@@ -12,12 +12,10 @@ build-native:
 test-native-notap: build-native
 	EMU_TIMEOUT=4000  make native-run-riot
 
+# assume tap1 is already set up (via target `ci` in 'studio/Makefile')
 test-native-tap1:
-	##sudo ip tuntap add dev tap1 mode tap user $$(whoami)
 	IPV6_AUTO=0 IPV6_ADDR=fe80::78ec:5fff:febd:add9  make build-native
 	EMU_TIMEOUT=8000 EMU_NATIVE_TAP=tap1  make native-run-riot &
-	##sleep 1 && sudo ip link set tap1 down
-	##sleep 1 && sudo ip link set tap1 up
 	sleep 2 && coap-client -N -m get -p 5683 coap://[fe80::78ec:5fff:febd:add9%tap1]/.well-known/core
 
 #====!!!!
@@ -49,6 +47,13 @@ run-esp32-minimal: build-esp32-minimal
 run-esp32-wroom32: build-esp32-wroom32
 	RIOT_BOARD=esp32-wroom-32  make esp32-run-riot
 
+# assume tap0 is already set up (via target `ci` in 'studio/Makefile')
+test-esp32-tap0: build-esp32
+	EMU_TIMEOUT=8000 RIOT_BOARD=esp32-ethernet-kit-v1_0 \
+ EMU_ESP32_NIC="tap,model=open_eth,ifname=tap0,script=no,downscript=no" \
+ make esp32-run-riot &
+	sleep 2 && coap-client -N -m get -p 5683 coap://[fe80::200:ff:fe00:3%br0]/.well-known/core
+
 test-esp32:
 	EMU_TIMEOUT=4000  make run-esp32
 test-esp32-minimal:
@@ -59,13 +64,6 @@ test-esp32-wroom32:
 #--------@@ begin: bridged networking
 #ETH_IF := enp0sN
 ETH_IF := enp0s8
-
-run-esp32-tap: build-esp32
-	make tap-setup
-	RIOT_BOARD=esp32-ethernet-kit-v1_0 \
- EMU_ESP32_NIC="tap,model=open_eth,ifname=tap0,script=no,downscript=no" \
- make esp32-run-riot
-	make tap-cleanup
 
 tap-setup:
 	@echo "tap-setup..."
@@ -91,8 +89,8 @@ run: run-native
 test:
 	make test-native-notap
 	rm -rf ./main/bin && make test-native-tap1
-	make test-esp32
 	make test-esp32-minimal
+	make test-esp32-tap0
 
 clean:
 	rm -rf target ./main/bin

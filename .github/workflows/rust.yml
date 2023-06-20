@@ -33,5 +33,5 @@ jobs:
           sudo apt update
           sudo apt install gcc-multilib
           sudo apt install python3-serial
-          sudo apt install libcoap2-bin
+          sudo apt install libcoap2-bin bridge-utils
           make ci
