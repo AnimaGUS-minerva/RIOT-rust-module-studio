@@ -9,14 +9,7 @@ build-native:
 	##make native-build-module
 	make native-build-riot
 
-test-native-notap: build-native
-	EMU_TIMEOUT=4000  make native-run-riot
-
-# assume tap1 is already set up (via target `ci` in 'studio/Makefile')
-test-native-tap1:
-	IPV6_AUTO=0 IPV6_ADDR=fe80::78ec:5fff:febd:add9  make build-native
-	EMU_TIMEOUT=8000 EMU_NATIVE_TAP=tap1  make native-run-riot &
-	sleep 2 && coap-client -N -m get -p 5683 coap://[fe80::78ec:5fff:febd:add9%tap1]/.well-known/core
+run: run-native
 
 #====!!!!
 run-native-tap-first: build-native
@@ -36,7 +29,7 @@ build-esp32:
 build-esp32-minimal:
 	##make esp32-build-module
 	RIOT_BOARD=esp32-ethernet-kit-v1_0 DEBUG_ETH_MINIMAL=1 ETH_MANUAL=1 make esp32-build-riot
-build-esp32-wroom32:
+build-esp32-wifi:
 	##make esp32-build-module
 	RIOT_BOARD=esp32-wroom-32  make esp32-build-riot
 
@@ -44,22 +37,16 @@ run-esp32: build-esp32
 	RIOT_BOARD=esp32-ethernet-kit-v1_0  make esp32-run-riot
 run-esp32-minimal: build-esp32-minimal
 	RIOT_BOARD=esp32-ethernet-kit-v1_0  make esp32-run-riot
-run-esp32-wroom32: build-esp32-wroom32
+run-esp32-wifi: build-esp32-wifi
 	RIOT_BOARD=esp32-wroom-32  make esp32-run-riot
 
-# assume tap0 is already set up (via target `ci` in 'studio/Makefile')
-test-esp32-tap0: build-esp32
-	EMU_TIMEOUT=8000 RIOT_BOARD=esp32-ethernet-kit-v1_0 \
- EMU_ESP32_NIC="tap,model=open_eth,ifname=tap0,script=no,downscript=no" \
- make esp32-run-riot &
-	sleep 2 && coap-client -N -m get -p 5683 coap://[fe80::200:ff:fe00:3%br0]/.well-known/core
-
+# no tap
 test-esp32:
 	EMU_TIMEOUT=4000  make run-esp32
+
+# ethernet debug only
 test-esp32-minimal:
 	EMU_TIMEOUT=4000  make run-esp32-minimal
-test-esp32-wroom32:
-	EMU_TIMEOUT=4000  make run-esp32-wroom32
 
 #--------@@ begin: bridged networking
 #ETH_IF := enp0sN
@@ -84,7 +71,22 @@ tap-cleanup:
 	ip a && brctl show
 #--------@@ end: bridged networking
 
-run: run-native
+
+test-native-notap: build-native
+	EMU_TIMEOUT=4000  make native-run-riot
+
+# assume tap1 is already set up (via `ci-fixture-net` in 'studio/Makefile')
+test-native-tap1:
+	IPV6_AUTO=0 IPV6_ADDR=fe80::78ec:5fff:febd:add9  make build-native
+	EMU_TIMEOUT=8000 EMU_NATIVE_TAP=tap1  make native-run-riot &
+	sleep 2 && coap-client -N -m get -p 5683 coap://[fe80::78ec:5fff:febd:add9%tap1]/.well-known/core
+
+# assume tap0 is already set up (via `ci-fixture-net` in 'studio/Makefile')
+test-esp32-tap0: build-esp32
+	EMU_TIMEOUT=8000 RIOT_BOARD=esp32-ethernet-kit-v1_0 \
+ EMU_ESP32_NIC="tap,model=open_eth,ifname=tap0,script=no,downscript=no" \
+ make esp32-run-riot &
+	sleep 2 && coap-client -N -m get -p 5683 coap://[fe80::200:ff:fe00:3%br0]/.well-known/core
 
 test:
 	make test-native-notap
