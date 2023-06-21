@@ -10,7 +10,7 @@ ci:#!!!!WIP
 	make ci-fixture-net
 	make -C ./examples/xbd-net test
 
-ci-fixture-net
+ci-fixture-net:
 	#---- tap0/br0 for board `esp32`
 	sudo ip link add br0 type bridge
 	##N/A##sudo ip addr flush dev $(ETH_IF)
