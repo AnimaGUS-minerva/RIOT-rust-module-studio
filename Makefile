@@ -5,24 +5,26 @@ TARGET ?= test
 ci--:
 	make init
 	TARGET=ci make test
-ci:#!!!!tmp
+ci:#!!!!WIP
 	make init
-	##---- tap0/br0 ^^
+	make ci-fixture-net
+	make -C ./examples/xbd-net test
+
+ci-fixture-net
+	#---- tap0/br0 for board `esp32`
 	sudo ip link add br0 type bridge
-	###sudo ip addr flush dev enp0s8
-	###sudo ip link set enp0s8 master br0
+	##N/A##sudo ip addr flush dev $(ETH_IF)
+	##N/A##sudo ip link set $(ETH_IF) master br0
 	sudo ip tuntap add dev tap0 mode tap user $$(whoami)
 	sudo ip link set tap0 master br0
 	sudo ip link set dev br0 up
 	sudo ip link set dev tap0 up
-	##---- tap0/br0 $$
-	##---- tap1 ^^
+	#---- tap1 for board `native`
 	sudo ip tuntap add dev tap1 mode tap user $$(whoami)
 	sleep 1 && sudo ip link set tap1 down
 	sleep 1 && sudo ip link set tap1 up
-	##---- tap1 $$
+	#---- check
 	ip a && brctl show
-	make -C ./examples/xbd-net test
 
 init:
 	git submodule init RIOT && git submodule update
