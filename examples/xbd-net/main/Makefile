@@ -72,15 +72,17 @@ USEMODULE += shell_cmd_gnrc_udp
 ## minerva_gcoap
 #==== native (using tap1)
 #---- linux-to-riot, ok
-# > coap server  # init riot coap server
+# > coap server  # init riot gcoap server
 # $ coap-client -N -m get -p 5683 coap://[fe80::78ec:5fff:febd:add9%tap1]/.well-known/core  # send to riot gcoap server
 # </cli/stats>;ct=0;rt="count";obs,</riot/board>
 #---- riot-to-linux, ok
 # $ coap-server  # linux coap server
 # > coap get [fe80::20be:cdff:fe0e:44a1]:5683 /.well-known/core  # send to linux tap1
+# gcoap: response Success, code 2.05, 105 bytes
+# </>;title="General Info";ct=0,</time>;if="clock";rt="ticks";title="Internal Clock";ct=0;obs,</async>;ct=0
 #==== esp32 (using tap0/br0)
 #---- linux-to-riot, ok
-# > coap server  # init riot coap server
+# > coap server  # init riot gcoap server
 # $ coap-client -N -m get -p 5683 coap://[fe80::200:ff:fe00:3%br0]/.well-known/core  # send to riot gcoap server
 # </cli/stats>;ct=0;rt="count";obs,</riot/board>
 #---- riot-to-linux, FIXME
