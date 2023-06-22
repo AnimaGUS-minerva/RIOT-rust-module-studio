@@ -10,6 +10,8 @@ ci:#!!!!WIP
 	make ci-fixture-net
 	make -C ./examples/xbd-net test
 
+IP6_FIXTURE_BR0 := fe80::a00:27ff:fefd:b6f8
+IP6_FIXTURE_TAP1 := fe80::20be:cdff:fe0e:44a1
 ci-fixture-net:
 	#---- tap0/br0 for board `esp32`
 	sudo ip link add br0 type bridge
@@ -23,8 +25,11 @@ ci-fixture-net:
 	sudo ip tuntap add dev tap1 mode tap user $$(whoami)
 	sleep 1 && sudo ip link set tap1 down
 	sleep 1 && sudo ip link set tap1 up
-	#---- check
+	#---- misc
+	sudo ip -6 addr add $(IP6_FIXTURE_BR0)/64 dev br0
+	sudo ip -6 addr add $(IP6_FIXTURE_TAP1)/64 dev tap1
 	ip a && brctl show
+	coap-server &
 
 init:
 	git submodule init RIOT && git submodule update

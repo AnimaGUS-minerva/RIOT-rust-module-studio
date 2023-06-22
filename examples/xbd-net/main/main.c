@@ -27,11 +27,13 @@ static int debug_esp32_eth_init(void) {
 
 //
 
-static int foo_cmd(int argc, char **argv) {
-    (void)argc; (void)argv; puts("foo"); return 0;
-}
+#ifdef MINERVA_BOARD_NATIVE
+#define IP6_FIXTURE_SERVER "fe80::20be:cdff:fe0e:44a1" // IP6_FIXTURE_TAP1
+#else
+#define IP6_FIXTURE_SERVER "fe80::a00:27ff:fefd:b6f8" // IP6_FIXTURE_BR0
+#endif
+
 static const shell_command_t shell_commands_minerva[] = {
-    { "foo", "Prints foo once", foo_cmd },
     { "coap", "CoAP example", gcoap_cli_cmd },
     { NULL, NULL, NULL }
 };
@@ -65,6 +67,15 @@ int main(void) {
     if (outer_interface) {
         puts("@@ main(): initializing CoAP server (hint: check with `> coap info`)");
         server_init();
+    }
+
+    if (1) {
+        char *addr = "[" IP6_FIXTURE_SERVER "]:5683";
+        char *payload = "/.well-known/core";
+        char *argv[] = {"coap", "get", addr, payload};
+        int argc = sizeof(argv) / sizeof(argv[0]);
+        printf("@@ main(): coap get %s %s\n", addr, payload);
+        gcoap_cli_cmd(argc, argv);
     }
 
     //start_shell(null);
