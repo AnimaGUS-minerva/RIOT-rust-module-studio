@@ -69,7 +69,7 @@ USEMODULE += shell_cmd_gnrc_udp
 # $ nc -6ul 8877  # linux udp server
 # > udp send fe80::a00:27ff:fefd:b6f8 8877 hello  # send to linux br0
 
-## minerva_gcoap
+## minerva_gcoap (`coap-{client,server}` from libcoap2-bin)
 #==== native (using tap1)
 #---- linux-to-riot, ok
 # > coap server  # init riot gcoap server

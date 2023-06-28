@@ -29,7 +29,6 @@ ci-fixture-net:
 	sudo ip -6 addr add $(IP6_FIXTURE_BR0)/64 dev br0
 	sudo ip -6 addr add $(IP6_FIXTURE_TAP1)/64 dev tap1
 	ip a && brctl show
-	coap-server &
 
 init:
 	git submodule init RIOT && git submodule update
