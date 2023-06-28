@@ -13,3 +13,6 @@
 [submodule "toolchain/xtensa/esptool"]
 	path = toolchain/xtensa/esptool
 	url = https://github.com/espressif/esptool
+[submodule "examples/xbd-net/libcoap"]
+	path = examples/xbd-net/libcoap
+	url = https://github.com/AnimaGUS-minerva/libcoap
