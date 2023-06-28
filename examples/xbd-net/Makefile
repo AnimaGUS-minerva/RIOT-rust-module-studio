@@ -88,7 +88,7 @@ test-esp32-tap0: build-esp32
  make esp32-run-riot &
 	sleep 2 && coap-client -N -m get -p 5683 coap://[fe80::200:ff:fe00:3%br0]/.well-known/core
 
-test: libcoap
+test: get-libcoap
 	make test-native-notap
 	rm -rf ./main/bin && make test-native-tap1
 	make test-esp32-minimal
@@ -96,13 +96,15 @@ test: libcoap
 
 #
 
-libcoap: get-libcoap
 get-libcoap:
 	[ -e "libcoap/.git" ] || \
-		(git submodule init libcoap && git submodule update)
+ (git submodule init libcoap && git submodule update)
+	[ -e "libcoap/local" ] || \
+ (cd libcoap && ./autogen.sh && ./configure --prefix `pwd`/local --disable-doxygen --disable-manpages && make && make install)
+
 sync-libcoap:
 	git submodule update --remote libcoap && \
-		cd libcoap && git checkout develop-minerva && git pull
+ cd libcoap && git checkout develop-minerva && git pull
 
 #
 
