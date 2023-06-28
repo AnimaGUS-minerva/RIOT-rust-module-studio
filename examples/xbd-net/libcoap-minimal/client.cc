@@ -25,7 +25,9 @@ main(void) {
   coap_set_log_level(COAP_LOG_WARN);
 
   /* resolve destination address where server should be sent */
-  if (resolve_address("coap.me", "5683", &dst) < 0) {
+  //if (resolve_address("coap.me", "5683", &dst) < 0) {
+  if (resolve_address("fe80::78ec:5fff:febd:add9%tap1", "5683", &dst) < 0) {// ci
+  //if (resolve_address("fe80::20be:cdff:fe0e:44a7%tap1", "5683", &dst) < 0) {// dev
     coap_log_crit("failed to resolve address\n");
     goto finish;
   }
@@ -64,8 +66,10 @@ main(void) {
   }
 
   /* add a Uri-Path option */
-  coap_add_option(pdu, COAP_OPTION_URI_PATH, 5,
-                  reinterpret_cast<const uint8_t *>("hello"));
+  //coap_add_option(pdu, COAP_OPTION_URI_PATH, 5,
+  //                reinterpret_cast<const uint8_t *>("hello"));
+  coap_add_option(pdu, COAP_OPTION_URI_PATH, 16,
+                  reinterpret_cast<const uint8_t *>(".well-known/core"));
 
   coap_show_pdu(COAP_LOG_WARN, pdu);
   /* and send the PDU */
