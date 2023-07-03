@@ -1,6 +1,7 @@
 /* minimal CoAP client
  *
  * Copyright (C) 2018-2023 Olaf Bergmann <bergmann@tzi.org>
+ * Copyright (C) 2023 ANIMA Minerva toolkit
  */
 
 #include <cstring>
@@ -12,7 +13,7 @@
 static int have_response = 0;
 
 int
-main(void) {
+main(int argc, char* argv[]) {//@@
   coap_context_t  *ctx = nullptr;
   coap_session_t *session = nullptr;
   coap_address_t dst;
@@ -26,8 +27,12 @@ main(void) {
 
   /* resolve destination address where server should be sent */
   //if (resolve_address("coap.me", "5683", &dst) < 0) {
-  if (resolve_address("fe80::78ec:5fff:febd:add9%tap1", "5683", &dst) < 0) {// ci
+  //==== @@
+  printf("@@ argc: %d\n", argc);
+  //if (resolve_address("fe80::78ec:5fff:febd:add9%tap1", "5683", &dst) < 0) {// ci
   //if (resolve_address("fe80::20be:cdff:fe0e:44a7%tap1", "5683", &dst) < 0) {// dev
+  if (resolve_address(argv[2], argv[1], &dst) < 0) {
+  //====
     coap_log_crit("failed to resolve address\n");
     goto finish;
   }
@@ -68,8 +73,12 @@ main(void) {
   /* add a Uri-Path option */
   //coap_add_option(pdu, COAP_OPTION_URI_PATH, 5,
   //                reinterpret_cast<const uint8_t *>("hello"));
-  coap_add_option(pdu, COAP_OPTION_URI_PATH, 16,
-                  reinterpret_cast<const uint8_t *>(".well-known/core"));
+  //==== @@
+  {
+    char *uri_path = argv[3];
+    coap_add_option(pdu, COAP_OPTION_URI_PATH, strlen(uri_path),
+                    reinterpret_cast<const uint8_t *>(uri_path));
+  }
 
   coap_show_pdu(COAP_LOG_WARN, pdu);
   /* and send the PDU */
