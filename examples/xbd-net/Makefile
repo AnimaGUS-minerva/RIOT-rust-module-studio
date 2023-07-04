@@ -81,11 +81,11 @@ COAP_SERVER := LD_LIBRARY_PATH=./libcoap/local/lib $(_COAP_SERVER)
 
 # assume tap1 is already set up (via `ci-fixture-net` in 'studio/Makefile')
 test-native-tap1:
-	$(COAP_SERVER) 5683 fe80::20be:cdff:fe0e:44a1%tap1 &
+	sudo $(COAP_SERVER) 5683 fe80::20be:cdff:fe0e:44a1%tap1 &
 	IPV6_AUTO=0 IPV6_ADDR=fe80::78ec:5fff:febd:add9  make build-native
 	EMU_TIMEOUT=8000 EMU_NATIVE_TAP=tap1  make native-run-riot &
 	sleep 2 && $(COAP_CLIENT) 5683 fe80::78ec:5fff:febd:add9%tap1 .well-known/core &
-	sleep 2 && killall $(_COAP_SERVER)
+	sleep 2 && sudo killall $(_COAP_SERVER)
 
 # assume tap0 is already set up (via `ci-fixture-net` in 'studio/Makefile')
 test-esp32-tap0: build-esp32
@@ -98,7 +98,7 @@ test-esp32-tap0: build-esp32
 
 test: build-libcoap-minimal
 	make test-native-notap
-	##!!rm -rf ./main/bin && make test-native-tap1
+	rm -rf ./main/bin && make test-native-tap1
 	make test-esp32-minimal
 	make test-esp32-tap0
 
