@@ -98,7 +98,7 @@ test-esp32-tap0: build-esp32
 
 test: build-libcoap-minimal
 	make test-native-notap
-	rm -rf ./main/bin && make test-native-tap1
+	##!!rm -rf ./main/bin && make test-native-tap1
 	make test-esp32-minimal
 	make test-esp32-tap0
 
