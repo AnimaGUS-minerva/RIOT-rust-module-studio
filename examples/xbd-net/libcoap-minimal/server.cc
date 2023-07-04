@@ -1,6 +1,7 @@
 /* minimal CoAP server
  *
  * Copyright (C) 2018-2023 Olaf Bergmann <bergmann@tzi.org>
+ * Copyright (C) 2023 ANIMA Minerva toolkit
  */
 
 #include <cstring>
@@ -10,7 +11,7 @@
 #include "common.hh"
 
 int
-main(void) {
+main(int argc, char* argv[]) {//@@
   coap_context_t  *ctx = nullptr;
   coap_address_t dst;
   coap_resource_t *resource = nullptr;
@@ -20,7 +21,26 @@ main(void) {
   coap_startup();
 
   /* resolve destination address where server should be sent */
-  if (resolve_address("localhost", "5683", &dst) < 0) {
+  //if (resolve_address("localhost", "5683", &dst) < 0) {
+  //==== @@
+  if (argc < 3) {
+    printf("@@ argc: %d\n", argc);
+    printf("@@ usage: ./server port ep_addr (e.g. 5683 fe80::20be:cdff:fe0e:44a1%%tap1)\n");
+    goto finish;
+  }
+  if (resolve_address(argv[2], argv[1], &dst) < 0) {//@@
+  //if (resolve_address("fe80::20be:cdff:fe0e:44a1%tap1", "5683", &dst) < 0) {//@@ `nn` ok
+  //if (resolve_address("fe80::a00:27ff:fefd:b6f8%br0", "5683", &dst) < 0) {//@@ `ee` FIXME
+  /* @@ nn
+v:1 t:NON c:GET i:7356 {a4e6} [ Uri-Path:hello ]
+v:1 t:NON c:2.05 i:7356 {a4e6} [ ] :: 'world'
+   */
+  /* @@ ee
+v:1 t:NON c:GET i:1a90 {0a44} [ Uri-Path:hello ]
+v:1 t:NON c:2.05 i:1a90 {0a44} [ ] :: 'world'
+Jun 27 11:11:22.346 CRIT coap_socket_send: Network is unreachable
+   */
+  //====
     coap_log_crit("failed to resolve address\n");
     goto finish;
   }

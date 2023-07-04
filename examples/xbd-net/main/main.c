@@ -71,7 +71,8 @@ int main(void) {
 
     if (1) {
         char *addr = "[" IP6_FIXTURE_SERVER "]:5683";
-        char *payload = "/.well-known/core";
+        //char *payload = "/.well-known/core";
+        char *payload = "/hello"; //@@ for 'libcoap-minimal/server'
         char *argv[] = {"coap", "get", addr, payload};
         int argc = sizeof(argv) / sizeof(argv[0]);
         printf("@@ main(): coap get %s %s\n", addr, payload);
