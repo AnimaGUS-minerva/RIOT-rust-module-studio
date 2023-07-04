@@ -28,7 +28,11 @@ main(int argc, char* argv[]) {//@@
   /* resolve destination address where server should be sent */
   //if (resolve_address("coap.me", "5683", &dst) < 0) {
   //==== @@
-  printf("@@ argc: %d\n", argc);
+  if (argc < 3) {
+    printf("@@ argc: %d\n", argc);
+    printf("@@ usage: ./client port dst uri_path\n");
+    goto finish;
+  }
   //if (resolve_address("fe80::78ec:5fff:febd:add9%tap1", "5683", &dst) < 0) {// ci
   //if (resolve_address("fe80::20be:cdff:fe0e:44a7%tap1", "5683", &dst) < 0) {// dev
   if (resolve_address(argv[2], argv[1], &dst) < 0) {
