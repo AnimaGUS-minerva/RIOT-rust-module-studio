@@ -26,6 +26,8 @@ ci-fixture-net:
 	sleep 1 && sudo ip link set tap1 down
 	sleep 1 && sudo ip link set tap1 up
 	#---- misc
+	sudo sysctl -w net.ipv6.conf.br0.accept_dad=0
+	sudo sysctl -w net.ipv6.conf.tap1.accept_dad=0
 	sudo ip -6 addr add $(IP6_FIXTURE_BR0)/64 dev br0
 	sudo ip -6 addr add $(IP6_FIXTURE_TAP1)/64 dev tap1
 	ip a && brctl show
