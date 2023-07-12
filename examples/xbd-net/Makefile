@@ -6,6 +6,7 @@ include ../esp32.mk
 # native
 
 build-native:
+	make native-build-module
 	make native-build-riot
 
 run: run-native
@@ -23,10 +24,13 @@ run-native-tap-second:# in second shell
 # esp32
 
 build-esp32:
+	make esp32-build-module
 	RIOT_BOARD=esp32-ethernet-kit-v1_0  make esp32-build-riot
 build-esp32-minimal:
+	make esp32-build-module
 	RIOT_BOARD=esp32-ethernet-kit-v1_0 DEBUG_ETH_MINIMAL=1 ETH_MANUAL=1 make esp32-build-riot
 build-esp32-wifi:
+	make esp32-build-module
 	RIOT_BOARD=esp32-wroom-32  make esp32-build-riot
 
 run-esp32: build-esp32

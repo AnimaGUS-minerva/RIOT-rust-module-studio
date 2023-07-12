@@ -2,6 +2,7 @@
 #include <xtimer.h>
 #include <shell.h>
 #include <msg.h>
+#include "rustmod.h"
 #include "minerva_border_router.h"
 #include "minerva_gcoap.h"
 
@@ -69,14 +70,21 @@ int main(void) {
         server_init();
     }
 
-    if (1) {
+    if (1) { // oneshot CoAP client
         char *addr = "[" IP6_FIXTURE_SERVER "]:5683";
         //char *payload = "/.well-known/core";
         char *payload = "/hello"; //@@ for 'libcoap-minimal/server'
         char *argv[] = {"coap", "get", addr, payload};
         int argc = sizeof(argv) / sizeof(argv[0]);
+
         printf("@@ main(): coap get %s %s\n", addr, payload);
         gcoap_cli_cmd(argc, argv);
+    }
+
+    if (1) {
+        printf("@@ main(): before calling rustmod\n");
+        rustmod_start();
+        printf("@@ main(): after calling rustmod\n");
     }
 
     //start_shell(null);

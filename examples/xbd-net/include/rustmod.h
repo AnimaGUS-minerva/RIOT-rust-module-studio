@@ -1,1 +1,1 @@
-void start(void);
+void rustmod_start(void);

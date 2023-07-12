@@ -3,7 +3,14 @@ BOARD ?= esp32-ethernet-kit-v1_0
 RIOTBASE ?= $(CURDIR)/../../../RIOT
 
 INCLUDES += -I$(APPDIR)
+
 INCLUDES += -I$(CURDIR)/../include# @@ rustmod
+ifeq ($(BOARD),native)
+ARCHIVES += $(CURDIR)/../target/i686-unknown-linux-gnu/release/librustmod.a
+else
+ARCHIVES += $(CURDIR)/../target/xtensa-esp32-none-elf/release/librustmod.a
+endif
+USEMODULE += pthread  # resolve std::sys::unix::thread_local_key::{get,set,create}
 
 MINERVA_NET_MODULE_DIR := $(CURDIR)/../modules
 EXTERNAL_MODULE_DIRS += $(MINERVA_NET_MODULE_DIR)
