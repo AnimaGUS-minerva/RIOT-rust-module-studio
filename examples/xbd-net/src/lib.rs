@@ -74,7 +74,7 @@ where
 {
     println!("@@ spawn(): ^^");
     // Create a task that is scheduled by pushing itself into the queue.
-    //let schedule = |runnable| unsafe { QUEUE.0.unbounded_send(runnable).unwrap() };//@@
+    //let schedule = |runnable| QUEUE.with(|(s, _)| s.send(runnable).unwrap());
     //let (runnable, task) = async_task::spawn_local(future, schedule);
     //==== @@
     let schedule = |runnable| queue.borrow().0.unbounded_send(runnable).unwrap();
