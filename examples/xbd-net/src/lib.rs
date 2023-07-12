@@ -95,13 +95,14 @@ where
     let queue = Rc::new(RefCell::new(futures_channel::mpsc::unbounded::<Runnable>()));
 
     // Spawn a task that sends its result through a channel.
-    //@@let (s, r) = flume::unbounded();
+    //let (s, r) = flume::unbounded();
+    //spawn(async move { drop(s.send(future.await)) }).detach();
+    //====@@
     let (s, mut r) = futures_channel::mpsc::unbounded();
-    //@@spawn(async move { drop(s.send(future.await)) }).detach();
     spawn(queue.clone(), async move {
         println!("@@ future2: ^^");
-        //@@drop(s.unbounded_send(future.await))
-        drop(s.unbounded_send(future.await))//@@ ok
+
+        drop(s.unbounded_send(future.await))
     }).detach();
 
     loop {
@@ -115,7 +116,7 @@ where
 
         // Otherwise, take a task from the queue and run it. (@@ invokes "future2" above)
         //QUEUE.with(|(_, r)| r.recv().unwrap().run());
-        //====
+        //====@@
         println!("@@ loop: --");
         queue.borrow_mut().1.try_next().unwrap().unwrap().run();
         println!("@@ loop: $$");
