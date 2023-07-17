@@ -53,12 +53,13 @@ fn rustmod_tests() {
     println!("@@ rustmod_tests(): $$ val: {}", val.get());
 }
 
-
 //----@@ adaptation of https://github.com/smol-rs/async-task/blob/9ff587ecab7b9a9fa81672f4dbf315ff375b6e5e/examples/spawn-local.rs#L51
+const RUNTIME_CAP_DEFAULT: usize = 16;
 struct Runtime(Rc<RefCell<ArrayQueue<Runnable>>>);
 impl Runtime {
     pub fn new() -> Self {
-        Self(Rc::new(RefCell::new(crossbeam_queue::ArrayQueue::<Runnable>::new(99))))
+        Self(Rc::new(RefCell::new(
+            crossbeam_queue::ArrayQueue::<Runnable>::new(RUNTIME_CAP_DEFAULT))))
     }
 
     /// Spawns a future on the executor.
