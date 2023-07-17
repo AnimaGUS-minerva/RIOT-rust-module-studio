@@ -19,37 +19,56 @@ pub extern fn rustmod_start() {
     rustmod_tests();
 }
 
+async fn inc(val: Rc<Cell<u8>>) -> Result<bool, ()>{
+    println!("@@ inc() before: val: {}", val.get());
+    val.set(val.get() + 1);
+    println!("@@ inc() after: val: {}", val.get());
+    if 0 == 1 { loop {} } // debug
+
+    Ok(true)
+}
+
 fn rustmod_tests() {
     println!("@@ rustmod_tests(): ^^");
 
     let val = Rc::new(Cell::new(0));
     println!("@@ rustmod_tests(): val: {}", val.get());
 
-    let rt = Rc::new(Runtime::new());
+    let rt0 = Rc::new(Runtime::new());
     {
         let val = val.clone();
-        let rtt = rt.clone();
+        let rt = rt0.clone();
 
-        rt.spawn_local(async move {
-            println!("@@ future1: ^^ val: {}", val.get());
+        rt0.spawn_local(async move {
+            println!("@@ future0: ^^ val: {}", val.get());
+
+            //
 
             val.set(val.get() + 1);
+
+            //
+
+            let ret = rt.exec(inc(val.clone())).await;
+            println!("@@ ret: {:?}", ret);
+
+            //
 
             let fut = {
                 let val = val.clone();
                 async move {
-                    println!("@@ future2: ^^ val: {}", val.get());
+                    println!("@@ future1: ^^ val: {}", val.get());
                     val.set(val.get() + 1);
-                    println!("@@ future2: $$ val: {}", val.get());
+                    println!("@@ future1: $$ val: {}", val.get());
                 }
             };
-            rtt.exec(fut).await;
+            rt.exec(fut).await;
 
-            println!("@@ future1: $$ val: {}", val.get());
+            //
+
+            println!("@@ future0: $$ val: {}", val.get());
         });
     }
 
-    // The value should be 2 at the end of the program.
     println!("@@ rustmod_tests(): $$ val: {}", val.get());
 }
 
