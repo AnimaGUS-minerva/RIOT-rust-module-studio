@@ -52,15 +52,14 @@ fn rustmod_tests() {
 
             //
 
-            let fut = {
+            rt.exec({
                 let val = val.clone();
                 async move {
                     println!("@@ future1: ^^ val: {}", val.get());
                     val.set(val.get() + 1);
                     println!("@@ future1: $$ val: {}", val.get());
                 }
-            };
-            rt.exec(fut).await;
+            }).await;
 
             //
 
