@@ -19,13 +19,12 @@ pub extern fn rustmod_start() {
     rustmod_tests();
 }
 
-async fn inc(val: Rc<Cell<u8>>) -> Result<bool, ()>{
-    println!("@@ inc() before: val: {}", val.get());
+async fn inc(val: Rc<Cell<u8>>) -> Result<u8, ()>{
+    println!("@@ inc(): ^^ val: {}", val.get());
     val.set(val.get() + 1);
-    println!("@@ inc() after: val: {}", val.get());
     if 0 == 1 { loop {} } // debug
 
-    Ok(true)
+    Ok(val.get())
 }
 
 fn rustmod_tests() {
