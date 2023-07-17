@@ -22,7 +22,6 @@ pub extern fn rustmod_start() {
 fn rustmod_tests() {
     println!("@@ rustmod_tests(): ^^");
 
-    //----@@ adaptation of https://github.com/smol-rs/async-task/blob/9ff587ecab7b9a9fa81672f4dbf315ff375b6e5e/examples/spawn-local.rs#L51
     let val = Rc::new(Cell::new(0));
     println!("@@ rustmod_tests(): val: {}", val.get());
 
@@ -52,22 +51,30 @@ fn rustmod_tests() {
 
     // The value should be 2 at the end of the program.
     println!("@@ rustmod_tests(): $$ val: {}", val.get());
-    //----@@
 }
 
 
+//----@@ adaptation of https://github.com/smol-rs/async-task/blob/9ff587ecab7b9a9fa81672f4dbf315ff375b6e5e/examples/spawn-local.rs#L51
 struct Runtime(Rc<RefCell<ArrayQueue<Runnable>>>);
 impl Runtime {
     pub fn new() -> Self {
         Self(Rc::new(RefCell::new(crossbeam_queue::ArrayQueue::<Runnable>::new(99))))
     }
 
+    /// Spawns a future on the executor.
     pub fn exec<F, T>(&self, future: F) -> Task<T>
     where
         F: Future<Output = T> + 'static,
         T: 'static,
     {
-        spawn(self.0.clone(), future)
+        // Create a task that is scheduled by pushing itself into the queue.
+        let schedule = |runnable| self.0.borrow().push(runnable).unwrap();
+        let (runnable, task) = unsafe { async_task::spawn_unchecked(future, schedule) };
+
+        // Schedule the task by pushing it into the queue.
+        runnable.schedule();
+
+        task
     }
 
     pub fn spawn_local<F, T>(&self, future: F) -> T
@@ -75,56 +82,25 @@ impl Runtime {
         F: Future<Output = T> + 'static,
         T: 'static,
     {
-        run(self.0.clone(), future)
-    }
-}
+        // Spawn a task that sends its result through a channel.
+        let oneshot = Rc::new(RefCell::new(crossbeam_queue::ArrayQueue::new(1)));
+        let oneshot_cloned = oneshot.clone();
+        self.exec(async move {
+            println!("@@ future-spawn-local: ^^");
+            drop(oneshot.borrow().push(future.await))
+        }).detach();
 
+        loop {
+            println!("@@ loop: ^^");
+            // If the original task has completed, return its result.
+            if let Some(val) = oneshot_cloned.borrow().pop() {
+                return val;
+            }
+            println!("@@ loop: --");
 
-
-/// Spawns a future on the executor.
-fn spawn<F, T>(queue: Rc<RefCell<ArrayQueue<Runnable>>>, future: F) -> Task<T>
-where
-    F: Future<Output = T> + 'static,
-    T: 'static,
-{
-    println!("@@ spawn(): ^^");
-    // Create a task that is scheduled by pushing itself into the queue.
-    let schedule = |runnable| queue.borrow().push(runnable).unwrap();
-    let (runnable, task) = unsafe { async_task::spawn_unchecked(future, schedule) };
-
-    // Schedule the task by pushing it into the queue.
-    runnable.schedule();
-
-    task
-}
-
-fn run<F, T>(queue: Rc<RefCell<ArrayQueue<Runnable>>>, future: F) -> T
-where
-    F: Future<Output = T> + 'static,
-    T: 'static,
-{
-    println!("@@ run(): ^^");
-
-    // Spawn a task that sends its result through a channel.
-    let oneshot = Rc::new(RefCell::new(crossbeam_queue::ArrayQueue::new(1)));
-    let oneshot_cloned = oneshot.clone();
-    spawn(queue.clone(), async move {
-        println!("@@ future-run: ^^");
-        drop(oneshot.borrow().push(future.await))
-    }).detach();
-
-    loop {
-        println!("@@ loop: ^^");
-        // If the original task has completed, return its result.
-        //@@if let Ok(val) = r.try_recv() {
-        if let Some(val) = oneshot_cloned.borrow().pop() {
-            return val;
+            // Otherwise, take a task from the queue and run it.
+            self.0.borrow().pop().unwrap().run();
+            println!("@@ loop: $$");
         }
-        println!("@@ loop: --");
-
-        // Otherwise, take a task from the queue and run it. (@@ invokes "future2" above)
-        //@@QUEUE.with(|(_, r)| r.recv().unwrap().run());
-        queue.borrow().pop().unwrap().run();
-        println!("@@ loop: $$");
     }
 }
