@@ -22,40 +22,64 @@ pub extern fn rustmod_start() {
 fn rustmod_tests() {
     println!("@@ rustmod_tests(): ^^");
 
-    //let queue = Rc::new(RefCell::new(futures_channel::mpsc::unbounded::<Runnable>()));
-    let queue = Rc::new(RefCell::new(crossbeam_queue::ArrayQueue::<Runnable>::new(99)));
-
     //----@@ adaptation of https://github.com/smol-rs/async-task/blob/9ff587ecab7b9a9fa81672f4dbf315ff375b6e5e/examples/spawn-local.rs#L51
     let val = Rc::new(Cell::new(0));
     println!("@@ rustmod_tests(): val: {}", val.get());
 
-    // Run a future that increments a non-`Send` value.
-    run(queue.clone(), {
+    let rt = Rc::new(Runtime::new());
+    {
         let val = val.clone();
-        async move {
+        let rtt = rt.clone();
+
+        rt.spawn_local(async move {
             println!("@@ future1: ^^ val: {}", val.get());
 
-            // Spawn a future that increments the value.
-            let task = spawn(queue, {
+            val.set(val.get() + 1);
+
+            let fut = {
                 let val = val.clone();
                 async move {
                     println!("@@ future2: ^^ val: {}", val.get());
                     val.set(val.get() + 1);
                     println!("@@ future2: $$ val: {}", val.get());
                 }
-            });
-
-            val.set(val.get() + 1);
-            task.await;
+            };
+            rtt.exec(fut).await;
 
             println!("@@ future1: $$ val: {}", val.get());
-        }
-    });
+        });
+    }
 
     // The value should be 2 at the end of the program.
     println!("@@ rustmod_tests(): $$ val: {}", val.get());
     //----@@
 }
+
+
+struct Runtime(Rc<RefCell<ArrayQueue<Runnable>>>);
+impl Runtime {
+    pub fn new() -> Self {
+        Self(Rc::new(RefCell::new(crossbeam_queue::ArrayQueue::<Runnable>::new(99))))
+    }
+
+    pub fn exec<F, T>(&self, future: F) -> Task<T>
+    where
+        F: Future<Output = T> + 'static,
+        T: 'static,
+    {
+        spawn(self.0.clone(), future)
+    }
+
+    pub fn spawn_local<F, T>(&self, future: F) -> T
+    where
+        F: Future<Output = T> + 'static,
+        T: 'static,
+    {
+        run(self.0.clone(), future)
+    }
+}
+
+
 
 /// Spawns a future on the executor.
 fn spawn<F, T>(queue: Rc<RefCell<ArrayQueue<Runnable>>>, future: F) -> Task<T>
@@ -74,7 +98,6 @@ where
     task
 }
 
-/// Runs a future to completion.
 fn run<F, T>(queue: Rc<RefCell<ArrayQueue<Runnable>>>, future: F) -> T
 where
     F: Future<Output = T> + 'static,
