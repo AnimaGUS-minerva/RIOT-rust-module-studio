@@ -27,18 +27,25 @@ async fn inc(val: Rc<Cell<u8>>) -> Result<u8, ()>{
     Ok(val.get())
 }
 
+/* TODO fixme !!!!
+flags -- https://github.com/crossbeam-rs/crossbeam/blob/master/crossbeam-utils/build.rs
+ee --
+79 |             pub(crate) use core::sync::atomic::{AtomicI64, AtomicU64};
+   |                                                 ^^^^^^^^^  ^^^^^^^^^ no `AtomicU64` in `sync::atomic`
+   |                                                 |
+   |                                                 no `AtomicI64` in `sync::atomic`
+ */
 fn rustmod_tests() {
     println!("@@ rustmod_tests(): ^^");
 
     let val = Rc::new(Cell::new(0));
     println!("@@ rustmod_tests(): val: {}", val.get());
 
-    let rt0 = Rc::new(Runtime::new());
+    let rt = Rc::new(Runtime::new());
     {
         let val = val.clone();
-        let rt = rt0.clone();
-
-        rt0.spawn_local(async move {
+        let rtc = rt.clone();
+        rt.spawn_local(async move {
             println!("@@ future0: ^^ val: {}", val.get());
 
             //
@@ -47,12 +54,12 @@ fn rustmod_tests() {
 
             //
 
-            let ret = rt.exec(inc(val.clone())).await;
+            let ret = rtc.exec(inc(val.clone())).await;
             println!("@@ ret: {:?}", ret);
 
             //
 
-            rt.exec({
+            rtc.exec({
                 let val = val.clone();
                 async move {
                     println!("@@ future1: ^^ val: {}", val.get());
@@ -102,7 +109,7 @@ impl Runtime {
     {
         // Spawn a task that sends its result through a channel.
         let oneshot = Rc::new(RefCell::new(crossbeam_queue::ArrayQueue::new(1)));
-        let oneshot_cloned = oneshot.clone();
+        let oneshotc = oneshot.clone();
         self.exec(async move {
             println!("@@ future-spawn-local: ^^");
             drop(oneshot.borrow().push(future.await))
@@ -111,7 +118,7 @@ impl Runtime {
         loop {
             println!("@@ loop: ^^");
             // If the original task has completed, return its result.
-            if let Some(val) = oneshot_cloned.borrow().pop() {
+            if let Some(val) = oneshotc.borrow().pop() {
                 return val;
             }
             println!("@@ loop: --");
