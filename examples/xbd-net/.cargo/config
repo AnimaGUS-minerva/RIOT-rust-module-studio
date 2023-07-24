@@ -3,6 +3,7 @@ rustflags = [
   "-C", "target-cpu=esp32",
   "-C", "save-temps",
   "-C", "link-arg=-nostdlib",
+  "--cfg", "crossbeam_no_atomic_64",
 ]
 
 [target.i686-unknown-linux-gnu]

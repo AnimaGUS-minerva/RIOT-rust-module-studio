@@ -27,14 +27,6 @@ async fn inc(val: Rc<Cell<u8>>) -> Result<u8, ()>{
     Ok(val.get())
 }
 
-/* TODO fixme !!!!
-flags -- https://github.com/crossbeam-rs/crossbeam/blob/master/crossbeam-utils/build.rs
-ee --
-79 |             pub(crate) use core::sync::atomic::{AtomicI64, AtomicU64};
-   |                                                 ^^^^^^^^^  ^^^^^^^^^ no `AtomicU64` in `sync::atomic`
-   |                                                 |
-   |                                                 no `AtomicI64` in `sync::atomic`
- */
 fn rustmod_tests() {
     println!("@@ rustmod_tests(): ^^");
 
