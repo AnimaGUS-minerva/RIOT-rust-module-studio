@@ -24,12 +24,18 @@ pub extern fn rustmod_start() {
 
 //
 
-//use blog_os::task::{executor::Executor, keyboard, Task};
 mod blogos12;
-use blogos12::{example_task, keyboard};
+
+use blogos12::{example_task, keyboard, simple_executor::SimpleExecutor};
 
 fn rustmod_tests_blogos12() {
     println!("@@ rustmod_tests_blogos12(): ^^");
+
+    //
+
+    let mut executor = SimpleExecutor::new();
+    executor.spawn(blogos12::Task::new(example_task())); // ok
+    executor.run();
 
     // let mut executor = Executor::new();
     // executor.spawn(Task::new(example_task()));
@@ -39,11 +45,10 @@ fn rustmod_tests_blogos12() {
     let rt = Rc::new(Runtime::new());
     let rtc = rt.clone();
     rt.spawn_local(async move {
-        rtc.exec(example_task()).await;
+        rtc.exec(example_task()).await; // ok
         println!("@@ rustmod_tests_blogos12(): ----");
-        rtc.exec(keyboard::print_keypresses()).await;
+        if 0 == 1 { rtc.exec(keyboard::print_keypresses()).await; } // TODO async stream support in Runtime
     });
-
 }
 
 //

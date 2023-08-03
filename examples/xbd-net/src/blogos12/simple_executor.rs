@@ -1,4 +1,4 @@
-use super::Task;
+use crate::blogos12::Task;
 use mcu_if::alloc::collections::VecDeque;
 use core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
 
