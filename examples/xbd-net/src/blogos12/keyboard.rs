@@ -1,4 +1,4 @@
-use crate::{print, println};
+use mcu_if::println;
 use conquer_once::spin::OnceCell;
 use core::{
     pin::Pin,
@@ -51,17 +51,17 @@ impl Stream for ScancodeStream {
             .expect("scancode queue not initialized");
 
         // fast path
-        if let Ok(scancode) = queue.pop() {
+        if let Some(scancode) = queue.pop() {
             return Poll::Ready(Some(scancode));
         }
 
         WAKER.register(&cx.waker());
         match queue.pop() {
-            Ok(scancode) => {
+            Some(scancode) => {
                 WAKER.take();
                 Poll::Ready(Some(scancode))
             }
-            Err(crossbeam_queue::PopError) => Poll::Pending,
+            None => Poll::Pending,
         }
     }
 }
@@ -74,8 +74,8 @@ pub async fn print_keypresses() {
         if let Ok(Some(key_event)) = keyboard.add_byte(scancode) {
             if let Some(key) = keyboard.process_keyevent(key_event) {
                 match key {
-                    DecodedKey::Unicode(character) => print!("{}", character),
-                    DecodedKey::RawKey(key) => print!("{:?}", key),
+                    DecodedKey::Unicode(character) => println!("{}", character),
+                    DecodedKey::RawKey(key) => println!("{:?}", key),
                 }
             }
         }

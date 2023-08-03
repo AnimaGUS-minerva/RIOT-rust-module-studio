@@ -1,5 +1,6 @@
 #![no_std]
 #![feature(alloc_error_handler)]
+#![feature(stmt_expr_attributes)]
 
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! { mcu_if::panic(info) }
@@ -39,7 +40,7 @@ fn rustmod_tests_blogos12() {
     let rtc = rt.clone();
     rt.spawn_local(async move {
         rtc.exec(example_task()).await;
-        rtc.exec(keyboard::print_keypresses()).await;
+        //rtc.exec(keyboard::print_keypresses()).await;
     });
 
 }

@@ -12,3 +12,6 @@ crate-type = ["staticlib"]
 mcu-if = { git = "https://github.com/AnimaGUS-minerva/mcu-if", rev = "7f30df8", features=["allocator"] }
 async-task = { version = "4.4.0", default-features = false }
 crossbeam-queue = { version = "0.3", default-features = false, features=["alloc"] }
+conquer-once = { version = "0.2.0", default-features = false }
+futures-util = { version = "0.3.4", default-features = false, features=["alloc"] }
+pc-keyboard = "0.5.0"
