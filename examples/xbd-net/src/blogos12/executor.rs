@@ -1,5 +1,6 @@
 use super::{Task, TaskId};
-use alloc::{collections::BTreeMap, sync::Arc, task::Wake};
+use mcu_if::{println, alloc::{collections::BTreeMap, sync::Arc, task::Wake}};
+
 use core::task::{Context, Poll, Waker};
 use crossbeam_queue::ArrayQueue;
 
@@ -50,6 +51,7 @@ impl Executor {
                 .entry(task_id)
                 .or_insert_with(|| TaskWaker::new(task_id, task_queue.clone()));
             let mut context = Context::from_waker(waker);
+            if 1 == 1 { println!("@@ Executor: calling task.poll()"); } // not CPU busy, with Waker support
             match task.poll(&mut context) {
                 Poll::Ready(()) => {
                     // task done -> remove it and its cached waker
@@ -61,7 +63,7 @@ impl Executor {
         }
     }
 
-    fn sleep_if_idle(&self) {
+    fn sleep_if_idle(&self) {/*@@FIXME
         use x86_64::instructions::interrupts::{self, enable_and_hlt};
 
         interrupts::disable();
@@ -70,7 +72,7 @@ impl Executor {
         } else {
             interrupts::enable();
         }
-    }
+    @@*/}
 }
 
 struct TaskWaker {

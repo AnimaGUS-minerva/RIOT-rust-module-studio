@@ -8,6 +8,7 @@ use mcu_if::{println, alloc::boxed::Box};
 
 pub mod keyboard;
 pub mod simple_executor;
+pub mod executor;
 
 //
 

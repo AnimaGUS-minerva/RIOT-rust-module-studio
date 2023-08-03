@@ -26,29 +26,40 @@ pub extern fn rustmod_start() {
 
 mod blogos12;
 
-use blogos12::{example_task, keyboard, simple_executor::SimpleExecutor};
+use blogos12::{example_task, keyboard::print_keypresses};
 
 fn rustmod_tests_blogos12() {
     println!("@@ rustmod_tests_blogos12(): ^^");
 
     //
 
-    let mut executor = SimpleExecutor::new();
-    executor.spawn(blogos12::Task::new(example_task())); // ok
-    executor.spawn(blogos12::Task::new(keyboard::print_keypresses())); // ok, CPU busy without Waker support
-    executor.run();
+    if 0 == 1 {
+        use blogos12::simple_executor::SimpleExecutor;
+        let mut executor = SimpleExecutor::new();
+        executor.spawn(blogos12::Task::new(example_task())); // ok
+        executor.spawn(blogos12::Task::new(print_keypresses())); // ok, CPU busy without Waker support
+        executor.run();
+    }
 
-    // let mut executor = Executor::new();
-    // executor.spawn(Task::new(example_task()));
-    // executor.spawn(Task::new(keyboard::print_keypresses()));
-    // executor.run();
+    //
+
+    if 1 == 1 {
+        use blogos12::executor::Executor;
+        let mut executor = Executor::new();
+        executor.spawn(blogos12::Task::new(example_task())); // ok
+        executor.spawn(blogos12::Task::new(print_keypresses())); // ok, not CPU busy, with Waker support
+        // FIXME sleep_if_idle() stuff --------------|
+        executor.run();
+    }
+
+    //
 
     let rt = Rc::new(Runtime::new());
     let rtc = rt.clone();
     rt.spawn_local(async move {
         rtc.exec(example_task()).await; // ok
         println!("@@ rustmod_tests_blogos12(): ----");
-        if 0 == 1 { rtc.exec(keyboard::print_keypresses()).await; } // TODO async stream support in Runtime
+        if 0 == 1 { rtc.exec(print_keypresses()).await; } // TODO async stream support in Runtime
     });
 }
 

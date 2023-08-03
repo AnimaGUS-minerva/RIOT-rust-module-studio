@@ -15,3 +15,4 @@ crossbeam-queue = { version = "0.3", default-features = false, features=["alloc"
 conquer-once = { version = "0.2.0", default-features = false }
 futures-util = { version = "0.3.4", default-features = false, features=["alloc"] }
 pc-keyboard = "0.5.0"
+##FIXME!native/esp32##x86_64 = "0.14.2"
