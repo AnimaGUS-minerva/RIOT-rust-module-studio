@@ -1,5 +1,5 @@
 use crate::blogos12::Task;
-use mcu_if::alloc::collections::VecDeque;
+use mcu_if::{println, alloc::collections::VecDeque};
 use core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
 
 pub struct SimpleExecutor {
@@ -21,6 +21,7 @@ impl SimpleExecutor {
         while let Some(mut task) = self.task_queue.pop_front() {
             let waker = dummy_waker();
             let mut context = Context::from_waker(&waker);
+            //println!("@@ SimpleExecutor: polling"); // CPU busy without Waker support
             match task.poll(&mut context) {
                 Poll::Ready(()) => {} // task done
                 Poll::Pending => self.task_queue.push_back(task),

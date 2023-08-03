@@ -35,13 +35,14 @@ fn rustmod_tests_blogos12() {
 
     let mut executor = SimpleExecutor::new();
     executor.spawn(blogos12::Task::new(example_task())); // ok
+    executor.spawn(blogos12::Task::new(keyboard::print_keypresses())); // ok, CPU busy without Waker support
     executor.run();
 
     // let mut executor = Executor::new();
     // executor.spawn(Task::new(example_task()));
     // executor.spawn(Task::new(keyboard::print_keypresses()));
     // executor.run();
-    //====@@
+
     let rt = Rc::new(Runtime::new());
     let rtc = rt.clone();
     rt.spawn_local(async move {
