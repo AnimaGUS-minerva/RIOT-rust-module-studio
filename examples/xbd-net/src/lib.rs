@@ -40,7 +40,8 @@ fn rustmod_tests_blogos12() {
     let rtc = rt.clone();
     rt.spawn_local(async move {
         rtc.exec(example_task()).await;
-        //rtc.exec(keyboard::print_keypresses()).await;
+        println!("@@ rustmod_tests_blogos12(): ----");
+        rtc.exec(keyboard::print_keypresses()).await;
     });
 
 }

@@ -67,6 +67,8 @@ impl Stream for ScancodeStream {
 }
 
 pub async fn print_keypresses() {
+    println!("@@ print_keypresses(): ^^");
+
     let mut scancodes = ScancodeStream::new();
     let mut keyboard = Keyboard::new(layouts::Us104Key, ScancodeSet1, HandleControl::Ignore);
 
@@ -80,4 +82,5 @@ pub async fn print_keypresses() {
             }
         }
     }
+    println!("@@ print_keypresses(): $$");
 }
