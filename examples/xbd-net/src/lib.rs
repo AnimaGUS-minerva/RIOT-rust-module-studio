@@ -25,7 +25,8 @@ pub extern fn rustmod_start() {
 
 //use blog_os::task::{executor::Executor, keyboard, Task};
 mod blogos12;
-use blogos12::example_task;
+use blogos12::{example_task, keyboard};
+
 fn rustmod_tests_blogos12() {
     println!("@@ rustmod_tests_blogos12(): ^^");
 
@@ -38,7 +39,7 @@ fn rustmod_tests_blogos12() {
     let rtc = rt.clone();
     rt.spawn_local(async move {
         rtc.exec(example_task()).await;
-        //rtc.exec(print_keypresses()).await;
+        rtc.exec(keyboard::print_keypresses()).await;
     });
 
 }

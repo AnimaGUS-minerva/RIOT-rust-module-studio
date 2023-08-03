@@ -1,5 +1,7 @@
 use mcu_if::println;
 
+pub mod keyboard;
+
 async fn async_number() -> u32 {
     42
 }
