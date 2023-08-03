@@ -16,8 +16,34 @@ use crossbeam_queue::ArrayQueue;
 #[no_mangle]
 pub extern fn rustmod_start() {
     println!("[src/lib.rs] rustmod_start(): ^^");
-    rustmod_tests();
+
+    rustmod_tests_blogos12();
+    //rustmod_tests();
 }
+
+//
+
+//use blog_os::task::{executor::Executor, keyboard, Task};
+mod blogos12;
+use blogos12::example_task;
+fn rustmod_tests_blogos12() {
+    println!("@@ rustmod_tests_blogos12(): ^^");
+
+    // let mut executor = Executor::new();
+    // executor.spawn(Task::new(example_task()));
+    // executor.spawn(Task::new(keyboard::print_keypresses()));
+    // executor.run();
+    //====@@
+    let rt = Rc::new(Runtime::new());
+    let rtc = rt.clone();
+    rt.spawn_local(async move {
+        rtc.exec(example_task()).await;
+        //rtc.exec(print_keypresses()).await;
+    });
+
+}
+
+//
 
 async fn inc(val: Rc<Cell<u8>>) -> Result<u8, ()>{
     println!("@@ inc(): ^^ val: {}", val.get());
