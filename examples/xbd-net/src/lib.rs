@@ -11,6 +11,9 @@ fn alloc_error(layout: mcu_if::alloc::alloc::Layout) -> ! { mcu_if::alloc_error(
 use core::cell::Cell;
 use mcu_if::{println, alloc::rc::Rc};
 
+mod runtime;
+mod blogos12;
+
 #[no_mangle]
 pub extern fn rustmod_start() {
     println!("[src/lib.rs] rustmod_start(): ^^");
@@ -19,12 +22,7 @@ pub extern fn rustmod_start() {
     if 1 == 1 { rustmod_test_blogos12(); }
 }
 
-mod blogos12;
-mod runtime;
-
 //
-
-use blogos12::keyboard::print_keypresses;
 
 fn rustmod_test_blogos12() {
     println!("@@ rustmod_test_blogos12(): ^^");
@@ -37,6 +35,8 @@ fn rustmod_test_blogos12() {
         let number = async_number().await;
         println!("async number: {}", number);
     }
+
+    use blogos12::keyboard::print_keypresses;
 
     //
 
