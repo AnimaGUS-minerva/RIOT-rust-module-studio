@@ -24,10 +24,19 @@ mod runtime;
 
 //
 
-use blogos12::{example_task, keyboard::print_keypresses};
+use blogos12::keyboard::print_keypresses;
 
 fn rustmod_tests_blogos12() {
     println!("@@ rustmod_tests_blogos12(): ^^");
+
+    //
+
+    async fn async_number() -> u32 { 42 }
+
+    pub async fn example_task() {
+        let number = async_number().await;
+        println!("async number: {}", number);
+    }
 
     //
 
