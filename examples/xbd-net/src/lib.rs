@@ -15,8 +15,8 @@ use mcu_if::{println, alloc::rc::Rc};
 pub extern fn rustmod_start() {
     println!("[src/lib.rs] rustmod_start(): ^^");
 
-    rustmod_tests_blogos12();
-    if 0 == 1 { rustmod_tests(); }
+    if 0 == 1 { rustmod_test_blogos12(); }
+    if 1 == 1 { rustmod_test_runtime(); }
 }
 
 mod blogos12;
@@ -26,8 +26,8 @@ mod runtime;
 
 use blogos12::keyboard::print_keypresses;
 
-fn rustmod_tests_blogos12() {
-    println!("@@ rustmod_tests_blogos12(): ^^");
+fn rustmod_test_blogos12() {
+    println!("@@ rustmod_test_blogos12(): ^^");
 
     //
 
@@ -65,26 +65,31 @@ fn rustmod_tests_blogos12() {
     let rtc = rt.clone();
     rt.spawn_local(async move {
         rtc.exec(example_task()).await; // ok
-        println!("@@ rustmod_tests_blogos12(): ----");
+        println!("@@ rustmod_test_blogos12(): ----");
         if 0 == 1 { rtc.exec(print_keypresses()).await; } // TODO async stream support in Runtime
     });
 }
 
 //
 
-async fn inc(val: Rc<Cell<u8>>) -> Result<u8, ()>{
-    println!("@@ inc(): ^^ val: {}", val.get());
-    val.set(val.get() + 1);
-    if 0 == 1 { loop {} } // debug
 
-    Ok(val.get())
-}
+fn rustmod_test_runtime() {
+    println!("@@ rustmod_test_runtime(): ^^");
 
-fn rustmod_tests() {
-    println!("@@ rustmod_tests(): ^^");
+    //
+
+    async fn inc(val: Rc<Cell<u8>>) -> Result<u8, ()>{
+        println!("@@ inc(): ^^ val: {}", val.get());
+        val.set(val.get() + 1);
+        if 0 == 1 { loop {} } // debug
+
+        Ok(val.get())
+    }
+
+    //
 
     let val = Rc::new(Cell::new(0));
-    println!("@@ rustmod_tests(): val: {}", val.get());
+    println!("@@ rustmod_test_runtime(): val: {}", val.get());
 
     let rt = Rc::new(runtime::Runtime::new());
     {
@@ -119,5 +124,6 @@ fn rustmod_tests() {
         });
     }
 
-    println!("@@ rustmod_tests(): $$ val: {}", val.get());
+    println!("@@ rustmod_test_runtime(): $$ val: {}", val.get());
+    assert_eq!(val.get(), 3);
 }
