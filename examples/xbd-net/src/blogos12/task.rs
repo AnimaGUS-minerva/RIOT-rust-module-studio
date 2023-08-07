@@ -1,7 +1,7 @@
 use core::{
     future::Future,
     pin::Pin,
-    sync::atomic::{AtomicU64, Ordering},
+    sync::atomic::{AtomicU32, Ordering},
     task::{Context, Poll},
 };
 use mcu_if::alloc::boxed::Box;
@@ -25,11 +25,11 @@ impl Task {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct TaskId(u64);
+pub struct TaskId(u32);
 
 impl TaskId {
     fn new() -> Self {
-        static NEXT_ID: AtomicU64 = AtomicU64::new(0);
+        static NEXT_ID: AtomicU32 = AtomicU32::new(0);
         TaskId(NEXT_ID.fetch_add(1, Ordering::Relaxed))
     }
 }

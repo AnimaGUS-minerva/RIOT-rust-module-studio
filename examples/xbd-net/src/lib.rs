@@ -15,8 +15,8 @@ use mcu_if::{println, alloc::rc::Rc};
 pub extern fn rustmod_start() {
     println!("[src/lib.rs] rustmod_start(): ^^");
 
-    if 0 == 1 { rustmod_test_blogos12(); }
     if 1 == 1 { rustmod_test_runtime(); }
+    if 1 == 1 { rustmod_test_blogos12(); }
 }
 
 mod blogos12;
@@ -68,6 +68,8 @@ fn rustmod_test_blogos12() {
         println!("@@ rustmod_test_blogos12(): ----");
         if 0 == 1 { rtc.exec(print_keypresses()).await; } // TODO async stream support in Runtime
     });
+
+    println!("@@ rustmod_test_blogos12(): $$");
 }
 
 //
@@ -124,6 +126,8 @@ fn rustmod_test_runtime() {
         });
     }
 
-    println!("@@ rustmod_test_runtime(): $$ val: {}", val.get());
+    println!("@@ rustmod_test_runtime(): val: {}", val.get());
     assert_eq!(val.get(), 3);
+
+    println!("@@ rustmod_test_runtime(): $$");
 }

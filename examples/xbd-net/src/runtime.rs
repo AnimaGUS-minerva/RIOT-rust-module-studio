@@ -3,7 +3,7 @@ use mcu_if::{println, alloc::rc::Rc};
 use async_task::{Runnable, Task};
 use crossbeam_queue::ArrayQueue;
 
-const RUNTIME_CAP_DEFAULT: usize = 16;
+const RUNTIME_CAP_DEFAULT: usize = 128;
 
 pub struct Runtime(Rc<ArrayQueue<Runnable>>);
 
