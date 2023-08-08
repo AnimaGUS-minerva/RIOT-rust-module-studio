@@ -45,6 +45,12 @@ void start_shell(const shell_command_t *shell_commands) {
 
 //
 
+static void xbd_usleep(uint32_t delay) {
+    putchar('.');
+    xtimer_usleep(delay);
+}
+
+//
 static msg_t main_msg_queue[16];
 static gnrc_netif_t *outer_interface = NULL;
 static gnrc_netif_t *inner_interface = NULL;
@@ -82,8 +88,10 @@ int main(void) {
     }
 
     if (1) {
+        //while (1) { xbd_usleep(500000); } // debug
+
         printf("@@ main(): before calling rustmod\n");
-        rustmod_start();
+        rustmod_start(xbd_usleep);
         printf("@@ main(): after calling rustmod\n");
     }
 

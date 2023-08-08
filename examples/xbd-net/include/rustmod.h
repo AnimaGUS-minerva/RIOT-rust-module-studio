@@ -1,1 +1,1 @@
-void rustmod_start(void);
+void rustmod_start(void (*)(uint32_t));

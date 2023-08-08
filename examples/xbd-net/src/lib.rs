@@ -15,11 +15,14 @@ mod runtime;
 mod blogos12;
 
 #[no_mangle]
-pub extern fn rustmod_start() {
+pub extern fn rustmod_start(
+    xbd_usleep: extern "C" fn(u32)
+) {
     println!("[src/lib.rs] rustmod_start(): ^^");
 
-    if 1 == 1 { rustmod_test_runtime(); }
-    if 1 == 1 { rustmod_test_blogos12(); }
+    if 1 == 1 { loop { xbd_usleep(500_000); } }
+    if 100 == 1 { rustmod_test_runtime(); }
+    if 10 == 1 { rustmod_test_blogos12(); }
 }
 
 //
