@@ -14,20 +14,66 @@ use mcu_if::{println, alloc::rc::Rc};
 mod runtime;
 mod blogos12;
 
-#[no_mangle]
-pub extern fn rustmod_start(
-    xbd_usleep: extern "C" fn(u32)
-) {
-    println!("[src/lib.rs] rustmod_start(): ^^");
+//
 
-    if 1 == 1 { loop { xbd_usleep(500_000); } }
-    if 100 == 1 { rustmod_test_runtime(); }
-    if 10 == 1 { rustmod_test_blogos12(); }
+type SleepFnPtr = unsafe extern "C" fn(u32);
+type SetTimeoutFnPtr = unsafe extern "C" fn(u32); // TODO handle cb
+pub struct Xbd {
+    _usleep: SleepFnPtr,
+    _ztimer_msleep: SleepFnPtr,
+    _ztimer_set: SetTimeoutFnPtr,
+}
+
+impl Xbd {
+    pub fn new(
+        xbd_usleep: SleepFnPtr,
+        xbd_ztimer_msleep: SleepFnPtr,
+        xbd_ztimer_set: SetTimeoutFnPtr
+    ) -> Self {
+        Self {
+            _usleep: xbd_usleep,
+            _ztimer_msleep: xbd_ztimer_msleep,
+            _ztimer_set: xbd_ztimer_set,
+        }
+    }
+
+    pub fn usleep(&self, usec: u32) {
+        unsafe { (self._usleep)(usec); }
+    }
+
+    pub fn msleep(&self, msec: u32) {
+        unsafe { (self._ztimer_msleep)(msec); }
+    }
+
+    pub fn set_timeout(&self, msec: u32) {// TODO handle cb
+        unsafe { (self._ztimer_set)(msec); }
+    }
 }
 
 //
 
-fn rustmod_test_blogos12() {
+#[no_mangle]
+pub extern fn rustmod_start(
+    xbd_usleep: SleepFnPtr,
+    xbd_ztimer_msleep: SleepFnPtr,
+    xbd_ztimer_set: SetTimeoutFnPtr
+) {
+    println!("[src/lib.rs] rustmod_start(): ^^");
+
+    if 100 == 1 { loop { unsafe { xbd_usleep(500_000); } } } // ok
+
+    let xbd = Xbd::new(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set);
+
+    if 100 == 1 { loop { xbd.usleep(500_000); } } // ok
+    if 100 == 1 { loop { xbd.msleep(500); } } // ok
+
+    if 1 == 1 { rustmod_test_blogos12(&xbd); }
+    if 100 == 1 { rustmod_test_runtime(); }
+}
+
+//
+
+fn rustmod_test_blogos12(xbd: &Xbd) {
     println!("@@ rustmod_test_blogos12(): ^^");
 
     //
@@ -53,6 +99,7 @@ fn rustmod_test_blogos12() {
 
     //
 
+    xbd.set_timeout(2500);
     if 1 == 1 {
         use blogos12::executor::Executor;
         let mut executor = Executor::new();
