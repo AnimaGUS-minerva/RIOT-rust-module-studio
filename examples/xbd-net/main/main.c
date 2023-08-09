@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <xtimer.h>
+#include <ztimer.h>
 #include <shell.h>
 #include <msg.h>
 #include "rustmod.h"
@@ -50,6 +51,17 @@ static void xbd_usleep(uint32_t delay) {
     xtimer_usleep(delay);
 }
 
+static void callback(void *arg) { puts(arg); } // !!
+static ztimer_t timeout = { .callback=callback, .arg="Hello ztimer!" }; // !!
+static void xbd_ztimer_set(uint32_t delay) {
+    printf("@@ xbd_ztimer_set(): delay(ms): %d\n", delay);
+    ztimer_set(ZTIMER_MSEC, &timeout, delay);
+}
+static void xbd_ztimer_msleep(uint32_t delay) {
+    putchar('.');
+    ztimer_sleep(ZTIMER_MSEC, delay);
+}
+
 //
 static msg_t main_msg_queue[16];
 static gnrc_netif_t *outer_interface = NULL;
@@ -87,11 +99,11 @@ int main(void) {
         gcoap_cli_cmd(argc, argv);
     }
 
+    //while (1) { xbd_usleep(500000); } // debug
+    //xbd_ztimer_set(2500);  for (int i = 0; i < 8; i++) { xbd_ztimer_msleep(500); } // debug, ok
     if (1) {
-        //while (1) { xbd_usleep(500000); } // debug
-
         printf("@@ main(): before calling rustmod\n");
-        rustmod_start(xbd_usleep);
+        rustmod_start(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set);
         printf("@@ main(): after calling rustmod\n");
     }
 
