@@ -62,18 +62,18 @@ pub extern fn rustmod_start(
 
     if 100 == 1 { loop { unsafe { xbd_usleep(500_000); } } } // ok
 
-    let xbd = Xbd::new(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set);
+    let xbd = Rc::new(Xbd::new(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set));
 
     if 100 == 1 { loop { xbd.usleep(500_000); } } // ok
     if 100 == 1 { loop { xbd.msleep(500); } } // ok
 
-    if 1 == 1 { rustmod_test_blogos12(&xbd); }
+    if 1 == 1 { rustmod_test_blogos12(xbd.clone()); }
     if 100 == 1 { rustmod_test_runtime(); }
 }
 
 //
 
-fn rustmod_test_blogos12(xbd: &Xbd) {
+fn rustmod_test_blogos12(xbd: Rc<Xbd>) {
     println!("@@ rustmod_test_blogos12(): ^^");
 
     //
@@ -99,10 +99,12 @@ fn rustmod_test_blogos12(xbd: &Xbd) {
 
     //
 
-    xbd.set_timeout(2500);
+    xbd.set_timeout(2500);// WIP !!!! - handle cb that mocks the `add_scancode()` logic
+    // !!!! - then udp/CoAP server logic
+
     if 1 == 1 {
         use blogos12::executor::Executor;
-        let mut executor = Executor::new();
+        let mut executor = Executor::new(xbd);
         executor.spawn(blogos12::Task::new(example_task())); // ok
         executor.spawn(blogos12::Task::new(print_keypresses())); // ok, not CPU busy, with Waker support
         // FIXME sleep_if_idle() stuff --------------|
