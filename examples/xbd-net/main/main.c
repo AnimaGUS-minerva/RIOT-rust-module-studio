@@ -51,17 +51,19 @@ static void xbd_usleep(uint32_t delay) {
     xtimer_usleep(delay);
 }
 
-static void callback(void *arg) { puts(arg); } // !!
-static ztimer_t timeout = { .callback=callback, .arg="Hello ztimer!" }; // !!
-static void xbd_ztimer_set(uint32_t delay, void (*cb_handler)(void *), void *cb_ptr) {
-    printf("@@ xbd_ztimer_set(): delay(ms): %d\n", delay);
-    timeout.callback = cb_handler;
-    timeout.arg = cb_ptr;
-    ztimer_set(ZTIMER_MSEC, &timeout, delay);
-}
 static void xbd_ztimer_msleep(uint32_t delay) {
     putchar('.');
     ztimer_sleep(ZTIMER_MSEC, delay);
+}
+
+static ztimer_t timeout = { .callback=NULL, .arg=NULL };
+static void xbd_ztimer_set(uint32_t delay, void (*cb_handler)(void *), void *cb_ptr) {
+    printf("@@ xbd_ztimer_set(): delay(ms): %d\n", delay);
+
+    timeout.callback = cb_handler;
+    timeout.arg = cb_ptr;
+
+    ztimer_set(ZTIMER_MSEC, &timeout, delay);
 }
 
 //
