@@ -44,7 +44,7 @@ void start_shell(const shell_command_t *shell_commands) {
     shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
 }
 
-//
+// ---- "minerva_xbd.h" !!
 
 static void xbd_usleep(uint32_t delay) {
     putchar('.');
@@ -53,8 +53,10 @@ static void xbd_usleep(uint32_t delay) {
 
 static void callback(void *arg) { puts(arg); } // !!
 static ztimer_t timeout = { .callback=callback, .arg="Hello ztimer!" }; // !!
-static void xbd_ztimer_set(uint32_t delay) {
+static void xbd_ztimer_set(uint32_t delay, void (*cb_handler)(void *), void *cb_ptr) {
     printf("@@ xbd_ztimer_set(): delay(ms): %d\n", delay);
+    timeout.callback = cb_handler;
+    timeout.arg = cb_ptr;
     ztimer_set(ZTIMER_MSEC, &timeout, delay);
 }
 static void xbd_ztimer_msleep(uint32_t delay) {
@@ -63,6 +65,7 @@ static void xbd_ztimer_msleep(uint32_t delay) {
 }
 
 //
+
 static msg_t main_msg_queue[16];
 static gnrc_netif_t *outer_interface = NULL;
 static gnrc_netif_t *inner_interface = NULL;

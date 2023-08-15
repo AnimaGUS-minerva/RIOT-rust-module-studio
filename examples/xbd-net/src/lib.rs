@@ -9,15 +9,15 @@ fn panic(info: &core::panic::PanicInfo) -> ! { mcu_if::panic(info) }
 fn alloc_error(layout: mcu_if::alloc::alloc::Layout) -> ! { mcu_if::alloc_error(layout) }
 
 use core::cell::Cell;
-use mcu_if::{println, alloc::rc::Rc};
+use mcu_if::{println, alloc::{rc::Rc, boxed::Box}, c_types::c_void};
 
 mod runtime;
 mod blogos12;
 
-//
+// ---- xbd.rs !!
 
 type SleepFnPtr = unsafe extern "C" fn(u32);
-type SetTimeoutFnPtr = unsafe extern "C" fn(u32); // TODO handle cb
+type SetTimeoutFnPtr = unsafe extern "C" fn(u32, *const c_void, *const c_void);
 pub struct Xbd {
     _usleep: SleepFnPtr,
     _ztimer_msleep: SleepFnPtr,
@@ -45,8 +45,17 @@ impl Xbd {
         unsafe { (self._ztimer_msleep)(msec); }
     }
 
-    pub fn set_timeout(&self, msec: u32) {// TODO handle cb
-        unsafe { (self._ztimer_set)(msec); }
+    pub fn set_timeout<F>(&self, msec: u32, cb: F) where F: FnOnce() + 'static {
+        let cb: Box<Box<dyn FnOnce()>> = Box::new(Box::new(cb));
+        let cb_ptr = Box::into_raw(cb) as *const _;
+
+        unsafe { (self._ztimer_set)(msec, Self::cb_handler as *const c_void, cb_ptr); }
+    }
+
+    fn cb_handler(cb_ptr: *const c_void) {
+        let cb: Box<Box<dyn FnOnce()>> = unsafe { Box::from_raw(cb_ptr as *mut _) };
+
+        (*cb)(); // call, move, drop
     }
 }
 
@@ -99,8 +108,12 @@ fn rustmod_test_blogos12(xbd: Rc<Xbd>) {
 
     //
 
-    xbd.set_timeout(2500);// WIP !!!! - handle cb that mocks the `add_scancode()` logic
-    // !!!! - then udp/CoAP server logic
+    let foo = Box::new(9);
+    xbd.set_timeout(2500, move || {
+        println!("@@ super_closure(): ^^ foo: {:?}", foo);
+        blogos12::keyboard::add_scancode(8);
+        blogos12::keyboard::add_scancode(*foo);
+    });
 
     if 1 == 1 {
         use blogos12::executor::Executor;
