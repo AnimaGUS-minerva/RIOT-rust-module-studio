@@ -33,8 +33,8 @@ impl Executor {
     pub fn run(&mut self) -> ! {
         loop {
             self.run_ready_tasks();
-            self.xbd.msleep(500); // @@ debug, add slight pauses
-            self.sleep_if_idle();
+            self.xbd.msleep(500); //@@ debug, add slight pauses
+            //@@N/A@@self.sleep_if_idle();
         }
     }
 
@@ -60,7 +60,7 @@ impl Executor {
         }
     }
 
-    fn sleep_if_idle(&self) {/*@@FIXME
+    /*@@N/A@@fn sleep_if_idle(&self) {
         use x86_64::instructions::interrupts::{self, enable_and_hlt};
 
         interrupts::disable();
@@ -69,7 +69,7 @@ impl Executor {
         } else {
             interrupts::enable();
         }
-    @@*/}
+    }@@*/
 }
 
 struct TaskWaker {
