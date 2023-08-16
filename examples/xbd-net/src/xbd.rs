@@ -30,17 +30,39 @@ impl Xbd {
         unsafe { (self._ztimer_msleep)(msec); }
     }
 
+    /*
     pub fn set_timeout<F>(&self, msec: u32, cb: F) where F: FnOnce() + 'static {
         let cb: Box<Box<dyn FnOnce() + 'static>> = Box::new(Box::new(cb));
         let cb_ptr = Box::into_raw(cb) as *const _;
 
         unsafe { (self._ztimer_set)(msec, Self::cb_handler as *const c_void, cb_ptr); }
     }
+    */
+    pub fn set_timeout<F>(&self, msec: u32, cb: F) where F: FnMut() + 'static {
+        let cb: Box<Box<dyn FnMut() + 'static>> = Box::new(Box::new(cb));
+        let cb_ptr = Box::into_raw(cb) as *const _;
 
+        unsafe { (self._ztimer_set)(msec, Self::cb_handler as *const c_void, cb_ptr); }
+    }
+
+    /*
     fn cb_handler(cb_ptr: *const c_void) {
         let cb: Box<Box<dyn FnOnce() + 'static>> = unsafe { Box::from_raw(cb_ptr as *mut _) };
+        (*cb)(); // call, {move, drop}<--FIXME crashing on esp32
 
-        (*cb)(); // call, move, {drop}<--FIXME crashing on esp32
+        mcu_if::println!("@@ cb_handler(): $$");
+    }
+    */
+    fn cb_handler(cb_ptr: *const c_void) {
+        mcu_if::println!("@@ cb_handler(): ^^");
+
+        let cb: &mut Box<dyn FnMut() + 'static> = unsafe { core::mem::transmute(cb_ptr) };
+        (*cb)(); // call
+
+        // TODO, drop `cb` !!!!!!!!
+        // FIXME, never use `malloc/free` in interrupt handlers, or crash
+        /* drop */ //let mut cb: Box<Box<dyn FnMut() + 'static>> = unsafe { Box::from_raw(cb_ptr as *mut _) };
+
         mcu_if::println!("@@ cb_handler(): $$");
     }
 }
