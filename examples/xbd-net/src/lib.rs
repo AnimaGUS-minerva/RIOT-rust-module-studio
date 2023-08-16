@@ -65,14 +65,18 @@ fn rustmod_test_blogos12(xbd: Rc<Xbd>) {
 
     //
 
-    let foo = Box::new(9);
-    xbd.set_timeout(2500, move || {
-        println!("@@ super_closure(): ^^ foo: {:?}", foo);
-        blogos12::keyboard::add_scancode(8);
-        blogos12::keyboard::add_scancode(*foo);
-    });
-
     if 1 == 1 {
+        let foo = Box::new(9);
+        xbd.set_timeout(2500, move || {
+            println!("@@ super_closure(): ^^ foo: {:?}", foo);
+            blogos12::keyboard::add_scancode(8);
+            blogos12::keyboard::add_scancode(*foo);
+            println!("@@ super_closure(): $$");
+        });
+
+        // fn ff() { println!("@@ ff(): ^^"); }
+        // xbd.set_timeout(2500, ff);
+
         use blogos12::executor::Executor;
         let mut executor = Executor::new(xbd);
         executor.spawn(blogos12::Task::new(example_task())); // ok

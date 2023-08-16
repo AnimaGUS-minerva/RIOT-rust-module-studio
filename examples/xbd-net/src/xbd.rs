@@ -31,15 +31,16 @@ impl Xbd {
     }
 
     pub fn set_timeout<F>(&self, msec: u32, cb: F) where F: FnOnce() + 'static {
-        let cb: Box<Box<dyn FnOnce()>> = Box::new(Box::new(cb));
+        let cb: Box<Box<dyn FnOnce() + 'static>> = Box::new(Box::new(cb));
         let cb_ptr = Box::into_raw(cb) as *const _;
 
         unsafe { (self._ztimer_set)(msec, Self::cb_handler as *const c_void, cb_ptr); }
     }
 
     fn cb_handler(cb_ptr: *const c_void) {
-        let cb: Box<Box<dyn FnOnce()>> = unsafe { Box::from_raw(cb_ptr as *mut _) };
+        let cb: Box<Box<dyn FnOnce() + 'static>> = unsafe { Box::from_raw(cb_ptr as *mut _) };
 
-        (*cb)(); // call, move, drop
+        (*cb)(); // call, move, {drop}<--FIXME crashing on esp32
+        mcu_if::println!("@@ cb_handler(): $$");
     }
 }
