@@ -1,7 +1,8 @@
-use mcu_if::{alloc::boxed::Box, c_types::c_void};
+use mcu_if::{println, alloc::boxed::Box, c_types::c_void};
 
+type CVoidPtr = *const c_void;
 pub type SleepFnPtr = unsafe extern "C" fn(u32);
-pub type SetTimeoutFnPtr = unsafe extern "C" fn(u32, *const c_void, *const c_void);
+pub type SetTimeoutFnPtr = unsafe extern "C" fn(u32, CVoidPtr, CVoidPtr);
 
 pub struct Xbd {
     _usleep: SleepFnPtr,
@@ -30,39 +31,87 @@ impl Xbd {
         unsafe { (self._ztimer_msleep)(msec); }
     }
 
-    /*
     pub fn set_timeout<F>(&self, msec: u32, cb: F) where F: FnOnce() + 'static {
         let cb: Box<Box<dyn FnOnce() + 'static>> = Box::new(Box::new(cb));
         let cb_ptr = Box::into_raw(cb) as *const _;
+        let cb_handler = add_timeout_callback as *const _;
 
-        unsafe { (self._ztimer_set)(msec, Self::cb_handler as *const c_void, cb_ptr); }
-    }
-    */
-    pub fn set_timeout<F>(&self, msec: u32, cb: F) where F: FnMut() + 'static {
-        let cb: Box<Box<dyn FnMut() + 'static>> = Box::new(Box::new(cb));
-        let cb_ptr = Box::into_raw(cb) as *const _;
-
-        unsafe { (self._ztimer_set)(msec, Self::cb_handler as *const c_void, cb_ptr); }
+        unsafe { (self._ztimer_set)(msec, cb_handler, cb_ptr); }
     }
 
-    /*
-    fn cb_handler(cb_ptr: *const c_void) {
-        let cb: Box<Box<dyn FnOnce() + 'static>> = unsafe { Box::from_raw(cb_ptr as *mut _) };
-        (*cb)(); // call, {move, drop}<--FIXME crashing on esp32
-
-        mcu_if::println!("@@ cb_handler(): $$");
+    pub fn cb_from(cb_ptr: CVoidPtr) -> Box<Box<dyn FnOnce() + 'static>> {
+        unsafe { Box::from_raw(cb_ptr as *mut _) }
     }
-    */
-    fn cb_handler(cb_ptr: *const c_void) {
-        mcu_if::println!("@@ cb_handler(): ^^");
+}
 
-        let cb: &mut Box<dyn FnMut() + 'static> = unsafe { core::mem::transmute(cb_ptr) };
-        (*cb)(); // call
+pub async fn process_timeout_callbacks() {
+    let mut callbacks = CallbackStream::new();
 
-        // TODO, drop `cb` !!!!!!!!
-        // FIXME, never use `malloc/free` in interrupt handlers, or crash
-        /* drop */ //let mut cb: Box<Box<dyn FnMut() + 'static>> = unsafe { Box::from_raw(cb_ptr as *mut _) };
+    while let Some(cb_ptr) = callbacks.next().await {
+        let cb = Xbd::cb_from(cb_ptr as CVoidPtr);
+        (*cb)(); // call, move, drop
+    }
+}
 
-        mcu_if::println!("@@ cb_handler(): $$");
+//
+
+use conquer_once::spin::OnceCell;
+use core::{pin::Pin, task::{Context, Poll}};
+use crossbeam_queue::ArrayQueue;
+use futures_util::{stream::{Stream, StreamExt}, task::AtomicWaker};
+
+const CALLBACK_QUEUE_CAP_DEFAULT: usize = 100;
+
+static CALLBACK_QUEUE: OnceCell<ArrayQueue<u32>> = OnceCell::uninit();
+static WAKER: AtomicWaker = AtomicWaker::new();
+
+fn add_timeout_callback(cb_ptr: CVoidPtr) {
+    if let Ok(queue) = CALLBACK_QUEUE.try_get() {
+        if let Err(_) = queue.push(cb_ptr as u32) {
+            println!("WARNING: callback queue full; dropping callbacks");
+            drop(Xbd::cb_from(cb_ptr));
+        } else {
+            WAKER.wake();
+        }
+    } else {
+        println!("WARNING: callback queue uninitialized");
+        drop(Xbd::cb_from(cb_ptr));
+    }
+}
+
+struct CallbackStream {
+    _private: (),
+}
+
+impl CallbackStream {
+    pub fn new() -> Self {
+        CALLBACK_QUEUE
+            .try_init_once(|| ArrayQueue::new(CALLBACK_QUEUE_CAP_DEFAULT))
+            .expect("CallbackStream::new should only be called once");
+        CallbackStream { _private: () }
+    }
+}
+
+impl Stream for CallbackStream {
+    type Item = CVoidPtr;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<CVoidPtr>> {
+        let queue = CALLBACK_QUEUE
+            .try_get()
+            .expect("callback queue not initialized");
+
+        // fast path
+        if let Some(cb_ptr) = queue.pop() {
+            return Poll::Ready(Some(cb_ptr as CVoidPtr));
+        }
+
+        WAKER.register(&cx.waker());
+        match queue.pop() {
+            Some(cb_ptr) => {
+                WAKER.take();
+                Poll::Ready(Some(cb_ptr as CVoidPtr))
+            }
+            None => Poll::Pending,
+        }
     }
 }

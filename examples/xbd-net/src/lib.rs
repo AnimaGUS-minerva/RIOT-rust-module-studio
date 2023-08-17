@@ -74,14 +74,15 @@ fn rustmod_test_blogos12(xbd: Rc<Xbd>) {
             println!("@@ super_closure(): $$");
         });
 
+        // FIXME support multiple callbacks - not like `static ztimer_t timeout = { .callback=NULL, .arg=NULL };`
         // fn ff() { println!("@@ ff(): ^^"); }
         // xbd.set_timeout(2500, ff);
 
         use blogos12::executor::Executor;
         let mut executor = Executor::new(xbd);
         executor.spawn(blogos12::Task::new(example_task())); // ok
-        executor.spawn(blogos12::Task::new(print_keypresses())); // ok, not CPU busy, with Waker support
-        // FIXME sleep_if_idle() stuff --------------|
+        executor.spawn(blogos12::Task::new(xbd::process_timeout_callbacks()));
+        executor.spawn(blogos12::Task::new(print_keypresses()));
         executor.run();
     }
 
