@@ -78,6 +78,9 @@ fn rustmod_test_blogos12(xbd: Rc<Xbd>) {
         fn ff() { println!("@@ ff(): ^^"); }
         xbd.set_timeout(2500, ff);
         //----
+        // TODOs
+        //   - check rust coap code
+        //   - async UDP serv/cli
 
         use blogos12::executor::Executor;
         let mut executor = Executor::new(xbd);

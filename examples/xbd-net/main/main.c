@@ -107,8 +107,6 @@ int main(void) {
         gcoap_cli_cmd(argc, argv);
     }
 
-    //while (1) { xbd_usleep(500000); } // debug
-    //xbd_ztimer_set(2500);  for (int i = 0; i < 8; i++) { xbd_ztimer_msleep(500); } // debug, ok
     if (1) {
         printf("@@ main(): before calling rustmod\n");
         rustmod_start(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set);
