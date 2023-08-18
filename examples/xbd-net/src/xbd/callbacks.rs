@@ -21,6 +21,7 @@ pub async fn process_timeout_callbacks() {
 
         let timeout_ptr = unsafe { *Box::from_raw(timeout_pp) };
         println!("@@ freeing timeout_ptr: {:?}", timeout_ptr);
+        assert_ne!(timeout_ptr, core::ptr::null());
         unsafe { free(timeout_ptr as *mut _); }
 
         let cb = cb_from(cb_ptr as CVoidPtr);
