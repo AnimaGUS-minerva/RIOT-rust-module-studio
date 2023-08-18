@@ -2,17 +2,27 @@ use conquer_once::spin::OnceCell;
 use core::{pin::Pin, task::{Context, Poll}};
 use crossbeam_queue::ArrayQueue;
 use futures_util::{stream::{Stream, StreamExt}, task::AtomicWaker};
-
 use mcu_if::{println, alloc::boxed::Box, c_types::c_void};
 
 type CVoidPtr = *const c_void;
 
 //
 
+extern "C" {
+    fn free(ptr: *mut c_void);
+}
+
 pub async fn process_timeout_callbacks() {
     let mut callbacks = CallbackStream::new();
 
-    while let Some(cb_ptr) = callbacks.next().await {
+    while let Some(arg_ptr) = callbacks.next().await {
+        let (cb_ptr, timeout_pp): (CVoidPtr, *mut CVoidPtr) =
+            unsafe { *Box::from_raw(arg_ptr as *mut _) }; // consume `arg`
+
+        let timeout_ptr = unsafe { *Box::from_raw(timeout_pp) };
+        println!("@@ freeing timeout_ptr: {:?}", timeout_ptr);
+        unsafe { free(timeout_ptr as *mut _); }
+
         let cb = cb_from(cb_ptr as CVoidPtr);
         (*cb)(); // call, move, drop
     }
@@ -35,17 +45,15 @@ const CALLBACK_QUEUE_CAP_DEFAULT: usize = 100;
 static CALLBACK_QUEUE: OnceCell<ArrayQueue<u32>> = OnceCell::uninit();
 static WAKER: AtomicWaker = AtomicWaker::new();
 
-pub fn add_timeout_callback(cb_ptr: CVoidPtr) {
+pub fn add_timeout_callback(arg_ptr: CVoidPtr) { // must not block/alloc/dealloc
     if let Ok(queue) = CALLBACK_QUEUE.try_get() {
-        if let Err(_) = queue.push(cb_ptr as u32) {
-            println!("WARNING: callback queue full; dropping callbacks");
-            drop(cb_from(cb_ptr));
+        if let Err(_) = queue.push(arg_ptr as u32) {
+            panic!("callback queue full");
         } else {
             WAKER.wake();
         }
     } else {
-        println!("WARNING: callback queue uninitialized");
-        drop(cb_from(cb_ptr));
+        panic!("callback queue uninitialized");
     }
 }
 
@@ -71,15 +79,15 @@ impl Stream for CallbackStream {
             .expect("callback queue not initialized");
 
         // fast path
-        if let Some(cb_ptr) = queue.pop() {
-            return Poll::Ready(Some(cb_ptr as CVoidPtr));
+        if let Some(arg_ptr) = queue.pop() {
+            return Poll::Ready(Some(arg_ptr as CVoidPtr));
         }
 
         WAKER.register(&cx.waker());
         match queue.pop() {
-            Some(cb_ptr) => {
+            Some(arg_ptr) => {
                 WAKER.take();
-                Poll::Ready(Some(cb_ptr as CVoidPtr))
+                Poll::Ready(Some(arg_ptr as CVoidPtr))
             }
             None => Poll::Pending,
         }

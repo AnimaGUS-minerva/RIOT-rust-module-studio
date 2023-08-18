@@ -56,14 +56,17 @@ static void xbd_ztimer_msleep(uint32_t delay) {
     ztimer_sleep(ZTIMER_MSEC, delay);
 }
 
-static ztimer_t timeout = { .callback=NULL, .arg=NULL };
-static void xbd_ztimer_set(uint32_t delay, void (*cb_handler)(void *), void *cb_ptr) {
+static void xbd_ztimer_set(uint32_t delay, void (*cb_handler)(void *), void *arg_ptr, void **timeout_pp) {
     printf("@@ xbd_ztimer_set(): delay(ms): %d\n", delay);
 
-    timeout.callback = cb_handler;
-    timeout.arg = cb_ptr;
+    ztimer_t *timeout = (ztimer_t *) calloc(sizeof(ztimer_t), 1);
+    timeout->callback = cb_handler;
+    timeout->arg = arg_ptr;
 
-    ztimer_set(ZTIMER_MSEC, &timeout, delay);
+    *timeout_pp = timeout;
+    printf("@@ xbd_ztimer_set(): *timeout_pp (= timeout_ptr): %p\n", *timeout_pp);
+
+    ztimer_set(ZTIMER_MSEC, timeout, delay);
 }
 
 //

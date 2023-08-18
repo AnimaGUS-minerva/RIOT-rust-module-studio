@@ -1,10 +1,10 @@
 mod callbacks;
 pub use callbacks::process_timeout_callbacks;
 
-use mcu_if::c_types::c_void;
+use mcu_if::{alloc::boxed::Box, c_types::c_void};
 
 pub type SleepFnPtr = unsafe extern "C" fn(u32);
-pub type SetTimeoutFnPtr = unsafe extern "C" fn(u32, *const c_void, *const c_void);
+pub type SetTimeoutFnPtr = unsafe extern "C" fn(u32, *const c_void, *mut (*const c_void, *mut *const c_void), *mut *const c_void);
 
 pub struct Xbd {
     _usleep: SleepFnPtr,
@@ -34,11 +34,16 @@ impl Xbd {
     }
 
     pub fn set_timeout<F>(&self, msec: u32, cb: F) where F: FnOnce() + 'static {
+        let timeout_ptr = Box::new(core::ptr::null());
+        let timeout_pp = Box::into_raw(timeout_ptr);
+        let arg = Box::new((callbacks::into_raw(cb), timeout_pp));
+
         unsafe {
             (self._ztimer_set)(
                 msec,
                 callbacks::add_timeout_callback as *const _, // cb_handler
-                callbacks::into_raw(cb)); // cb_ptr
+                Box::into_raw(arg), // arg_ptr
+                timeout_pp); // timeout_pp
         }
     }
 }

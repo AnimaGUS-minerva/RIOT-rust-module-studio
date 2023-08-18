@@ -66,6 +66,7 @@ fn rustmod_test_blogos12(xbd: Rc<Xbd>) {
     //
 
     if 1 == 1 {
+        //---- ok
         let foo = Box::new(9);
         xbd.set_timeout(2500, move || {
             println!("@@ super_closure(): ^^ foo: {:?}", foo);
@@ -74,9 +75,9 @@ fn rustmod_test_blogos12(xbd: Rc<Xbd>) {
             println!("@@ super_closure(): $$");
         });
 
-        // FIXME support multiple callbacks - not like `static ztimer_t timeout = { .callback=NULL, .arg=NULL };`
-        // fn ff() { println!("@@ ff(): ^^"); }
-        // xbd.set_timeout(2500, ff);
+        fn ff() { println!("@@ ff(): ^^"); }
+        xbd.set_timeout(2500, ff);
+        //----
 
         use blogos12::executor::Executor;
         let mut executor = Executor::new(xbd);
