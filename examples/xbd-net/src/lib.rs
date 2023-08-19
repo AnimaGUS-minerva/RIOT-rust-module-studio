@@ -10,7 +10,7 @@ fn alloc_error(layout: mcu_if::alloc::alloc::Layout) -> ! { mcu_if::alloc_error(
 
 use core::cell::Cell;
 use mcu_if::{println, alloc::{rc::Rc, boxed::Box}};
-use xbd::{Xbd, SleepFnPtr, SetTimeoutFnPtr};
+use xbd::{Xbd, SleepFnPtr, SetTimeoutFnPtr, process_timeout_callbacks};
 
 mod xbd;
 mod runtime;
@@ -44,50 +44,51 @@ fn rustmod_test_blogos12(xbd: Rc<Xbd>) {
 
     //
 
-    async fn async_number() -> u32 { 42 }
-
-    pub async fn example_task() {
-        let number = async_number().await;
-        println!("async number: {}", number);
-    }
-
-    use blogos12::keyboard::print_keypresses;
+    use blogos12::{
+        Task,
+        example_task as blogos12_example_task,
+        keyboard::print_keypresses as process_blogos12_scancodes,
+        keyboard::add_scancode as blogos12_add_scancode,
+        simple_executor::SimpleExecutor,
+        executor::Executor,
+    };
 
     //
 
     if 0 == 1 {
-        use blogos12::simple_executor::SimpleExecutor;
-        let mut executor = SimpleExecutor::new();
-        executor.spawn(blogos12::Task::new(example_task())); // ok
-        executor.spawn(blogos12::Task::new(print_keypresses())); // ok, CPU busy without Waker support
-        executor.run();
+        let mut exe = SimpleExecutor::new();
+        exe.spawn(Task::new(blogos12_example_task())); // ok
+        exe.spawn(Task::new(process_blogos12_scancodes())); // ok, CPU busy without Waker support
+        exe.run();
     }
 
     //
 
     if 1 == 1 {
-        //---- ok
-        let foo = Box::new(9);
-        xbd.set_timeout(2500, move || {
-            println!("@@ super_closure(): ^^ foo: {:?}", foo);
-            blogos12::keyboard::add_scancode(8);
-            blogos12::keyboard::add_scancode(*foo);
-            println!("@@ super_closure(): $$");
-        });
+        Executor::new(xbd.clone())
+            .spawn(blogos12_example_task())
+            .spawn(process_timeout_callbacks()) // processor
+            .spawn(process_blogos12_scancodes()) // processor
+            .spawn(async move { // main
+                //---- ok
+                let foo = Box::new(9);
+                xbd.set_timeout(2500, move || {
+                    println!("@@ super_closure(): ^^ foo: {:?}", foo);
+                    blogos12_add_scancode(8);
+                    blogos12_add_scancode(*foo);
+                    println!("@@ super_closure(): $$");
+                });
 
-        fn ff() { println!("@@ ff(): ^^"); }
-        xbd.set_timeout(2500, ff);
-        //----
-        // TODOs
-        //   - check rust coap code
-        //   - async UDP serv/cli
+                fn ff() { println!("@@ ff(): ^^"); }
+                xbd.set_timeout(2500, ff);
+                //----
 
-        use blogos12::executor::Executor;
-        let mut executor = Executor::new(xbd);
-        executor.spawn(blogos12::Task::new(example_task())); // ok
-        executor.spawn(blogos12::Task::new(xbd::process_timeout_callbacks()));
-        executor.spawn(blogos12::Task::new(print_keypresses()));
-        executor.run();
+                // TODOs
+                //   - async sleep(ms) {}
+                //   - check rust coap code
+                //   - async UDP/CoAP serv/cli
+            })
+            .run();
     }
 
     //
@@ -95,9 +96,9 @@ fn rustmod_test_blogos12(xbd: Rc<Xbd>) {
     let rt = Rc::new(runtime::Runtime::new());
     let rtc = rt.clone();
     rt.spawn_local(async move {
-        rtc.exec(example_task()).await; // ok
+        rtc.exec(blogos12_example_task()).await; // ok
         println!("@@ rustmod_test_blogos12(): ----");
-        if 0 == 1 { rtc.exec(print_keypresses()).await; } // TODO async stream support in Runtime
+        if 0 == 1 { rtc.exec(process_blogos12_scancodes()).await; } // TODO async stream support in Runtime
     });
 
     println!("@@ rustmod_test_blogos12(): $$");

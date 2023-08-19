@@ -22,12 +22,19 @@ impl Executor {
         }
     }
 
-    pub fn spawn(&mut self, task: Task) {
+    //====
+    //pub fn spawn(&mut self, task: Task) -> &mut Self {
+    //==== @@
+    pub fn spawn(&mut self, future: impl core::future::Future<Output = ()> + 'static) -> &mut Self {
+        let task = Task::new(future);
+    //====
         let task_id = task.id;
         if self.tasks.insert(task.id, task).is_some() {
             panic!("task with same ID already in tasks");
         }
         self.task_queue.push(task_id).expect("queue full");
+
+        self
     }
 
     pub fn run(&mut self) -> ! {
