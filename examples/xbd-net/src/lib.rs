@@ -70,6 +70,12 @@ fn rustmod_test_blogos12(xbd: Rc<Xbd>) {
             .spawn(process_timeout_callbacks()) // processor
             .spawn(process_blogos12_scancodes()) // processor
             .spawn(async move { // main
+
+                Xbd::async_set_timeout(xbd.clone(), 3500, Some(|| {
+                    println!("@@ ||x: ^^");
+                    // ....
+                })).await;
+
                 //---- ok
                 let foo = Box::new(9);
                 xbd.set_timeout(2500, move || {
@@ -84,7 +90,6 @@ fn rustmod_test_blogos12(xbd: Rc<Xbd>) {
                 //----
 
                 // TODOs
-                //   - async sleep(ms) {}
                 //   - check rust coap code
                 //   - async UDP/CoAP serv/cli
             })
