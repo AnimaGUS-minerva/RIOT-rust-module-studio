@@ -71,12 +71,13 @@ fn rustmod_test_blogos12(xbd: Rc<Xbd>) {
             .spawn(process_blogos12_scancodes()) // processor
             .spawn(async move { // main
 
-                Xbd::async_set_timeout(xbd.clone(), 3500, Some(|| {
-                    println!("@@ ||x: ^^");
-                    // ....
-                })).await;
+                //---- async, ok
+                Xbd::async_sleep(xbd.clone(), 3500).await;
+                Xbd::async_set_timeout(
+                    xbd.clone(), 3500, || { println!("@@ ||x: ^^"); }).await;
+                //----
 
-                //---- ok
+                //---- non-blocking, ok
                 let foo = Box::new(9);
                 xbd.set_timeout(2500, move || {
                     println!("@@ super_closure(): ^^ foo: {:?}", foo);

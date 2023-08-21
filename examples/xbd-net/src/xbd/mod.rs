@@ -49,12 +49,14 @@ impl Xbd {
 
     //
 
-    pub fn async_set_timeout<F>(
-        xbd: Rc<Xbd>, msec: u32, cb: Option<F>
-    ) -> impl Future<Output = ()> + 'static where F: FnOnce() + 'static {
-        println!("@@ async_set_timeout(): ^^");
+    pub fn async_sleep(xbd: Rc<Xbd>, msec: u32) -> impl Future<Output = ()> + 'static {
+        Timeout::new(xbd, msec, None)
+    }
 
-        Timeout::new(xbd, msec)
+    pub fn async_set_timeout<F>(
+        xbd: Rc<Xbd>, msec: u32, cb: F
+    ) -> impl Future<Output = ()> + 'static where F: FnOnce() + 'static {
+        Timeout::new(xbd, msec, Some(Box::new(cb)))
     }
 }
 
@@ -70,16 +72,13 @@ use futures_util::task::AtomicWaker;
 pub struct Timeout {
     xbd: Rc<Xbd>,
     msec: u32,
-    //cb: Box<dyn FnOnce() + 'static>,
+    cb: Option<Box<dyn FnOnce() + 'static>>,
     _waker: Option<AtomicWaker>,
 }
 
 impl Timeout {
-    pub fn new(xbd: Rc<Xbd>, msec: u32) -> Self {
-        Timeout {
-            xbd,
-            msec,
-            //cb,
+    pub fn new(xbd: Rc<Xbd>, msec: u32, cb: Option<Box<dyn FnOnce() + 'static>>) -> Self {
+        Timeout { xbd, msec, cb,
             _waker: Some(AtomicWaker::new()),
         }
     }
@@ -103,6 +102,7 @@ impl Future for Timeout {
             Poll::Pending
         } else {
             println!("@@ !! returning `Poll::Ready(())`");
+            self.cb.take().map(|cb| cb());
             Poll::Ready(())
         }
     }
