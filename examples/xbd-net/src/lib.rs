@@ -28,6 +28,8 @@ pub extern fn rustmod_start(
 
     if 100 == 1 { loop { unsafe { xbd_usleep(500_000); } } } // ok
 
+    xbd::init_xbd(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set);
+
     let xbd = Rc::new(Xbd::new(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set));
 
     if 100 == 1 { loop { xbd.usleep(500_000); } } // ok
@@ -72,18 +74,16 @@ fn rustmod_test_blogos12(xbd: Rc<Xbd>) {
             .spawn(async move { // main
 
                 //---- async, ok
-                Xbd::async_sleep(xbd.clone(), 3500).await;
-                Xbd::async_set_timeout(
-                    xbd.clone(), 3500, || { println!("@@ ||x: ^^"); }).await;
+                Xbd::async_sleep(3500).await;
+                Xbd::async_set_timeout(3500, || { println!("@@ ||x: ^^"); }).await;
                 //----
 
                 //---- non-blocking, ok
                 let foo = Box::new(9);
                 xbd.set_timeout(2500, move || {
-                    println!("@@ super_closure(): ^^ foo: {:?}", foo);
+                    println!("@@ ||aa: ^^ foo: {:?}", foo);
                     blogos12_add_scancode(8);
                     blogos12_add_scancode(*foo);
-                    println!("@@ super_closure(): $$");
                 });
 
                 fn ff() { println!("@@ ff(): ^^"); }

@@ -1,10 +1,23 @@
 mod callbacks;
 pub use callbacks::process_timeout_callbacks;
 
-use mcu_if::{println, alloc::{rc::Rc, boxed::Box}, c_types::c_void};
+use conquer_once::spin::OnceCell;
+use mcu_if::{println, alloc::{boxed::Box}, c_types::c_void};
 
 pub type SleepFnPtr = unsafe extern "C" fn(u32);
 pub type SetTimeoutFnPtr = unsafe extern "C" fn(u32, *const c_void, *mut (*const c_void, *mut *const c_void), *mut *const c_void);
+
+static XBD_CELL: OnceCell<Xbd> = OnceCell::uninit();
+
+pub fn init_xbd(
+    xbd_usleep: SleepFnPtr,
+    xbd_ztimer_msleep: SleepFnPtr,
+    xbd_ztimer_set: SetTimeoutFnPtr
+) {
+    XBD_CELL
+        .try_init_once(|| Xbd::new(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set))
+        .expect("init_xbd() should only be called once");
+}
 
 pub struct Xbd {
     _usleep: SleepFnPtr,
@@ -49,18 +62,16 @@ impl Xbd {
 
     //
 
-    pub fn async_sleep(xbd: Rc<Xbd>, msec: u32) -> impl Future<Output = ()> + 'static {
-        Timeout::new(xbd, msec, None)
+    pub fn async_sleep(msec: u32) -> impl Future<Output = ()> + 'static {
+        Timeout::new(msec, None)
     }
 
-    pub fn async_set_timeout<F>(
-        xbd: Rc<Xbd>, msec: u32, cb: F
-    ) -> impl Future<Output = ()> + 'static where F: FnOnce() + 'static {
-        Timeout::new(xbd, msec, Some(Box::new(cb)))
+    pub fn async_set_timeout<F>(msec: u32, cb: F) -> impl Future<Output = ()> + 'static where F: FnOnce() + 'static {
+        Timeout::new(msec, Some(Box::new(cb)))
     }
 }
 
-//
+// 2222222 timeout.rs ------------------------------------
 
 use core::{
     future::Future,
@@ -69,22 +80,23 @@ use core::{
 };
 use futures_util::task::AtomicWaker;
 
-pub struct Timeout {
-    xbd: Rc<Xbd>,
+pub struct Timeout<'a> {
     msec: u32,
     cb: Option<Box<dyn FnOnce() + 'static>>,
+    _xbd: &'a Xbd,
     _waker: Option<AtomicWaker>,
 }
 
-impl Timeout {
-    pub fn new(xbd: Rc<Xbd>, msec: u32, cb: Option<Box<dyn FnOnce() + 'static>>) -> Self {
-        Timeout { xbd, msec, cb,
+impl Timeout<'_> {
+    pub fn new(msec: u32, cb: Option<Box<dyn FnOnce() + 'static>>) -> Self {
+        Timeout { msec, cb,
+            _xbd: XBD_CELL.try_get().unwrap(),
             _waker: Some(AtomicWaker::new()),
         }
     }
 }
 
-impl Future for Timeout {
+impl Future for Timeout<'_> {
     type Output = ();
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<<Self as Future>::Output> {
@@ -93,16 +105,18 @@ impl Future for Timeout {
         if let Some(_waker) = self._waker.take() {
             _waker.register(&cx.waker());
 
-            self.xbd.set_timeout(self.msec, move || {
+            self._xbd.set_timeout(self.msec, move || {
                 println!("@@ !! timeout, calling `_waker.wake()`");
                 _waker.wake();
             });
 
             println!("@@ !! returning `Poll::Pending`");
+
             Poll::Pending
         } else {
             println!("@@ !! returning `Poll::Ready(())`");
             self.cb.take().map(|cb| cb());
+
             Poll::Ready(())
         }
     }
