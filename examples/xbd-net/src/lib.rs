@@ -9,7 +9,7 @@ fn panic(info: &core::panic::PanicInfo) -> ! { mcu_if::panic(info) }
 fn alloc_error(layout: mcu_if::alloc::alloc::Layout) -> ! { mcu_if::alloc_error(layout) }
 
 use core::cell::Cell;
-use mcu_if::{println, alloc::{rc::Rc, boxed::Box}};
+use mcu_if::{println, alloc::boxed::Box};
 use xbd::{Xbd, SleepFnPtr, SetTimeoutFnPtr, process_timeout_callbacks};
 
 mod xbd;
@@ -28,20 +28,22 @@ pub extern fn rustmod_start(
 
     if 100 == 1 { loop { unsafe { xbd_usleep(500_000); } } } // ok
 
-    xbd::init_xbd(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set);
+    //
 
-    let xbd = Rc::new(Xbd::new(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set));
+    xbd::init_once(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set);
 
-    if 100 == 1 { loop { xbd.usleep(500_000); } } // ok
-    if 100 == 1 { loop { xbd.msleep(500); } } // ok
+    if 100 == 1 { loop { Xbd::usleep(500_000); } } // ok
+    if 100 == 1 { loop { Xbd::msleep(500); } } // ok
+    if 1 == 1 { rustmod_test_blogos12(); }
 
-    if 1 == 1 { rustmod_test_blogos12(xbd.clone()); }
+    //
+
     if 100 == 1 { rustmod_test_runtime(); }
 }
 
 //
 
-fn rustmod_test_blogos12(xbd: Rc<Xbd>) {
+fn rustmod_test_blogos12() {
     println!("@@ rustmod_test_blogos12(): ^^");
 
     //
@@ -67,7 +69,7 @@ fn rustmod_test_blogos12(xbd: Rc<Xbd>) {
     //
 
     if 1 == 1 {
-        Executor::new(xbd.clone())
+        Executor::new()
             .spawn(blogos12_example_task())
             .spawn(process_timeout_callbacks()) // processor
             .spawn(process_blogos12_scancodes()) // processor
@@ -80,14 +82,14 @@ fn rustmod_test_blogos12(xbd: Rc<Xbd>) {
 
                 //---- non-blocking, ok
                 let foo = Box::new(9);
-                xbd.set_timeout(2500, move || {
+                Xbd::set_timeout(2500, move || {
                     println!("@@ ||aa: ^^ foo: {:?}", foo);
                     blogos12_add_scancode(8);
                     blogos12_add_scancode(*foo);
                 });
 
                 fn ff() { println!("@@ ff(): ^^"); }
-                xbd.set_timeout(2500, ff);
+                Xbd::set_timeout(2500, ff);
                 //----
 
                 // TODOs
@@ -99,6 +101,7 @@ fn rustmod_test_blogos12(xbd: Rc<Xbd>) {
 
     //
 
+    use mcu_if::alloc::rc::Rc; // !! temp !!
     let rt = Rc::new(runtime::Runtime::new());
     let rtc = rt.clone();
     rt.spawn_local(async move {
@@ -118,6 +121,7 @@ fn rustmod_test_runtime() {
 
     //
 
+    use mcu_if::alloc::rc::Rc; // !! temp !!
     async fn inc(val: Rc<Cell<u8>>) -> Result<u8, ()>{
         println!("@@ inc(): ^^ val: {}", val.get());
         val.set(val.get() + 1);

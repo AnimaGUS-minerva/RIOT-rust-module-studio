@@ -1,5 +1,5 @@
 use super::{Task, TaskId};
-use mcu_if::{println, alloc::{collections::BTreeMap, sync::Arc, task::Wake, rc::Rc}};
+use mcu_if::{println, alloc::{collections::BTreeMap, sync::Arc, task::Wake}};
 
 use core::task::{Context, Poll, Waker};
 use crossbeam_queue::ArrayQueue;
@@ -9,16 +9,14 @@ pub struct Executor {
     tasks: BTreeMap<TaskId, Task>,
     task_queue: Arc<ArrayQueue<TaskId>>,
     waker_cache: BTreeMap<TaskId, Waker>,
-    xbd: Rc<Xbd>,
 }
 
 impl Executor {
-    pub fn new(xbd: Rc<Xbd>) -> Self {
+    pub fn new() -> Self {
         Executor {
             tasks: BTreeMap::new(),
             task_queue: Arc::new(ArrayQueue::new(100)),
             waker_cache: BTreeMap::new(),
-            xbd: xbd,
         }
     }
 
@@ -40,7 +38,7 @@ impl Executor {
     pub fn run(&mut self) -> ! {
         loop {
             self.run_ready_tasks();
-            self.xbd.msleep(500); //@@ debug, add slight pauses
+            Xbd::msleep(500); //@@ debug, add slight pauses
             //@@N/A@@self.sleep_if_idle();
         }
     }
