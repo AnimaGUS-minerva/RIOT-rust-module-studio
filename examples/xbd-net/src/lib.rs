@@ -10,9 +10,10 @@ fn alloc_error(layout: mcu_if::alloc::alloc::Layout) -> ! { mcu_if::alloc_error(
 
 use core::cell::Cell;
 use mcu_if::{println, alloc::boxed::Box};
-use xbd::{Xbd, SleepFnPtr, SetTimeoutFnPtr, process_timeout_callbacks};
 
 mod xbd;
+use xbd::{Xbd, SleepFnPtr, SetTimeoutFnPtr, process_timeout_callbacks};
+
 mod runtime;
 mod blogos12;
 

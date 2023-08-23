@@ -20,7 +20,7 @@ pub fn init_once(
 ) {
     XBD_CELL
         .try_init_once(|| Xbd::_new(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set))
-        .expect("init_xbd() should only be called once");
+        .expect("init_once() should only be called once");
 }
 
 pub struct Xbd {
