@@ -12,7 +12,7 @@ use core::cell::Cell;
 use mcu_if::{println, alloc::boxed::Box};
 
 mod xbd;
-use xbd::{Xbd, SleepFnPtr, SetTimeoutFnPtr, process_timeout_callbacks};
+use xbd::{Xbd, SleepFnPtr, SetTimeoutFnPtr, GcoapReqSendFnPtr, process_timeout_callbacks};
 
 mod runtime;
 mod blogos12;
@@ -23,7 +23,8 @@ mod blogos12;
 pub extern fn rustmod_start(
     xbd_usleep: SleepFnPtr,
     xbd_ztimer_msleep: SleepFnPtr,
-    xbd_ztimer_set: SetTimeoutFnPtr
+    xbd_ztimer_set: SetTimeoutFnPtr,
+    xbd_gcoap_req_send: GcoapReqSendFnPtr
 ) {
     println!("[src/lib.rs] rustmod_start(): ^^");
 
@@ -31,7 +32,7 @@ pub extern fn rustmod_start(
 
     //
 
-    xbd::init_once(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set);
+    xbd::init_once(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set, xbd_gcoap_req_send);
 
     if 100 == 1 { loop { Xbd::usleep(500_000); } } // ok
     if 100 == 1 { loop { Xbd::msleep(500); } } // ok
@@ -76,9 +77,26 @@ fn rustmod_test_blogos12() {
             .spawn(process_blogos12_scancodes()) // processor
             .spawn(async move { // main
 
-                //---- async, ok
-                Xbd::async_sleep(3500).await;
-                Xbd::async_set_timeout(3500, || { println!("@@ ||x: ^^"); }).await;
+                if 1 == 1 { // !!!! WIP
+                    //Xbd::async_gcoap_client_send("coap get [fe80::a00:27ff:fefd:b6f8]:5683 /hello", || {
+                    Xbd::gcoap_client_send(99/* "coap get [fe80::a00:27ff:fefd:b6f8]:5683 /hello" */, || {
+/*
+                        static void _resp_handler(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
+                                                  const sock_udp_ep_t *remote) {
+
+                            printf("gcoap: response %s, code %1u.%02u", class_str,
+                                    coap_get_code_class(pdu),
+                                    coap_get_code_detail(pdu));
+*/
+                    }); // !!!!
+                    //}).await; // !!!!
+
+                    return; // !!!! !!!!
+                }
+
+                //---- async
+                Xbd::async_sleep(3500).await; // ok
+                Xbd::async_set_timeout(3500, || { println!("@@ ||x: ^^"); }).await; // ok
                 //----
 
                 //---- non-blocking, ok

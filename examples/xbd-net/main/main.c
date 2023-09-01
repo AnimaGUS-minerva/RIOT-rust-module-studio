@@ -69,6 +69,48 @@ static void xbd_ztimer_set(uint32_t delay, void (*cb_handler)(void *), void *arg
     ztimer_set(ZTIMER_MSEC, timeout, delay);
 }
 
+// !!!!
+//static void xbd_gcoap_client_send(/* addr,msg */, void (*cb_handler)(void *), void *arg_ptr, void **timeout_pp) {
+//    printf("@@ xbd_ztimer_set(): delay(ms): %d\n", delay);
+//
+////    ztimer_t *timeout = (ztimer_t *) calloc(sizeof(ztimer_t), 1);
+////    timeout->callback = cb_handler;
+////    timeout->arg = arg_ptr;
+////
+////    *timeout_pp = timeout;
+////
+//
+//    //ztimer_set(ZTIMER_MSEC, timeout, delay);
+//    //==== !!!!
+//    //bytes_sent = gcoap_req_send(buf, len, remote, _resp_handler, NULL); // client.c
+//    bytes_sent = gcoap_req_send(buf, len, remote, _resp_handler_xx, NULL); // !!!! ??
+//}
+static void xbd_gcoap_req_send(void/* TODO */) {
+    uint8_t buf[CONFIG_GCOAP_PDU_BUF_SIZE];
+    coap_pkt_t pdu;
+    size_t len;
+    int code_pos = 1; // get
+    char *uri = "/hello";
+
+    gcoap_req_init(&pdu, &buf[0], CONFIG_GCOAP_PDU_BUF_SIZE, code_pos, uri);
+    unsigned msg_type = COAP_TYPE_NON;
+    coap_hdr_set_type(pdu.hdr, msg_type);
+    len = coap_opt_finish(&pdu, COAP_OPT_FINISH_NONE);
+    printf("!!!! gcoap_cli: sending msg ID %u, %u bytes\n", coap_get_id(&pdu), (unsigned) len);
+
+    // !!!! WIP
+    //sock_udp_ep_t *remote;
+    //size_t bytes_sent = gcoap_req_send(buf, len, remote, _resp_handler_xx, NULL);
+    //printf("@@ bytes_sent: %d", bytes_sent);
+}
+// !!!! WIP
+//static void _resp_handler__xx(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
+//                              const sock_udp_ep_t *remote) {
+//    yy_data = _resp_handler__mod(memo, pdu, remote);
+//    arg = pack(yy_data, tag_gcoap_client)
+//    callbacks::add_gcoap_client_callback(arg_ptr); // impl same as add_timeout_callback ??
+//}
+
 //
 
 static msg_t main_msg_queue[16];
@@ -109,7 +151,7 @@ int main(void) {
 
     if (1) {
         printf("@@ main(): before calling rustmod\n");
-        rustmod_start(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set);
+        rustmod_start(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set, xbd_gcoap_req_send);
         printf("@@ main(): after calling rustmod\n");
     }
 
