@@ -214,26 +214,27 @@ static void xbd_gcoap_req_send(void/* TODO */) {
     uint8_t buf[CONFIG_GCOAP_PDU_BUF_SIZE];
     coap_pkt_t pdu;
     size_t len;
-    int code_pos = 1; // get
-    char *uri = "/hello";
 
-    gcoap_req_init(&pdu, &buf[0], CONFIG_GCOAP_PDU_BUF_SIZE, code_pos, uri);
+    //==== debug, native - hit the outer server -- LD_LIBRARY_PATH=./libcoap/local/lib libcoap-minimal/server 5683 fe80::20be:cdff:fe0e:44a1%tap1 &
+    char *addr = "[" IP6_FIXTURE_SERVER "]:5683";
+    char *uri = "/hello";
+    //==== debug, native - hit the internal server
+//    char *addr = "[fe80::78ec:5fff:febd:add9]:5683";
+//    char *uri = "/.well-known/core";
+    //====
+
+    gcoap_req_init(&pdu, &buf[0], CONFIG_GCOAP_PDU_BUF_SIZE, 1 /* get */, uri);
     unsigned msg_type = COAP_TYPE_NON;
     coap_hdr_set_type(pdu.hdr, msg_type);
     len = coap_opt_finish(&pdu, COAP_OPT_FINISH_NONE);
     printf("!!!! gcoap_cli: sending msg ID %u, %u bytes\n", coap_get_id(&pdu), (unsigned) len);
 
-    char *addr = "[" IP6_FIXTURE_SERVER "]:5683";
     if (!_send(&buf[0], len, addr)) {
         puts("gcoap_cli: msg send failed");
     } else {
         /* send Observe notification for /cli/stats */
         notify_observers();
     }
-    //========
-    //sock_udp_ep_t *remote;
-    //size_t bytes_sent = gcoap_req_send(buf, len, remote, _resp_handler_xx, NULL);
-    //printf("@@ bytes_sent: %d", bytes_sent);
 }
 // !!!! WIP
 //static void _resp_handler__xx(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
@@ -270,7 +271,7 @@ int main(void) {
         server_init();
     }
 
-    if (1) { // oneshot CoAP client
+    if (0) { // oneshot CoAP client
         char *addr = "[" IP6_FIXTURE_SERVER "]:5683";
         //char *payload = "/.well-known/core";
         char *payload = "/hello"; //@@ for 'libcoap-minimal/server'
