@@ -74,7 +74,7 @@ impl Xbd {
     }
 
     // !!!! WIP
-    pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce() + 'static {
+    pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce(u8) -> u8 + 'static {
         // let timeout_ptr = Box::new(core::ptr::null());
         // let timeout_pp = Box::into_raw(timeout_ptr);
         // let arg = Box::new((callbacks::into_raw(cb), timeout_pp));
@@ -96,6 +96,11 @@ impl Xbd {
             )
         }
     }
+
+    pub fn async_gcoap_get(addr: &str, uri: &str) -> impl Future<Output = u8> + 'static {
+        Self::nn() // !!!!
+    }
+    async fn nn() -> u8 { 99 }
 
     //
 
