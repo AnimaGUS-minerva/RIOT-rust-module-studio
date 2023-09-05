@@ -9,7 +9,7 @@ fn panic(info: &core::panic::PanicInfo) -> ! { mcu_if::panic(info) }
 fn alloc_error(layout: mcu_if::alloc::alloc::Layout) -> ! { mcu_if::alloc_error(layout) }
 
 use core::cell::Cell;
-use mcu_if::{println, alloc::boxed::Box};
+use mcu_if::{println, alloc::boxed::Box, null_terminate_bytes};
 
 mod xbd;
 use xbd::{Xbd, SleepFnPtr, SetTimeoutFnPtr, GcoapReqSendFnPtr, process_timeout_callbacks};
@@ -78,17 +78,22 @@ fn rustmod_test_blogos12() {
             .spawn(async move { // main
 
                 if 1 == 1 { // !!!! WIP
-                    //Xbd::async_gcoap_client_send("coap get [fe80::a00:27ff:fefd:b6f8]:5683 /hello", || {
-                    Xbd::gcoap_client_send(99/* "coap get [fe80::a00:27ff:fefd:b6f8]:5683 /hello" */, || {
+                    let cb = || { /* ... */ }; // TODO
+                    //==== native, outer server -- LD_LIBRARY_PATH=./libcoap/local/lib libcoap-minimal/server 5683 fe80::20be:cdff:fe0e:44a1%tap1 &
+                    Xbd::gcoap_get("[fe80::20be:cdff:fe0e:44a1]:5683", "/hello", cb);
+                    //==== native, internal server
+                    Xbd::gcoap_get("[fe80::78ec:5fff:febd:add9]:5683", "/.well-known/core", cb);
+                    //==== deprecated notes
 /*
+                    Xbd::async_gcoap_client_send("coap get [fe80::a00:27ff:fefd:b6f8]:5683 /hello", || {
                         static void _resp_handler(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
                                                   const sock_udp_ep_t *remote) {
 
                             printf("gcoap: response %s, code %1u.%02u", class_str,
                                     coap_get_code_class(pdu),
                                     coap_get_code_detail(pdu));
+                  }); // !!!!
 */
-                    }); // !!!!
                     //}).await; // !!!!
 
                     return; // !!!! !!!!

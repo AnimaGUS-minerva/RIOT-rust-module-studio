@@ -210,24 +210,17 @@ static size_t _send(uint8_t *buf, size_t len, char *addr_str)
     return bytes_sent;
 }
 //--------
-static void xbd_gcoap_req_send(void/* TODO */) {
+static void xbd_gcoap_req_send(char *addr, char *uri/* WIP */) {
     uint8_t buf[CONFIG_GCOAP_PDU_BUF_SIZE];
     coap_pkt_t pdu;
     size_t len;
-
-    //==== debug, native - hit the outer server -- LD_LIBRARY_PATH=./libcoap/local/lib libcoap-minimal/server 5683 fe80::20be:cdff:fe0e:44a1%tap1 &
-    char *addr = "[" IP6_FIXTURE_SERVER "]:5683";
-    char *uri = "/hello";
-    //==== debug, native - hit the internal server
-//    char *addr = "[fe80::78ec:5fff:febd:add9]:5683";
-//    char *uri = "/.well-known/core";
-    //====
 
     gcoap_req_init(&pdu, &buf[0], CONFIG_GCOAP_PDU_BUF_SIZE, 1 /* get */, uri);
     unsigned msg_type = COAP_TYPE_NON;
     coap_hdr_set_type(pdu.hdr, msg_type);
     len = coap_opt_finish(&pdu, COAP_OPT_FINISH_NONE);
-    printf("!!!! gcoap_cli: sending msg ID %u, %u bytes\n", coap_get_id(&pdu), (unsigned) len);
+    printf("@@ xbd_gcoap_req_send(): addr: %s, uri: %s\n", addr, uri);
+    printf("    sending msg ID %u, %u bytes\n", coap_get_id(&pdu), (unsigned) len);
 
     if (!_send(&buf[0], len, addr)) {
         puts("gcoap_cli: msg send failed");

@@ -28,6 +28,9 @@ pub async fn process_timeout_callbacks() {
         (*cb)(); // call, move, drop
     }
 }
+pub async fn _process_gcoap_client_callbacks() { // !!!!!!!!!! ?
+    //
+}
 
 pub fn into_raw<F>(cb: F) -> CVoidPtr where F: FnOnce() + 'static {
     let cb: Box<Box<dyn FnOnce() + 'static>> = Box::new(Box::new(cb));

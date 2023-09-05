@@ -6,11 +6,11 @@ use timeout::Timeout;
 
 use core::future::Future;
 use conquer_once::spin::OnceCell;
-use mcu_if::{alloc::{boxed::Box}, c_types::c_void};
+use mcu_if::{alloc::{boxed::Box}, c_types::c_void, null_terminate_str};
 
 pub type SleepFnPtr = unsafe extern "C" fn(u32);
 pub type SetTimeoutFnPtr = unsafe extern "C" fn(u32, *const c_void, *mut (*const c_void, *mut *const c_void), *mut *const c_void);
-pub type GcoapReqSendFnPtr = unsafe extern "C" fn(/* TODO */);
+pub type GcoapReqSendFnPtr = unsafe extern "C" fn(*const u8, *const u8 /* WIP */);
 
 static XBD_CELL: OnceCell<Xbd> = OnceCell::uninit();
 
@@ -74,7 +74,7 @@ impl Xbd {
     }
 
     // !!!! WIP
-    pub fn gcoap_client_send<F>(msec: u32, cb: F) where F: FnOnce() + 'static {
+    pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce() + 'static {
         // let timeout_ptr = Box::new(core::ptr::null());
         // let timeout_pp = Box::into_raw(timeout_ptr);
         // let arg = Box::new((callbacks::into_raw(cb), timeout_pp));
@@ -90,7 +90,9 @@ impl Xbd {
                 //callbacks::add_timeout_callback as *const _, // cb_handler !!!! can re-use??
             //==== !!!! WIP, more directly
             (Self::get_ref()._gcoap_req_send)(
-                //buf, len, remote, _resp_handler_xx, NULL // !!!! TODO
+                //buf, len, remote, _resp_handler_xx, NULL // !!!! WIP
+                null_terminate_str!(addr).as_ptr(),
+                null_terminate_str!(uri).as_ptr(),
             )
         }
     }
