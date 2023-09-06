@@ -177,7 +177,8 @@ static void _resp_handler(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
 }
 
 #include "net/sock/util.h" //@@ for `sock_udp_name2ep()`
-static size_t _send(uint8_t *buf, size_t len, char *addr_str)
+//@@static size_t _send(uint8_t *buf, size_t len, char *addr_str)
+static size_t _send(uint8_t *buf, size_t len, char *addr_str, gcoap_resp_handler_t resp_handler) //@@
 {
     size_t bytes_sent;
     sock_udp_ep_t *remote;
@@ -203,13 +204,22 @@ static size_t _send(uint8_t *buf, size_t len, char *addr_str)
         remote = &new_remote;
 //    }
 
-    bytes_sent = gcoap_req_send(buf, len, remote, _resp_handler, NULL);
+    //@@bytes_sent = gcoap_req_send(buf, len, remote, _resp_handler, NULL);
+    bytes_sent = gcoap_req_send(buf, len, remote, resp_handler, NULL);//@@
     if (bytes_sent > 0) {
         req_count++;
     }
     return bytes_sent;
 }
 //--------
+static void _resp_handler_xbd(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
+                              const sock_udp_ep_t *remote) {
+    _resp_handler(memo, pdu, remote);
+
+    // !!!!
+    //arg = pack(yy_data, tag_gcoap_client)
+    //callbacks::add_gcoap_client_callback(arg_ptr); // impl same as add_timeout_callback ??
+}
 static void xbd_gcoap_req_send(char *addr, char *uri/* WIP */) {
     uint8_t buf[CONFIG_GCOAP_PDU_BUF_SIZE];
     coap_pkt_t pdu;
@@ -222,20 +232,14 @@ static void xbd_gcoap_req_send(char *addr, char *uri/* WIP */) {
     printf("@@ xbd_gcoap_req_send(): addr: %s, uri: %s\n", addr, uri);
     printf("    sending msg ID %u, %u bytes\n", coap_get_id(&pdu), (unsigned) len);
 
-    if (!_send(&buf[0], len, addr)) {
+    //@@if (!_send(&buf[0], len, addr)) {
+    if (!_send(&buf[0], len, addr, _resp_handler_xbd)) {//@@
         puts("gcoap_cli: msg send failed");
     } else {
         /* send Observe notification for /cli/stats */
         notify_observers();
     }
 }
-// !!!! WIP
-//static void _resp_handler__xx(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
-//                              const sock_udp_ep_t *remote) {
-//    yy_data = _resp_handler__mod(memo, pdu, remote);
-//    arg = pack(yy_data, tag_gcoap_client)
-//    callbacks::add_gcoap_client_callback(arg_ptr); // impl same as add_timeout_callback ??
-//}
 
 //
 

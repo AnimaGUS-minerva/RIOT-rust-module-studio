@@ -6,7 +6,7 @@ use timeout::Timeout;
 
 use core::future::Future;
 use conquer_once::spin::OnceCell;
-use mcu_if::{alloc::{boxed::Box}, c_types::c_void, null_terminate_str};
+use mcu_if::{alloc::{boxed::Box, vec::Vec}, c_types::c_void, null_terminate_str};
 
 pub type SleepFnPtr = unsafe extern "C" fn(u32);
 pub type SetTimeoutFnPtr = unsafe extern "C" fn(u32, *const c_void, *mut (*const c_void, *mut *const c_void), *mut *const c_void);
@@ -74,7 +74,7 @@ impl Xbd {
     }
 
     // !!!! WIP
-    pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce(u8) -> u8 + 'static {
+    pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce(&[u8]) + 'static {
         // let timeout_ptr = Box::new(core::ptr::null());
         // let timeout_pp = Box::into_raw(timeout_ptr);
         // let arg = Box::new((callbacks::into_raw(cb), timeout_pp));
@@ -97,10 +97,10 @@ impl Xbd {
         }
     }
 
-    pub fn async_gcoap_get(addr: &str, uri: &str) -> impl Future<Output = u8> + 'static {
-        Self::nn() // !!!!
+    pub fn async_gcoap_get(addr: &str, uri: &str) -> impl Future<Output = Vec<u8>> + 'static {
+        nn() // !!!!
+        //Timeout::new(msec, Some(Box::new(cb)))
     }
-    async fn nn() -> u8 { 99 }
 
     //
 
@@ -112,3 +112,7 @@ impl Xbd {
         Timeout::new(msec, Some(Box::new(cb)))
     }
 }
+
+//
+
+async fn nn() -> Vec<u8> { [99].to_vec() }

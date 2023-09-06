@@ -80,7 +80,7 @@ fn rustmod_test_blogos12() {
                 let req_internal = ("[fe80::78ec:5fff:febd:add9]:5683", "/.well-known/core");
                 let req_external = ("[fe80::20be:cdff:fe0e:44a1]:5683", "/hello");
                 if 1 == 1 { // !!!! WIP
-                    let cb = |x| { x * x }; // TODO
+                    let cb = |payload: &[u8]| { println!("!!!! payload: {:?}", payload); };
                     //==== native, internal server
                     let (addr, uri) = req_internal;
                     Xbd::gcoap_get(addr, uri, cb);
@@ -103,8 +103,8 @@ fn rustmod_test_blogos12() {
 
                 //---- async
                 let (addr, uri) = req_internal;
-                assert_eq!(Xbd::async_gcoap_get(addr, uri).await, 99);
-                if 1==1 { panic!("!!!!!!!!"); }
+                assert_eq!(Xbd::async_gcoap_get(addr, uri).await, [99]);
+                Xbd::async_set_timeout(1999, || { panic!("!!!! ok"); }).await;
 
                 Xbd::async_sleep(3500).await; // ok
                 Xbd::async_set_timeout(3500, || { println!("@@ ||x: ^^"); }).await; // ok
