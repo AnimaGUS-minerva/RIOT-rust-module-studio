@@ -134,9 +134,12 @@ pub extern fn xbd_resp_handler(memo: *const c_void, pdu: *const c_void, remote: 
             (&mut payload_len) as *mut usize as *mut c_void);
     }
 
-    crate::println!("!!!! payload_ptr: {:?}", &payload_ptr); // ok
-    crate::println!("!!!! payload_len: {}", payload_len); // ok
-
-    let payload = u8_slice_from(payload_ptr, payload_len).to_vec(); // ok
+    let payload = u8_slice_from(payload_ptr, payload_len).to_vec();
     crate::println!("!!!! payload: {:?}", payload);
+
+    // !!!! retrun Future with payload
+
+    // !!!! ??
+    //arg = pack(yy_data, tag_gcoap_client)
+    //callbacks::add_gcoap_client_callback(arg_ptr); // impl same as add_timeout_callback ??
 }

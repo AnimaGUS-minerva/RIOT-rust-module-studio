@@ -217,16 +217,8 @@ extern void _xbd_resp_handler(
         uint8_t **payload, size_t *payload_len
 ) {
     _resp_handler(memo, pdu, remote);
-    (void)payload;
-    (void)payload_len;
-    printf("[before] payload: %p payload_len: %d\n", (void *)*payload, *payload_len);
     *payload = pdu->payload;
     *payload_len = pdu->payload_len;
-    printf("[after] payload: %p payload_len: %d\n", (void *)*payload, *payload_len);
-
-    // !!!!
-    //arg = pack(yy_data, tag_gcoap_client)
-    //callbacks::add_gcoap_client_callback(arg_ptr); // impl same as add_timeout_callback ??
 }
 static void xbd_gcoap_req_send(char *addr, char *uri/* WIP */) {
     uint8_t buf[CONFIG_GCOAP_PDU_BUF_SIZE];
@@ -240,9 +232,7 @@ static void xbd_gcoap_req_send(char *addr, char *uri/* WIP */) {
     printf("@@ xbd_gcoap_req_send(): addr: %s, uri: %s\n", addr, uri);
     printf("    sending msg ID %u, %u bytes\n", coap_get_id(&pdu), (unsigned) len);
 
-    //@@if (!_send(&buf[0], len, addr)) {
-    //if (!_send(&buf[0], len, addr, _xbd_resp_handler)) {//@@
-    if (!_send(&buf[0], len, addr, xbd_resp_handler)) {//@@
+    if (!_send(&buf[0], len, addr, xbd_resp_handler)) {
         puts("gcoap_cli: msg send failed");
     } else {
         /* send Observe notification for /cli/stats */
