@@ -6,11 +6,16 @@ use timeout::Timeout;
 
 use core::future::Future;
 use conquer_once::spin::OnceCell;
-use mcu_if::{alloc::{boxed::Box, vec::Vec}, c_types::c_void, null_terminate_str};
+use mcu_if::{alloc::{boxed::Box, vec::Vec}, c_types::c_void, null_terminate_str, utils::u8_slice_from};
 
 pub type SleepFnPtr = unsafe extern "C" fn(u32);
 pub type SetTimeoutFnPtr = unsafe extern "C" fn(u32, *const c_void, *mut (*const c_void, *mut *const c_void), *mut *const c_void);
 pub type GcoapReqSendFnPtr = unsafe extern "C" fn(*const u8, *const u8 /* WIP */);
+
+extern "C" {
+    fn _xbd_resp_handler(memo: *const c_void, pdu: *const c_void, remote: *const c_void,
+                         payload: *mut c_void, payload_len: *mut c_void);
+}
 
 static XBD_CELL: OnceCell<Xbd> = OnceCell::uninit();
 
@@ -98,7 +103,7 @@ impl Xbd {
     }
 
     pub fn async_gcoap_get(addr: &str, uri: &str) -> impl Future<Output = Vec<u8>> + 'static {
-        nn() // !!!!
+        nn() // !!!!2222  cb
         //Timeout::new(msec, Some(Box::new(cb)))
     }
 
@@ -116,3 +121,22 @@ impl Xbd {
 //
 
 async fn nn() -> Vec<u8> { [99].to_vec() }
+
+#[no_mangle]
+pub extern fn xbd_resp_handler(memo: *const c_void, pdu: *const c_void, remote: *const c_void) {
+
+    let mut payload_ptr: *const u8 = core::ptr::null_mut();
+    let mut payload_len: usize = 0;
+    unsafe {
+        _xbd_resp_handler(
+            memo, pdu, remote,
+            (&mut payload_ptr) as *mut *const u8 as *mut c_void,
+            (&mut payload_len) as *mut usize as *mut c_void);
+    }
+
+    crate::println!("!!!! payload_ptr: {:?}", &payload_ptr); // ok
+    crate::println!("!!!! payload_len: {}", payload_len); // ok
+
+    let payload = u8_slice_from(payload_ptr, payload_len).to_vec(); // ok
+    crate::println!("!!!! payload: {:?}", payload);
+}

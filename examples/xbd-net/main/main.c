@@ -212,9 +212,17 @@ static size_t _send(uint8_t *buf, size_t len, char *addr_str, gcoap_resp_handler
     return bytes_sent;
 }
 //--------
-static void _resp_handler_xbd(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
-                              const sock_udp_ep_t *remote) {
+extern void _xbd_resp_handler(
+        const gcoap_request_memo_t *memo, coap_pkt_t* pdu, const sock_udp_ep_t *remote,
+        uint8_t **payload, size_t *payload_len
+) {
     _resp_handler(memo, pdu, remote);
+    (void)payload;
+    (void)payload_len;
+    printf("[before] payload: %p payload_len: %d\n", (void *)*payload, *payload_len);
+    *payload = pdu->payload;
+    *payload_len = pdu->payload_len;
+    printf("[after] payload: %p payload_len: %d\n", (void *)*payload, *payload_len);
 
     // !!!!
     //arg = pack(yy_data, tag_gcoap_client)
@@ -233,7 +241,8 @@ static void xbd_gcoap_req_send(char *addr, char *uri/* WIP */) {
     printf("    sending msg ID %u, %u bytes\n", coap_get_id(&pdu), (unsigned) len);
 
     //@@if (!_send(&buf[0], len, addr)) {
-    if (!_send(&buf[0], len, addr, _resp_handler_xbd)) {//@@
+    //if (!_send(&buf[0], len, addr, _xbd_resp_handler)) {//@@
+    if (!_send(&buf[0], len, addr, xbd_resp_handler)) {//@@
         puts("gcoap_cli: msg send failed");
     } else {
         /* send Observe notification for /cli/stats */

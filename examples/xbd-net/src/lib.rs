@@ -104,7 +104,7 @@ fn rustmod_test_blogos12() {
                 //---- async
                 let (addr, uri) = req_internal;
                 assert_eq!(Xbd::async_gcoap_get(addr, uri).await, [99]);
-                Xbd::async_set_timeout(1999, || { panic!("!!!! ok"); }).await;
+                Xbd::async_set_timeout(999, || { panic!("!!!! ok"); }).await;
 
                 Xbd::async_sleep(3500).await; // ok
                 Xbd::async_set_timeout(3500, || { println!("@@ ||x: ^^"); }).await; // ok
