@@ -1,5 +1,6 @@
 mod callbacks;
-pub use callbacks::process_timeout_callbacks;
+pub use callbacks::process_xbd_callbacks;
+use callbacks::{add_xbd_timeout_callback, add_xbd_gcoap_get_callback};
 
 mod timeout;
 use timeout::Timeout;
@@ -9,12 +10,15 @@ use conquer_once::spin::OnceCell;
 use mcu_if::{alloc::{boxed::Box, vec::Vec}, c_types::c_void, null_terminate_str, utils::u8_slice_from};
 
 pub type SleepFnPtr = unsafe extern "C" fn(u32);
-pub type SetTimeoutFnPtr = unsafe extern "C" fn(u32, *const c_void, *mut (*const c_void, *mut *const c_void), *mut *const c_void);
-pub type GcoapReqSendFnPtr = unsafe extern "C" fn(*const u8, *const u8 /* WIP */);
+pub type SetTimeoutFnPtr = unsafe extern "C" fn(
+    u32, *const c_void, *mut (*const c_void, *mut *const c_void), *mut *const c_void);
+pub type GcoapReqSendFnPtr = unsafe extern "C" fn(
+    *const u8, *const u8, *const c_void);
 
 extern "C" {
-    fn _xbd_resp_handler(memo: *const c_void, pdu: *const c_void, remote: *const c_void,
-                         payload: *mut c_void, payload_len: *mut c_void);
+    fn _xbd_resp_handler(
+        memo: *const c_void, pdu: *const c_void, remote: *const c_void,
+        payload: *mut c_void, payload_len: *mut c_void, context: *mut c_void);
 }
 
 static XBD_CELL: OnceCell<Xbd> = OnceCell::uninit();
@@ -64,7 +68,7 @@ impl Xbd {
         unsafe { (Self::get_ref()._ztimer_msleep)(msec); }
     }
 
-    pub fn set_timeout<F>(msec: u32, cb: F) where F: FnOnce() + 'static {
+    pub fn set_timeout<F>(msec: u32, cb: F) where F: FnOnce(()) + 'static {
         let timeout_ptr = Box::new(core::ptr::null());
         let timeout_pp = Box::into_raw(timeout_ptr);
         let arg = Box::new((callbacks::into_raw(cb), timeout_pp));
@@ -72,39 +76,45 @@ impl Xbd {
         unsafe {
             (Self::get_ref()._ztimer_set)(
                 msec,
-                callbacks::add_timeout_callback as *const _, // cb_handler
+                add_xbd_timeout_callback as *const _, // cb_handler
                 Box::into_raw(arg), // arg_ptr
                 timeout_pp); // timeout_pp
         }
     }
 
-    // !!!! WIP
-    pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce(&[u8]) + 'static {
-        // let timeout_ptr = Box::new(core::ptr::null());
-        // let timeout_pp = Box::into_raw(timeout_ptr);
-        // let arg = Box::new((callbacks::into_raw(cb), timeout_pp));
-
+    pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce(Vec<u8>) + 'static {
         unsafe {
-            //(Self::get_ref()._gcoap_client_send)(
-                // msec,
-                // callbacks::add_timeout_callback as *const _, // cb_handler
-                // Box::into_raw(arg), // arg_ptr
-                // timeout_pp); // timeout_pp
-                //==== !!!! no provably
-                // uint8_t *buf, size_t len, char *addr_str
-                //callbacks::add_timeout_callback as *const _, // cb_handler !!!! can re-use??
-            //==== !!!! WIP, more directly
             (Self::get_ref()._gcoap_req_send)(
-                //buf, len, remote, _resp_handler_xx, NULL // !!!! WIP
                 null_terminate_str!(addr).as_ptr(),
                 null_terminate_str!(uri).as_ptr(),
-            )
+                callbacks::into_raw(cb)); // context
         }
     }
 
     pub fn async_gcoap_get(addr: &str, uri: &str) -> impl Future<Output = Vec<u8>> + 'static {
-        nn() // !!!!2222  cb
+
+        //====
         //Timeout::new(msec, Some(Box::new(cb)))
+        //timeout::Timeout00::new(9999, Some(Box::new(|| {})))
+        timeout::Timeout00::new(addr, uri)
+        //==== WIP
+        // use mcu_if::{alloc::{string::{String, ToString}}};
+        // async fn fut(addr: String, uri: String) -> Vec<u8> {
+        //
+        //     Xbd::gcoap_get(&addr, &uri, |payload| {
+        //         crate::println!("!!!!22 payload: {:?}", payload);
+        //
+        //         // ?????????????
+        //         // ???? callbacks::add_gcoap_client_callback(arg_ptr); // impl same as add_timeout_callback ??
+        //     });
+        //
+        //     [199].to_vec() // !!!! <-------- payload
+        // }
+        // fut(addr.to_string(), uri.to_string())
+        //==== dummy, ok
+        // async fn nn() -> Vec<u8> { [99].to_vec() }
+        // nn() // !!!!
+        //====
     }
 
     //
@@ -120,26 +130,22 @@ impl Xbd {
 
 //
 
-async fn nn() -> Vec<u8> { [99].to_vec() }
-
 #[no_mangle]
 pub extern fn xbd_resp_handler(memo: *const c_void, pdu: *const c_void, remote: *const c_void) {
 
+    let mut context: *const c_void = core::ptr::null_mut();
     let mut payload_ptr: *const u8 = core::ptr::null_mut();
     let mut payload_len: usize = 0;
     unsafe {
         _xbd_resp_handler(
             memo, pdu, remote,
             (&mut payload_ptr) as *mut *const u8 as *mut c_void,
-            (&mut payload_len) as *mut usize as *mut c_void);
+            (&mut payload_len) as *mut usize as *mut c_void,
+            (&mut context) as *mut *const c_void as *mut c_void);
     }
-
     let payload = u8_slice_from(payload_ptr, payload_len).to_vec();
-    crate::println!("!!!! payload: {:?}", payload);
+    crate::println!("xbd_resp_handler(): --------\n  context: {:?}\n  payload: {:?}", context, payload);
 
-    // !!!! retrun Future with payload
-
-    // !!!! ??
-    //arg = pack(yy_data, tag_gcoap_client)
-    //callbacks::add_gcoap_client_callback(arg_ptr); // impl same as add_timeout_callback ??
+    let arg_ptr = Box::into_raw(Box::new((context /* cb_ptr */, payload))) as *const c_void;
+    add_xbd_gcoap_get_callback(arg_ptr);
 }

@@ -178,7 +178,7 @@ static void _resp_handler(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
 
 #include "net/sock/util.h" //@@ for `sock_udp_name2ep()`
 //@@static size_t _send(uint8_t *buf, size_t len, char *addr_str)
-static size_t _send(uint8_t *buf, size_t len, char *addr_str, gcoap_resp_handler_t resp_handler) //@@
+static size_t _send(uint8_t *buf, size_t len, char *addr_str, void *context, gcoap_resp_handler_t resp_handler) //@@
 {
     size_t bytes_sent;
     sock_udp_ep_t *remote;
@@ -205,7 +205,7 @@ static size_t _send(uint8_t *buf, size_t len, char *addr_str, gcoap_resp_handler
 //    }
 
     //@@bytes_sent = gcoap_req_send(buf, len, remote, _resp_handler, NULL);
-    bytes_sent = gcoap_req_send(buf, len, remote, resp_handler, NULL);//@@
+    bytes_sent = gcoap_req_send(buf, len, remote, resp_handler, context);//@@
     if (bytes_sent > 0) {
         req_count++;
     }
@@ -214,13 +214,14 @@ static size_t _send(uint8_t *buf, size_t len, char *addr_str, gcoap_resp_handler
 //--------
 extern void _xbd_resp_handler(
         const gcoap_request_memo_t *memo, coap_pkt_t* pdu, const sock_udp_ep_t *remote,
-        uint8_t **payload, size_t *payload_len
+        uint8_t **payload, size_t *payload_len, void **context
 ) {
     _resp_handler(memo, pdu, remote);
     *payload = pdu->payload;
     *payload_len = pdu->payload_len;
+    *context = memo->context;
 }
-static void xbd_gcoap_req_send(char *addr, char *uri/* WIP */) {
+static void xbd_gcoap_req_send(char *addr, char *uri, void *context /* WIP */) {
     uint8_t buf[CONFIG_GCOAP_PDU_BUF_SIZE];
     coap_pkt_t pdu;
     size_t len;
@@ -232,7 +233,8 @@ static void xbd_gcoap_req_send(char *addr, char *uri/* WIP */) {
     printf("@@ xbd_gcoap_req_send(): addr: %s, uri: %s\n", addr, uri);
     printf("    sending msg ID %u, %u bytes\n", coap_get_id(&pdu), (unsigned) len);
 
-    if (!_send(&buf[0], len, addr, xbd_resp_handler)) {
+    printf("@@ context: %p\n", context);
+    if (!_send(&buf[0], len, addr, context, xbd_resp_handler)) {
         puts("gcoap_cli: msg send failed");
     } else {
         /* send Observe notification for /cli/stats */

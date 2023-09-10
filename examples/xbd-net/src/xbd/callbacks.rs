@@ -2,7 +2,7 @@ use conquer_once::spin::OnceCell;
 use core::{pin::Pin, task::{Context, Poll}};
 use crossbeam_queue::ArrayQueue;
 use futures_util::{stream::{Stream, StreamExt}, task::AtomicWaker};
-use mcu_if::{println, alloc::boxed::Box, c_types::c_void};
+use mcu_if::{println, alloc::{boxed::Box, vec::Vec}, c_types::c_void};
 
 type CVoidPtr = *const c_void;
 
@@ -12,33 +12,51 @@ extern "C" {
     fn free(ptr: *mut c_void);
 }
 
-pub async fn process_timeout_callbacks() {
+pub enum XbdCallback {
+    Timeout(u32),
+    _GcoapPing(u32),
+    GcoapGet(u32),
+}
+
+
+pub async fn process_xbd_callbacks() {
     let mut callbacks = CallbackStream::new();
 
-    while let Some(arg_ptr) = callbacks.next().await {
-        let (cb_ptr, timeout_pp): (CVoidPtr, *mut CVoidPtr) =
-            unsafe { *Box::from_raw(arg_ptr as *mut _) }; // consume `arg`
+    while let Some(xbd_callback) = callbacks.next().await {
+        match xbd_callback {
+            XbdCallback::Timeout(arg_ptr) => {
+                // !!!! refactor
+                let (cb_ptr, timeout_pp): (CVoidPtr, *mut CVoidPtr) =
+                    unsafe { *Box::from_raw(arg_ptr as *mut _) }; // consume `arg`
 
-        let timeout_ptr = unsafe { *Box::from_raw(timeout_pp) };
-        println!("@@ freeing timeout_ptr: {:?}", timeout_ptr);
-        assert_ne!(timeout_ptr, core::ptr::null());
-        unsafe { free(timeout_ptr as *mut _); }
+                let timeout_ptr = unsafe { *Box::from_raw(timeout_pp) };
+                println!("@@ freeing timeout_ptr: {:?}", timeout_ptr);
+                assert_ne!(timeout_ptr, core::ptr::null());
+                unsafe { free(timeout_ptr as *mut _); }
 
-        let cb = cb_from(cb_ptr as CVoidPtr);
-        (*cb)(); // call, move, drop
+                let cb = cb_from(cb_ptr as CVoidPtr);
+                (*cb)(()); // call, move, drop
+            },
+            XbdCallback::_GcoapPing(_) => todo!(),
+            XbdCallback::GcoapGet(arg_ptr) => {
+                // !!!! refactor
+                let (cb_ptr, payload): (CVoidPtr, Vec<u8>) =
+                    unsafe { *Box::from_raw(arg_ptr as *mut _) }; // consume `arg`
+
+                let cb = cb_from(cb_ptr as CVoidPtr);
+                (*cb)(payload); // call, move, drop
+            },
+        }
     }
 }
-pub async fn _process_gcoap_client_callbacks() { // !!!!!!!!!! ?
-    //
-}
 
-pub fn into_raw<F>(cb: F) -> CVoidPtr where F: FnOnce() + 'static {
-    let cb: Box<Box<dyn FnOnce() + 'static>> = Box::new(Box::new(cb));
+pub fn into_raw<F, T>(cb: F) -> CVoidPtr where F: FnOnce(T) + 'static {
+    let cb: Box<Box<dyn FnOnce(T) + 'static>> = Box::new(Box::new(cb));
 
     Box::into_raw(cb) as *const _
 }
 
-fn cb_from(cb_ptr: CVoidPtr) -> Box<Box<dyn FnOnce() + 'static>> {
+fn cb_from<T>(cb_ptr: CVoidPtr) -> Box<Box<dyn FnOnce(T) + 'static>> {
     unsafe { Box::from_raw(cb_ptr as *mut _) }
 }
 
@@ -46,12 +64,19 @@ fn cb_from(cb_ptr: CVoidPtr) -> Box<Box<dyn FnOnce() + 'static>> {
 
 const CALLBACK_QUEUE_CAP_DEFAULT: usize = 100;
 
-static CALLBACK_QUEUE: OnceCell<ArrayQueue<u32>> = OnceCell::uninit();
+static CALLBACK_QUEUE: OnceCell<ArrayQueue<XbdCallback>> = OnceCell::uninit();
 static WAKER: AtomicWaker = AtomicWaker::new();
 
-pub fn add_timeout_callback(arg_ptr: CVoidPtr) { // must not block/alloc/dealloc
+pub fn add_xbd_gcoap_get_callback(arg_ptr: CVoidPtr) { // must not block/alloc/dealloc
+    add_xbd_callback(XbdCallback::GcoapGet(arg_ptr as u32));
+}
+pub fn add_xbd_timeout_callback(arg_ptr: CVoidPtr) { // must not block/alloc/dealloc
+    add_xbd_callback(XbdCallback::Timeout(arg_ptr as u32));
+}
+
+pub fn add_xbd_callback(xbd_callback: XbdCallback) { // must not block/alloc/dealloc
     if let Ok(queue) = CALLBACK_QUEUE.try_get() {
-        if let Err(_) = queue.push(arg_ptr as u32) {
+        if let Err(_) = queue.push(xbd_callback) {
             panic!("callback queue full");
         } else {
             WAKER.wake();
@@ -75,23 +100,23 @@ impl CallbackStream {
 }
 
 impl Stream for CallbackStream {
-    type Item = CVoidPtr;
+    type Item = XbdCallback;
 
-    fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<CVoidPtr>> {
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<XbdCallback>> {
         let queue = CALLBACK_QUEUE
             .try_get()
             .expect("callback queue not initialized");
 
         // fast path
         if let Some(arg_ptr) = queue.pop() {
-            return Poll::Ready(Some(arg_ptr as CVoidPtr));
+            return Poll::Ready(Some(arg_ptr));
         }
 
         WAKER.register(&cx.waker());
         match queue.pop() {
             Some(arg_ptr) => {
                 WAKER.take();
-                Poll::Ready(Some(arg_ptr as CVoidPtr))
+                Poll::Ready(Some(arg_ptr))
             }
             None => Poll::Pending,
         }

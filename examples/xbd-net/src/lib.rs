@@ -12,7 +12,7 @@ use core::cell::Cell;
 use mcu_if::{println, alloc::boxed::Box, null_terminate_bytes};
 
 mod xbd;
-use xbd::{Xbd, SleepFnPtr, SetTimeoutFnPtr, GcoapReqSendFnPtr, process_timeout_callbacks};
+use xbd::{Xbd, SleepFnPtr, SetTimeoutFnPtr, GcoapReqSendFnPtr, process_xbd_callbacks};
 
 mod runtime;
 mod blogos12;
@@ -73,37 +73,25 @@ fn rustmod_test_blogos12() {
     if 1 == 1 {
         Executor::new()
             .spawn(blogos12_example_task())
-            .spawn(process_timeout_callbacks()) // processor
+            .spawn(process_xbd_callbacks()) // processor
             .spawn(process_blogos12_scancodes()) // processor
             .spawn(async move { // main
 
                 let req_internal = ("[fe80::78ec:5fff:febd:add9]:5683", "/.well-known/core");
                 let req_external = ("[fe80::20be:cdff:fe0e:44a1]:5683", "/hello");
-                if 1 == 1 { // !!!! WIP
-                    let cb = |payload: &[u8]| { println!("!!!! payload: {:?}", payload); };
+                if 1 == 1 { // ok!!
+                    let cb = |payload| { println!("@@ payload: {:?}", payload); };
                     //==== native, internal server
                     let (addr, uri) = req_internal;
                     Xbd::gcoap_get(addr, uri, cb);
                     //==== native, external server -- LD_LIBRARY_PATH=./libcoap/local/lib libcoap-minimal/server 5683 fe80::20be:cdff:fe0e:44a1%tap1 &
                     let (addr, uri) = req_external;
                     Xbd::gcoap_get(addr, uri, cb);
-                    //==== deprecated notes
-/*
-                    Xbd::async_gcoap_client_send("coap get [fe80::a00:27ff:fefd:b6f8]:5683 /hello", || {
-                        static void _resp_handler(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
-                                                  const sock_udp_ep_t *remote) {
-
-                            printf("gcoap: response %s, code %1u.%02u", class_str,
-                                    coap_get_code_class(pdu),
-                                    coap_get_code_detail(pdu));
-                  }); // !!!!
-*/
-                    //}).await; // !!!!
                 }
 
                 //---- async
                 let (addr, uri) = req_internal;
-                assert_eq!(Xbd::async_gcoap_get(addr, uri).await, [99]);
+                assert_eq!(Xbd::async_gcoap_get(addr, uri).await.len(), 46); // ok!!
                 Xbd::async_set_timeout(999, || { panic!("!!!! ok"); }).await;
 
                 Xbd::async_sleep(3500).await; // ok
@@ -112,13 +100,13 @@ fn rustmod_test_blogos12() {
 
                 //---- non-blocking, ok
                 let foo = Box::new(9);
-                Xbd::set_timeout(2500, move || {
+                Xbd::set_timeout(2500, move |_| {
                     println!("@@ ||aa: ^^ foo: {:?}", foo);
                     blogos12_add_scancode(8);
                     blogos12_add_scancode(*foo);
                 });
 
-                fn ff() { println!("@@ ff(): ^^"); }
+                fn ff(_: ()) { println!("@@ ff(): ^^"); }
                 Xbd::set_timeout(2500, ff);
                 //----
 
