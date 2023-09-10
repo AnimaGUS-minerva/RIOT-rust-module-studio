@@ -5,6 +5,9 @@ use callbacks::{add_xbd_timeout_callback, add_xbd_gcoap_get_callback};
 mod timeout;
 use timeout::Timeout;
 
+mod gcoap;
+use gcoap::GcoapGet;
+
 use core::future::Future;
 use conquer_once::spin::OnceCell;
 use mcu_if::{alloc::{boxed::Box, vec::Vec}, c_types::c_void, null_terminate_str, utils::u8_slice_from};
@@ -92,32 +95,8 @@ impl Xbd {
     }
 
     pub fn async_gcoap_get(addr: &str, uri: &str) -> impl Future<Output = Vec<u8>> + 'static {
-
-        //====
-        //Timeout::new(msec, Some(Box::new(cb)))
-        //timeout::Timeout00::new(9999, Some(Box::new(|| {})))
-        timeout::Timeout00::new(addr, uri)
-        //==== WIP
-        // use mcu_if::{alloc::{string::{String, ToString}}};
-        // async fn fut(addr: String, uri: String) -> Vec<u8> {
-        //
-        //     Xbd::gcoap_get(&addr, &uri, |payload| {
-        //         crate::println!("!!!!22 payload: {:?}", payload);
-        //
-        //         // ?????????????
-        //         // ???? callbacks::add_gcoap_client_callback(arg_ptr); // impl same as add_timeout_callback ??
-        //     });
-        //
-        //     [199].to_vec() // !!!! <-------- payload
-        // }
-        // fut(addr.to_string(), uri.to_string())
-        //==== dummy, ok
-        // async fn nn() -> Vec<u8> { [99].to_vec() }
-        // nn() // !!!!
-        //====
+        GcoapGet::new(addr, uri)
     }
-
-    //
 
     pub fn async_sleep(msec: u32) -> impl Future<Output = ()> + 'static {
         Timeout::new(msec, None)
