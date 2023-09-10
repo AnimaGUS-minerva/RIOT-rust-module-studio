@@ -94,9 +94,7 @@ impl Xbd {
         }
     }
 
-    pub fn async_gcoap_get(addr: &str, uri: &str) -> impl Future<Output = Vec<u8>> + 'static {
-        GcoapGet::new(addr, uri)
-    }
+    //
 
     pub fn async_sleep(msec: u32) -> impl Future<Output = ()> + 'static {
         Timeout::new(msec, None)
@@ -104,6 +102,10 @@ impl Xbd {
 
     pub fn async_set_timeout<F>(msec: u32, cb: F) -> impl Future<Output = ()> + 'static where F: FnOnce() + 'static {
         Timeout::new(msec, Some(Box::new(cb)))
+    }
+
+    pub fn async_gcoap_get(addr: &str, uri: &str) -> impl Future<Output = Vec<u8>> + 'static {
+        GcoapGet::new(addr, uri)
     }
 }
 

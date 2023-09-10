@@ -4,20 +4,18 @@ use crossbeam_queue::ArrayQueue;
 use futures_util::{stream::{Stream, StreamExt}, task::AtomicWaker};
 use mcu_if::{println, alloc::{boxed::Box, vec::Vec}, c_types::c_void};
 
-type CVoidPtr = *const c_void;
-
-//
-
 extern "C" {
     fn free(ptr: *mut c_void);
 }
 
-pub enum XbdCallback {
-    Timeout(u32),
-    _GcoapPing(u32),
-    GcoapGet(u32),
-}
+type CVoidPtr = *const c_void;
+type PtrSend = u32; // support RIOT 32bit MCUs only
 
+pub enum XbdCallback {
+    Timeout(PtrSend),
+    _GcoapPing(PtrSend),
+    GcoapGet(PtrSend),
+}
 
 pub async fn process_xbd_callbacks() {
     let mut callbacks = CallbackStream::new();
@@ -68,13 +66,13 @@ static CALLBACK_QUEUE: OnceCell<ArrayQueue<XbdCallback>> = OnceCell::uninit();
 static WAKER: AtomicWaker = AtomicWaker::new();
 
 pub fn add_xbd_gcoap_get_callback(arg_ptr: CVoidPtr) { // must not block/alloc/dealloc
-    add_xbd_callback(XbdCallback::GcoapGet(arg_ptr as u32));
+    add_xbd_callback(XbdCallback::GcoapGet(arg_ptr as PtrSend));
 }
 pub fn add_xbd_timeout_callback(arg_ptr: CVoidPtr) { // must not block/alloc/dealloc
-    add_xbd_callback(XbdCallback::Timeout(arg_ptr as u32));
+    add_xbd_callback(XbdCallback::Timeout(arg_ptr as PtrSend));
 }
 
-pub fn add_xbd_callback(xbd_callback: XbdCallback) { // must not block/alloc/dealloc
+fn add_xbd_callback(xbd_callback: XbdCallback) { // must not block/alloc/dealloc
     if let Ok(queue) = CALLBACK_QUEUE.try_get() {
         if let Err(_) = queue.push(xbd_callback) {
             panic!("callback queue full");
