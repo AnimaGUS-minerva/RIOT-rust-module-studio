@@ -127,6 +127,6 @@ pub extern fn xbd_resp_handler(memo: *const c_void, pdu: *const c_void, remote: 
     let payload = u8_slice_from(payload_ptr, payload_len).to_vec();
     crate::println!("xbd_resp_handler(): --------\n  context: {:?}\n  payload: {:?}", context, payload);
 
-    let arg_ptr = Box::into_raw(Box::new((context /* cb_ptr */, payload))) as *const c_void;
-    add_xbd_gcoap_get_callback(arg_ptr);
+    add_xbd_gcoap_get_callback(
+        Box::into_raw(Box::new((context /* cb_ptr */, payload))) as *const c_void); // arg_ptr
 }

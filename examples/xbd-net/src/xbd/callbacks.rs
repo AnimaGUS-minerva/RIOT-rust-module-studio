@@ -2,7 +2,7 @@ use conquer_once::spin::OnceCell;
 use core::{pin::Pin, task::{Context, Poll}};
 use crossbeam_queue::ArrayQueue;
 use futures_util::{stream::{Stream, StreamExt}, task::AtomicWaker};
-use mcu_if::{println, alloc::{boxed::Box, vec::Vec}, c_types::c_void};
+use mcu_if::{alloc::{boxed::Box, vec::Vec}, c_types::c_void};
 
 extern "C" {
     fn free(ptr: *mut c_void);
@@ -11,7 +11,7 @@ extern "C" {
 type CVoidPtr = *const c_void;
 type PtrSend = u32; // support RIOT 32bit MCUs only
 
-pub enum XbdCallback {
+enum XbdCallback {
     Timeout(PtrSend),
     _GcoapPing(PtrSend),
     GcoapGet(PtrSend),
@@ -23,26 +23,19 @@ pub async fn process_xbd_callbacks() {
     while let Some(xbd_callback) = callbacks.next().await {
         match xbd_callback {
             XbdCallback::Timeout(arg_ptr) => {
-                // !!!! refactor
-                let (cb_ptr, timeout_pp): (CVoidPtr, *mut CVoidPtr) =
-                    unsafe { *Box::from_raw(arg_ptr as *mut _) }; // consume `arg`
+                let (cb_ptr, timeout_pp): (CVoidPtr, *mut CVoidPtr) = arg_from(arg_ptr);
 
                 let timeout_ptr = unsafe { *Box::from_raw(timeout_pp) };
-                println!("@@ freeing timeout_ptr: {:?}", timeout_ptr);
+                //mcu_if::println!("@@ freeing timeout_ptr: {:?}", timeout_ptr);
                 assert_ne!(timeout_ptr, core::ptr::null());
                 unsafe { free(timeout_ptr as *mut _); }
 
-                let cb = cb_from(cb_ptr as CVoidPtr);
-                (*cb)(()); // call, move, drop
+                (*(cb_from(cb_ptr)))(()); // call, move, drop
             },
             XbdCallback::_GcoapPing(_) => todo!(),
             XbdCallback::GcoapGet(arg_ptr) => {
-                // !!!! refactor
-                let (cb_ptr, payload): (CVoidPtr, Vec<u8>) =
-                    unsafe { *Box::from_raw(arg_ptr as *mut _) }; // consume `arg`
-
-                let cb = cb_from(cb_ptr as CVoidPtr);
-                (*cb)(payload); // call, move, drop
+                let (cb_ptr, payload): (CVoidPtr, Vec<u8>) = arg_from(arg_ptr);
+                (*(cb_from(cb_ptr)))(payload); // call, move, drop
             },
         }
     }
@@ -52,6 +45,10 @@ pub fn into_raw<F, T>(cb: F) -> CVoidPtr where F: FnOnce(T) + 'static {
     let cb: Box<Box<dyn FnOnce(T) + 'static>> = Box::new(Box::new(cb));
 
     Box::into_raw(cb) as *const _
+}
+
+fn arg_from<T>(arg_ptr: PtrSend) -> (CVoidPtr, T) {
+    unsafe { *Box::from_raw(arg_ptr as *mut _) }
 }
 
 fn cb_from<T>(cb_ptr: CVoidPtr) -> Box<Box<dyn FnOnce(T) + 'static>> {
@@ -65,10 +62,10 @@ const CALLBACK_QUEUE_CAP_DEFAULT: usize = 100;
 static CALLBACK_QUEUE: OnceCell<ArrayQueue<XbdCallback>> = OnceCell::uninit();
 static WAKER: AtomicWaker = AtomicWaker::new();
 
-pub fn add_xbd_gcoap_get_callback(arg_ptr: CVoidPtr) { // must not block/alloc/dealloc
+pub fn add_xbd_gcoap_get_callback(arg_ptr: CVoidPtr) {
     add_xbd_callback(XbdCallback::GcoapGet(arg_ptr as PtrSend));
 }
-pub fn add_xbd_timeout_callback(arg_ptr: CVoidPtr) { // must not block/alloc/dealloc
+pub fn add_xbd_timeout_callback(arg_ptr: CVoidPtr) {
     add_xbd_callback(XbdCallback::Timeout(arg_ptr as PtrSend));
 }
 
