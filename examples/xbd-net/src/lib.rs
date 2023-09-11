@@ -11,10 +11,11 @@ fn alloc_error(layout: mcu_if::alloc::alloc::Layout) -> ! { mcu_if::alloc_error(
 use core::cell::Cell;
 use mcu_if::{println, alloc::boxed::Box, null_terminate_bytes};
 
+mod runtime_old;
+
 mod xbd;
 use xbd::{Xbd, SleepFnPtr, SetTimeoutFnPtr, GcoapReqSendFnPtr, process_xbd_callbacks};
 
-mod runtime;
 mod blogos12;
 
 //
@@ -28,19 +29,18 @@ pub extern fn rustmod_start(
 ) {
     println!("[src/lib.rs] rustmod_start(): ^^");
 
+    if 100 == 1 { rustmod_test_runtime_old_v1(); }
+    if 100 == 1 { rustmod_test_runtime_old_v2(); }
+
+    //
+
     if 100 == 1 { loop { unsafe { xbd_usleep(500_000); } } } // ok
 
-    //
-
     xbd::init_once(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set, xbd_gcoap_req_send);
-
     if 100 == 1 { loop { Xbd::usleep(500_000); } } // ok
     if 100 == 1 { loop { Xbd::msleep(500); } } // ok
+
     if 1 == 1 { rustmod_test_blogos12(); }
-
-    //
-
-    if 100 == 1 { rustmod_test_runtime(); }
 }
 
 //
@@ -70,7 +70,7 @@ fn rustmod_test_blogos12() {
 
     //
 
-    if 1 == 1 {
+    if 100 == 1 {
         Executor::new()
             .spawn(blogos12_example_task())
             .spawn(process_xbd_callbacks()) // processor
@@ -89,6 +89,11 @@ fn rustmod_test_blogos12() {
                     Xbd::set_timeout(2500, ff);
                 }
 
+                if 0 == 1 { // async, ok
+                    Xbd::async_sleep(3500).await; // ok
+                    Xbd::async_set_timeout(3500, || { println!("@@ ||x: ^^"); }).await; // ok
+                }
+
                 //
 
                 let req_internal_native = ("[fe80::78ec:5fff:febd:add9]:5683", "/.well-known/core");
@@ -96,9 +101,11 @@ fn rustmod_test_blogos12() {
 
                 if 0 == 1 { // non-blocking, ok
                     let cb = |payload| { println!("@@ payload: {:?}", payload); };
+
                     //==== native, internal server
                     let (addr, uri) = req_internal_native;
                     Xbd::gcoap_get(addr, uri, cb);
+
                     //==== native, external server -- LD_LIBRARY_PATH=./libcoap/local/lib libcoap-minimal/server 5683 fe80::20be:cdff:fe0e:44a1%tap1 &
                     let (addr, uri) = req_external_native;
                     Xbd::gcoap_get(addr, uri, cb);
@@ -117,34 +124,33 @@ fn rustmod_test_blogos12() {
                     // test hitting the internal server, native-only!!
                     assert_eq!(Xbd::async_gcoap_get(addr, uri).await.len(), 46);
                 }
-
-                if 0 == 1 { // async, ok
-                    Xbd::async_sleep(3500).await; // ok
-                    Xbd::async_set_timeout(3500, || { println!("@@ ||x: ^^"); }).await; // ok
-                }
             })
             .run();
     }
-
-    //
-
-    use mcu_if::alloc::rc::Rc; // !! temp !!
-    let rt = Rc::new(runtime::Runtime::new());
-    let rtc = rt.clone();
-    rt.spawn_local(async move {
-        rtc.exec(blogos12_example_task()).await; // ok
-        println!("@@ rustmod_test_blogos12(): ----");
-        if 0 == 1 { rtc.exec(process_blogos12_scancodes()).await; } // TODO async stream support in Runtime
-    });
 
     println!("@@ rustmod_test_blogos12(): $$");
 }
 
 //
 
+fn rustmod_test_runtime_old_v2() {
+    use blogos12::{
+        example_task as blogos12_example_task,
+        keyboard::print_keypresses as process_blogos12_scancodes,
+    };
 
-fn rustmod_test_runtime() {
-    println!("@@ rustmod_test_runtime(): ^^");
+    use mcu_if::alloc::rc::Rc; // !! temp !!
+    let rt = Rc::new(runtime_old::Runtime::new());
+    let rtc = rt.clone();
+    rt.spawn_local(async move {
+        rtc.exec(blogos12_example_task()).await; // ok
+        println!("@@ rustmod_test_blogos12(): ----");
+        if 0 == 1 { rtc.exec(process_blogos12_scancodes()).await; } // TODO async stream support in Runtime
+    });
+}
+
+fn rustmod_test_runtime_old_v1() {
+    println!("@@ rustmod_test_runtime_old_v1(): ^^");
 
     //
 
@@ -160,9 +166,9 @@ fn rustmod_test_runtime() {
     //
 
     let val = Rc::new(Cell::new(0));
-    println!("@@ rustmod_test_runtime(): val: {}", val.get());
+    println!("@@ rustmod_test_runtime_old_v1(): val: {}", val.get());
 
-    let rt = Rc::new(runtime::Runtime::new());
+    let rt = Rc::new(runtime_old::Runtime::new());
     {
         let val = val.clone();
         let rtc = rt.clone();
@@ -195,8 +201,8 @@ fn rustmod_test_runtime() {
         });
     }
 
-    println!("@@ rustmod_test_runtime(): val: {}", val.get());
+    println!("@@ rustmod_test_runtime_old_v1(): val: {}", val.get());
     assert_eq!(val.get(), 3);
 
-    println!("@@ rustmod_test_runtime(): $$");
+    println!("@@ rustmod_test_runtime_old_v1(): $$");
 }
