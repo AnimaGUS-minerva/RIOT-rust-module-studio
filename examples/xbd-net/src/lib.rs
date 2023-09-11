@@ -80,13 +80,19 @@ pub extern fn rustmod_start(
             let (addr, uri) = req_internal_native;
 
             // test case invalid `addr`
-            assert_eq!(0, Xbd::async_gcoap_get("[fe80::78ec:5fff:febd:aaaa]:5683", uri).await.len());
+            let payload = Xbd::async_gcoap_get("[fe80::78ec:5fff:febd:aaaa]:5683", uri).await;
+            println!("@@ payload: {:?}", payload);
+            assert_eq!(payload.len(), 0);
 
             // test case invalid `uri`
-            assert_eq!(0, Xbd::async_gcoap_get(addr, "/.well-known/cccc").await.len());
+            let payload = Xbd::async_gcoap_get(addr, "/.well-known/cccc").await;
+            println!("@@ payload: {:?}", payload);
+            assert_eq!(payload.len(), 0);
 
             // test hitting the internal server, native-only!!
-            assert_eq!(Xbd::async_gcoap_get(addr, uri).await.len(), 46);
+            let payload = Xbd::async_gcoap_get(addr, uri).await;
+            println!("@@ payload: {:?}", payload);
+            assert_eq!(payload.len(), 46);
         }
     });
     panic!("should be never reached");
