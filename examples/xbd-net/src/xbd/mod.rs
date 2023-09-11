@@ -10,7 +10,7 @@ use gcoap::GcoapGet;
 
 use core::future::Future;
 use conquer_once::spin::OnceCell;
-use mcu_if::{alloc::{boxed::Box, vec::Vec}, c_types::c_void, null_terminate_str, utils::u8_slice_from};
+use mcu_if::{alloc::{boxed::Box, vec::Vec, vec}, c_types::c_void, null_terminate_str, utils::u8_slice_from};
 
 pub type SleepFnPtr = unsafe extern "C" fn(u32);
 pub type SetTimeoutFnPtr = unsafe extern "C" fn(
@@ -113,7 +113,6 @@ impl Xbd {
 
 #[no_mangle]
 pub extern fn xbd_resp_handler(memo: *const c_void, pdu: *const c_void, remote: *const c_void) {
-
     let mut context: *const c_void = core::ptr::null_mut();
     let mut payload_ptr: *const u8 = core::ptr::null_mut();
     let mut payload_len: usize = 0;
@@ -124,8 +123,14 @@ pub extern fn xbd_resp_handler(memo: *const c_void, pdu: *const c_void, remote: 
             (&mut payload_len) as *mut usize as *mut c_void,
             (&mut context) as *mut *const c_void as *mut c_void);
     }
-    let payload = u8_slice_from(payload_ptr, payload_len).to_vec();
-    crate::println!("xbd_resp_handler(): --------\n  context: {:?}\n  payload: {:?}", context, payload);
+
+    let payload = if payload_len > 0 {
+        u8_slice_from(payload_ptr, payload_len).to_vec()
+    } else {
+        assert_eq!(payload_ptr, core::ptr::null_mut());
+        vec![]
+    };
+    //crate::println!("xbd_resp_handler(): --------\n  context: {:?}\n  payload: {:?}", context, payload);
 
     add_xbd_gcoap_get_callback(
         Box::into_raw(Box::new((context /* cb_ptr */, payload))) as *const c_void); // arg_ptr

@@ -217,7 +217,7 @@ extern void _xbd_resp_handler(
         uint8_t **payload, size_t *payload_len, void **context
 ) {
     _resp_handler(memo, pdu, remote);
-    *payload = pdu->payload;
+    *payload = pdu->payload_len ? pdu->payload : NULL;
     *payload_len = pdu->payload_len;
     *context = memo->context;
 }
@@ -233,7 +233,7 @@ static void xbd_gcoap_req_send(char *addr, char *uri, void *context /* WIP */) {
     printf("@@ xbd_gcoap_req_send(): addr: %s, uri: %s\n", addr, uri);
     printf("    sending msg ID %u, %u bytes\n", coap_get_id(&pdu), (unsigned) len);
 
-    printf("@@ context: %p\n", context);
+    //printf("@@ context: %p\n", context);
     if (!_send(&buf[0], len, addr, context, xbd_resp_handler)) {
         puts("gcoap_cli: msg send failed");
     } else {
