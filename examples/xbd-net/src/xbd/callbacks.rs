@@ -26,7 +26,6 @@ pub async fn process_xbd_callbacks() {
                 let (cb_ptr, timeout_pp): (CVoidPtr, *mut CVoidPtr) = arg_from(arg_ptr);
 
                 let timeout_ptr = unsafe { *Box::from_raw(timeout_pp) };
-                //mcu_if::println!("@@ freeing timeout_ptr: {:?}", timeout_ptr);
                 assert_ne!(timeout_ptr, core::ptr::null());
                 unsafe { free(timeout_ptr as *mut _); }
 
