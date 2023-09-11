@@ -69,22 +69,6 @@ static void xbd_ztimer_set(uint32_t delay, void (*cb_handler)(void *), void *arg
     ztimer_set(ZTIMER_MSEC, timeout, delay);
 }
 
-// !!!!
-//static void xbd_gcoap_client_send(/* addr,msg */, void (*cb_handler)(void *), void *arg_ptr, void **timeout_pp) {
-//    printf("@@ xbd_ztimer_set(): delay(ms): %d\n", delay);
-//
-////    ztimer_t *timeout = (ztimer_t *) calloc(sizeof(ztimer_t), 1);
-////    timeout->callback = cb_handler;
-////    timeout->arg = arg_ptr;
-////
-////    *timeout_pp = timeout;
-////
-//
-//    //ztimer_set(ZTIMER_MSEC, timeout, delay);
-//    //==== !!!!
-//    //bytes_sent = gcoap_req_send(buf, len, remote, _resp_handler, NULL); // client.c
-//    bytes_sent = gcoap_req_send(buf, len, remote, _resp_handler_xx, NULL); // !!!! ??
-//}
 //---------------- TODO into minerva_gcoap API
 static void _resp_handler(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
                           const sock_udp_ep_t *remote)
