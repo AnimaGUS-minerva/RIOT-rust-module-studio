@@ -32,22 +32,9 @@ pub extern fn rustmod_start(
 ) {
     println!("[src/lib.rs] rustmod_start(): ^^");
 
-    if 100 == 1 { rustmod_test_runtime_old_v1(); }
-    if 100 == 1 { rustmod_test_runtime_old_v2(); }
-
-    //
-
-    if 100 == 1 { loop { unsafe { xbd_usleep(500_000); } } } // ok
-
-    // !!!! !!!!
     xbd::init_once(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set, xbd_gcoap_req_send);
 
-    if 100 == 1 { loop { Xbd::usleep(500_000); } } // ok
-    if 100 == 1 { loop { Xbd::msleep(500); } } // ok
-
-    if 100 == 1 { rustmod_test_blogos12(); }
-
-    //
+    if 0 == 1 { rustmod_start_debug(xbd_usleep); }
 
     // c.f. https://docs.rs/tokio/latest/tokio/runtime/struct.Runtime.html#method.block_on
     Runtime::new().unwrap().block_on(async move {
@@ -104,7 +91,17 @@ pub extern fn rustmod_start(
     });
 }
 
-//
+fn rustmod_start_debug(xbd_usleep: SleepFnPtr) {
+    if 100 == 1 { rustmod_test_runtime_old_v1(); }
+    if 100 == 1 { rustmod_test_runtime_old_v2(); }
+
+    if 100 == 1 { loop { unsafe { xbd_usleep(500_000); } } } // ok
+
+    if 100 == 1 { loop { Xbd::usleep(500_000); } } // ok
+    if 100 == 1 { loop { Xbd::msleep(500); } } // ok
+
+    if 100 == 1 { rustmod_test_blogos12(); }
+}
 
 fn rustmod_test_blogos12() {
     println!("@@ rustmod_test_blogos12(): ^^");
@@ -137,8 +134,6 @@ fn rustmod_test_blogos12() {
 
     println!("@@ rustmod_test_blogos12(): $$");
 }
-
-//
 
 fn rustmod_test_runtime_old_v2() {
     use blogos12::{

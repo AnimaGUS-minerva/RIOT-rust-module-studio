@@ -281,9 +281,7 @@ int main(void) {
     }
 
     if (1) {
-        printf("@@ main(): before calling rustmod\n");
         rustmod_start(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set, xbd_gcoap_req_send);
-        printf("@@ main(): after calling rustmod\n");
     }
 
     //start_shell(null);
