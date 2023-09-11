@@ -89,6 +89,7 @@ pub extern fn rustmod_start(
             assert_eq!(Xbd::async_gcoap_get(addr, uri).await.len(), 46);
         }
     });
+    panic!("should be never reached");
 }
 
 fn rustmod_start_debug(xbd_usleep: SleepFnPtr) {
