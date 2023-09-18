@@ -39,7 +39,7 @@ static const shell_command_t shell_commands_minerva[] = {
     { "coap", "CoAP example", gcoap_cli_cmd },
     { NULL, NULL, NULL }
 };
-void start_shell(const shell_command_t *shell_commands) {
+void start_shell(const shell_command_t *shell_commands /* `null`able */) {
     char line_buf[SHELL_DEFAULT_BUFSIZE];
     shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
 }
@@ -74,7 +74,7 @@ static void xbd_ztimer_set(uint32_t delay, void (*cb_handler)(void *), void *arg
     timeout->arg = arg_ptr;
 
     *timeout_pp = timeout;
-    printf("@@ xbd_ztimer_set(): *timeout_pp (= timeout_ptr): %p\n", *timeout_pp);
+    //printf("@@ xbd_ztimer_set(): *timeout_pp (= timeout_ptr): %p\n", *timeout_pp);
 
     ztimer_set(ZTIMER_MSEC, timeout, delay);
 }
@@ -263,7 +263,7 @@ int main(void) {
         server_init();
     }
 
-    if (1) {
+    if (0) {
         // hit the internal server
         test_gcoap_req("get", "[::1]:5683", "/.well-known/core");
 
@@ -271,11 +271,10 @@ int main(void) {
         test_gcoap_req("get", "[" IP6_FIXTURE_SERVER "]:5683", "/hello");
     }
 
-    if (0) {
+    if (1) {
         rustmod_start(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set, xbd_gcoap_req_send);
     }
 
-    //start_shell(null);
     start_shell(shell_commands_minerva);
 
     /* should be never reached */
