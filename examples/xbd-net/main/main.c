@@ -44,6 +44,16 @@ void start_shell(const shell_command_t *shell_commands) {
     shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
 }
 
+static void test_gcoap_req(char *req, char *addr, char *payload) {
+    char *argv[] = {"coap", req, addr, payload};
+    int argc = sizeof(argv) / sizeof(argv[0]);
+
+    printf("@@ test_gcoap_req(): coap %s %s %s\n", req, addr, payload);
+    gcoap_cli_cmd(argc, argv);
+}
+
+//
+
 // ---- "minerva_xbd.h" !!
 
 static void xbd_usleep(uint32_t delay) {
@@ -253,18 +263,15 @@ int main(void) {
         server_init();
     }
 
-    if (0) { // oneshot CoAP client
-        char *addr = "[" IP6_FIXTURE_SERVER "]:5683";
-        //char *payload = "/.well-known/core";
-        char *payload = "/hello"; //@@ for 'libcoap-minimal/server'
-        char *argv[] = {"coap", "get", addr, payload};
-        int argc = sizeof(argv) / sizeof(argv[0]);
+    if (1) {
+        // hit the internal server
+        test_gcoap_req("get", "[::1]:5683", "/.well-known/core");
 
-        printf("@@ main(): coap get %s %s\n", addr, payload);
-        gcoap_cli_cmd(argc, argv);
+        // hit the external 'libcoap-minimal/server'
+        test_gcoap_req("get", "[" IP6_FIXTURE_SERVER "]:5683", "/hello");
     }
 
-    if (1) {
+    if (0) {
         rustmod_start(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set, xbd_gcoap_req_send);
     }
 
