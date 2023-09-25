@@ -17,7 +17,7 @@ mod runtime;
 use runtime::Runtime;
 
 mod xbd;
-use xbd::{Xbd, SleepFnPtr, SetTimeoutFnPtr, GcoapReqSendFnPtr, process_xbd_callbacks};
+use xbd::{Xbd, SleepFnPtr, MsleepFnPtr, SetTimeoutFnPtr, GcoapReqSendFnPtr, process_xbd_callbacks};
 
 mod blogos12;
 
@@ -26,7 +26,7 @@ mod blogos12;
 #[no_mangle]
 pub extern fn rustmod_start(
     xbd_usleep: SleepFnPtr,
-    xbd_ztimer_msleep: SleepFnPtr,
+    xbd_ztimer_msleep: MsleepFnPtr,
     xbd_ztimer_set: SetTimeoutFnPtr,
     xbd_gcoap_req_send: GcoapReqSendFnPtr
 ) {
@@ -93,6 +93,11 @@ pub extern fn rustmod_start(
             let payload = Xbd::async_gcoap_get(addr, uri).await;
             println!("@@ payload: {:?}", payload);
             assert_eq!(payload.len(), 46);
+
+            // test hitting the external server
+            let payload = Xbd::async_gcoap_get(req_external_native.0, req_external_native.1).await;
+            println!("@@ payload: {:?}", payload);
+            assert_eq!(payload.len(), 5);
         }
     });
     panic!("should be never reached");
@@ -105,7 +110,7 @@ fn rustmod_start_debug(xbd_usleep: SleepFnPtr) {
     if 100 == 1 { loop { unsafe { xbd_usleep(500_000); } } } // ok
 
     if 100 == 1 { loop { Xbd::usleep(500_000); } } // ok
-    if 100 == 1 { loop { Xbd::msleep(500); } } // ok
+    if 100 == 1 { loop { Xbd::msleep(500, true); } } // ok
 
     if 100 == 1 { rustmod_test_blogos12(); }
 }

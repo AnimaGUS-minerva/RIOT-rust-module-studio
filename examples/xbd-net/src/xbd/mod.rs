@@ -13,6 +13,7 @@ use conquer_once::spin::OnceCell;
 use mcu_if::{alloc::{boxed::Box, vec::Vec, vec}, c_types::c_void, null_terminate_str, utils::u8_slice_from};
 
 pub type SleepFnPtr = unsafe extern "C" fn(u32);
+pub type MsleepFnPtr = unsafe extern "C" fn(u32, bool);
 pub type SetTimeoutFnPtr = unsafe extern "C" fn(
     u32, *const c_void, *mut (*const c_void, *mut *const c_void), *mut *const c_void);
 pub type GcoapReqSendFnPtr = unsafe extern "C" fn(
@@ -28,7 +29,7 @@ static XBD_CELL: OnceCell<Xbd> = OnceCell::uninit();
 
 pub fn init_once(
     xbd_usleep: SleepFnPtr,
-    xbd_ztimer_msleep: SleepFnPtr,
+    xbd_ztimer_msleep: MsleepFnPtr,
     xbd_ztimer_set: SetTimeoutFnPtr,
     xbd_gcoap_req_send: GcoapReqSendFnPtr
 ) {
@@ -39,7 +40,7 @@ pub fn init_once(
 
 pub struct Xbd {
     _usleep: SleepFnPtr,
-    _ztimer_msleep: SleepFnPtr,
+    _ztimer_msleep: MsleepFnPtr,
     _ztimer_set: SetTimeoutFnPtr,
     _gcoap_req_send: GcoapReqSendFnPtr,
 }
@@ -47,7 +48,7 @@ pub struct Xbd {
 impl Xbd {
     fn _new(
         xbd_usleep: SleepFnPtr,
-        xbd_ztimer_msleep: SleepFnPtr,
+        xbd_ztimer_msleep: MsleepFnPtr,
         xbd_ztimer_set: SetTimeoutFnPtr,
         xbd_gcoap_req_send: GcoapReqSendFnPtr
     ) -> Self {
@@ -67,8 +68,8 @@ impl Xbd {
         unsafe { (Self::get_ref()._usleep)(usec); }
     }
 
-    pub fn msleep(msec: u32) {
-        unsafe { (Self::get_ref()._ztimer_msleep)(msec); }
+    pub fn msleep(msec: u32, debug: bool) {
+        unsafe { (Self::get_ref()._ztimer_msleep)(msec, debug); }
     }
 
     pub fn set_timeout<F>(msec: u32, cb: F) where F: FnOnce(()) + 'static {

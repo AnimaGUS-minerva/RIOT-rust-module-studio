@@ -38,7 +38,7 @@ impl Executor {
     pub fn run(&mut self) -> ! {
         loop {
             self.run_ready_tasks();
-            Xbd::msleep(500); //@@ debug, add slight pauses
+            Xbd::msleep(500, true); //@@ debug, add slight pauses
             //@@N/A@@self.sleep_if_idle();
         }
     }

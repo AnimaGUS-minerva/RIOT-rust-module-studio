@@ -61,8 +61,15 @@ static void xbd_usleep(uint32_t delay) {
     xtimer_usleep(delay);
 }
 
-static void xbd_ztimer_msleep(uint32_t delay) {
-    putchar('.');
+static bool blink = false;
+static void xbd_ztimer_msleep(uint32_t delay, bool debug) {
+    if (debug) {
+        //putchar('.');
+        //====
+        putchar((blink = !blink) ? '#' : ' ');
+        putchar('\b');
+    }
+
     ztimer_sleep(ZTIMER_MSEC, delay);
 }
 
