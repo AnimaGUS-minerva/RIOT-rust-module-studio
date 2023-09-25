@@ -280,6 +280,27 @@ int main(void) {
 
     if (1) {
         rustmod_start(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set, xbd_gcoap_req_send);
+
+        /* !!!! WIP async shell
+         * - https://github.com/rust-lang/futures-rs/blob/master/futures-util/src/io/mod.rs
+//! Asynchronous I/O.
+//!
+//! This module is the asynchronous version of `std::io`. It defines four
+//! traits, [`AsyncRead`], [`AsyncWrite`], [`AsyncSeek`], and [`AsyncBufRead`],
+//! which mirror the `Read`, `Write`, `Seek`, and `BufRead` traits of the
+//! standard library. However, these traits integrate with the asynchronous
+//! task system, so that if an I/O object isn't ready for reading (or writing),
+//! the thread is not blocked, and instead the current task is queued to be
+//! woken when I/O is ready.
+//!
+//! In addition, the [`AsyncReadExt`], [`AsyncWriteExt`], [`AsyncSeekExt`], and
+//! [`AsyncBufReadExt`] extension traits offer a variety of useful combinators
+//! for operating with asynchronous I/O objects, including ways to work with
+//! them using futures, streams and sinks.
+//!
+//! This module is only available when the `std` feature of this
+//! library is activated, and it is activated by default.
+        */
     }
 
     start_shell(shell_commands_minerva);
