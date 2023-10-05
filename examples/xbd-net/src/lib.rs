@@ -17,7 +17,7 @@ mod runtime;
 use runtime::Runtime;
 
 mod xbd;
-use xbd::{Xbd, SleepFnPtr, MsleepFnPtr, SetTimeoutFnPtr, GcoapReqSendFnPtr, process_xbd_callbacks};
+use xbd::{Xbd, XbdFnsEnt, process_xbd_callbacks};
 
 mod blogos12;
 
@@ -25,16 +25,21 @@ mod blogos12;
 
 #[no_mangle]
 pub extern fn rustmod_start(
-    xbd_usleep: SleepFnPtr,
-    xbd_ztimer_msleep: MsleepFnPtr,
-    xbd_ztimer_set: SetTimeoutFnPtr,
-    xbd_gcoap_req_send: GcoapReqSendFnPtr
+    xbd_fns_ptr: *const XbdFnsEnt,
+    xbd_fns_sz: usize
 ) {
     println!("[src/lib.rs] rustmod_start(): ^^");
 
-    xbd::init_once(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set, xbd_gcoap_req_send);
+    if 1 == 1 { // !!!!
+        xbd::init_once(xbd_fns_ptr, xbd_fns_sz);
 
-    if 0 == 1 { rustmod_start_debug(xbd_usleep); }
+        Xbd::usleep(2_000_000); // debug
+        Xbd::msleep(2_000, true); // debug
+
+        panic!("!!!! WIP ok");
+    }
+
+    if 0 == 1 { rustmod_start_debug(); }
 
     // c.f. https://docs.rs/tokio/latest/tokio/runtime/struct.Runtime.html#method.block_on
     Runtime::new().unwrap().block_on(async move {
@@ -103,15 +108,9 @@ pub extern fn rustmod_start(
     panic!("should be never reached");
 }
 
-fn rustmod_start_debug(xbd_usleep: SleepFnPtr) {
+fn rustmod_start_debug() {
     if 100 == 1 { rustmod_test_runtime_old_v1(); }
     if 100 == 1 { rustmod_test_runtime_old_v2(); }
-
-    if 100 == 1 { loop { unsafe { xbd_usleep(500_000); } } } // ok
-
-    if 100 == 1 { loop { Xbd::usleep(500_000); } } // ok
-    if 100 == 1 { loop { Xbd::msleep(500, true); } } // ok
-
     if 100 == 1 { rustmod_test_blogos12(); }
 }
 

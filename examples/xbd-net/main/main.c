@@ -245,6 +245,16 @@ static void xbd_gcoap_req_send(char *addr, char *uri, void *context /* WIP */) {
 
 //
 
+static const xbd_fn_t xbd_fns[] = {
+    { "xbd_usleep", (xbd_fn_ptr_t)xbd_usleep },
+    { "xbd_ztimer_msleep", (xbd_fn_ptr_t)xbd_ztimer_msleep },
+    { "xbd_ztimer_set", (xbd_fn_ptr_t)xbd_ztimer_set },
+    { "xbd_gcoap_req_send", (xbd_fn_ptr_t)xbd_gcoap_req_send },
+};
+static const size_t xbd_fns_sz = sizeof(xbd_fns) / sizeof(xbd_fns[0]);
+
+//
+
 static msg_t main_msg_queue[16];
 static gnrc_netif_t *outer_interface = NULL;
 static gnrc_netif_t *inner_interface = NULL;
@@ -279,7 +289,7 @@ int main(void) {
     }
 
     if (1) {
-        rustmod_start(xbd_usleep, xbd_ztimer_msleep, xbd_ztimer_set, xbd_gcoap_req_send);
+        rustmod_start(xbd_fns, xbd_fns_sz);
 
         /* !!!! WIP async shell
          * - https://github.com/rust-lang/futures-rs/blob/master/futures-util/src/io/mod.rs
