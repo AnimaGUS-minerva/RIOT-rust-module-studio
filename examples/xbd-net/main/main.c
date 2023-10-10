@@ -218,11 +218,19 @@ extern void _xbd_resp_handler(
         uint8_t **payload, size_t *payload_len, void **context
 ) {
     _resp_handler(memo, pdu, remote);
-    *payload = pdu->payload_len ? pdu->payload : NULL;
-    *payload_len = pdu->payload_len;
+
     *context = memo->context;
+
+    // @@ TODO return the C error to Rust
+    if (memo->state == GCOAP_MEMO_TIMEOUT || memo->state != GCOAP_MEMO_RESP) {
+        *payload = NULL;
+        *payload_len = 0;
+    } else {
+        *payload = pdu->payload_len ? pdu->payload : NULL;
+        *payload_len = pdu->payload_len;
+    }
 }
-static void xbd_gcoap_req_send(char *addr, char *uri, void *context /* WIP */) {
+static void xbd_gcoap_req_send(char *addr, char *uri, void *context) {
     uint8_t buf[CONFIG_GCOAP_PDU_BUF_SIZE];
     coap_pkt_t pdu;
     size_t len;

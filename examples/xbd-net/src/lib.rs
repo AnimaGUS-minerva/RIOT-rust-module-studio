@@ -30,13 +30,12 @@ pub extern fn rustmod_start(
 ) {
     println!("[src/lib.rs] rustmod_start(): ^^");
 
-    if 1 == 1 { // !!!!
-        xbd::init_once(xbd_fns_ptr, xbd_fns_sz);
+    xbd::init_once(xbd_fns_ptr, xbd_fns_sz);
 
-        Xbd::usleep(2_000_000); // debug
-        Xbd::msleep(2_000, true); // debug
-
-        panic!("!!!! WIP ok");
+    if 0 == 1 { // debug
+        Xbd::usleep(2_000_000);
+        Xbd::msleep(2_000, true);
+        panic!("!!!! debug ok");
     }
 
     if 0 == 1 { rustmod_start_debug(); }
