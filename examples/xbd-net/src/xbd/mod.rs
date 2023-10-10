@@ -43,28 +43,6 @@ pub fn init_once(xbd_fns_ptr: *const XbdFnsEnt, xbd_fns_sz: usize) {
     XBD_CELL
         .try_init_once(|| Xbd(fnmap))
         .expect("init_once() should only be called once");
-
-    /* !!!! test call
-    xbd_fns.iter().for_each(|ent| {
-        let name = unsafe { core::ffi::CStr::from_ptr(ent.0) };
-        let name = name.to_str().unwrap();
-        println!("!!!! name: {:?}", name);
-
-        match name {
-            "xbd_usleep" => { // ok
-                // https://stackoverflow.com/questions/46134477/how-can-i-call-a-raw-address-from-rust
-                let code: unsafe extern "C" fn(u32) = unsafe { core::mem::transmute(ent.1) };
-
-                unsafe { code(1_000_000) };
-                unsafe { code(2_000_000) };
-            },
-            "xbd_ztimer_msleep" => {},
-            "xbd_ztimer_set" => {},
-            "xbd_gcoap_req_send" => {},
-            _ => panic!("unknown `xbd_` function"),
-        }
-    });
-    */
 }
 
 type PtrSend = u32; // support RIOT 32bit MCUs only
