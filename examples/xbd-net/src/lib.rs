@@ -32,7 +32,7 @@ pub extern fn rustmod_start(
 
     xbd::init_once(xbd_fns_ptr, xbd_fns_sz);
 
-    if 0 == 1 { // debug
+    if 1 == 1 { // debug
         Xbd::usleep(2_000_000);
         Xbd::msleep(2_000, true);
         panic!("!!!! debug ok");

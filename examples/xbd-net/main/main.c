@@ -1,11 +1,10 @@
 #include <stdio.h>
-#include <xtimer.h>
-#include <ztimer.h>
 #include <shell.h>
 #include <msg.h>
 #include "rustmod.h"
 #include "minerva_border_router.h"
 #include "minerva_gcoap.h"
+#include "minerva_xbd.h"
 
 //
 
@@ -55,11 +54,6 @@ static void test_gcoap_req(char *req, char *addr, char *payload) {
 //
 
 // ---- "minerva_xbd.h" !!
-
-static void xbd_usleep(uint32_t delay) {
-    putchar('.');
-    xtimer_usleep(delay);
-}
 
 static bool blink = false;
 static void xbd_ztimer_msleep(uint32_t delay, bool debug) {

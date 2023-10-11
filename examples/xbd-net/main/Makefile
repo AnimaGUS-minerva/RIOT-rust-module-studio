@@ -22,6 +22,9 @@ INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_gnrc/include
 USEMODULE += minerva_gcoap
 INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_gcoap/include
 
+USEMODULE += minerva_xbd
+INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_xbd/include
+
 DEBUG_ETH_MINIMAL ?= 0
 ifeq ($(DEBUG_ETH_MINIMAL),0)
   USEMODULE += shell
