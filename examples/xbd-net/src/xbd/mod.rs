@@ -12,9 +12,10 @@ use core::future::Future;
 use conquer_once::spin::OnceCell;
 use mcu_if::{
     alloc::{boxed::Box, vec::Vec, vec, collections::BTreeMap, string::{String, ToString}},
-    println, c_types::c_void, null_terminate_str, utils::u8_slice_from};
+    c_types::c_void, null_terminate_str, utils::u8_slice_from};
 
 extern "C" {
+    fn strlen(ptr: *const u8) -> usize;
     fn _xbd_resp_handler(
         memo: *const c_void, pdu: *const c_void, remote: *const c_void,
         payload: *mut c_void, payload_len: *mut c_void, context: *mut c_void);
@@ -28,20 +29,20 @@ fn xbd_fns_from(ptr: *const XbdFnsEnt, sz: usize) -> &'static [XbdFnsEnt] {
 }
 
 pub fn init_once(xbd_fns_ptr: *const XbdFnsEnt, xbd_fns_sz: usize) {
-    let xbd_fns = xbd_fns_from(xbd_fns_ptr, xbd_fns_sz);
-    println!("!!!! xbd_fns: {:?}", xbd_fns);
+    let fns = BTreeMap::from_iter(
+        xbd_fns_from(xbd_fns_ptr, xbd_fns_sz)
+            .iter()
+            .map(|&(name, ptr) | {
+                let name = name as *const u8;
+                let name = unsafe { core::str::from_utf8_unchecked(
+                    core::slice::from_raw_parts(name, strlen(name))).to_string() };
 
-    let fnmap = BTreeMap::from_iter(xbd_fns
-        .iter()
-        .map(|&(name, ptr) | {
-            let name = (unsafe { core::ffi::CStr::from_ptr(name) }).to_str().unwrap().to_string();
-            (name, ptr as PtrSend)
-        })
-        .collect::<Vec<(_, _)>>());
-    println!("!!!! fnmap: {:?}", fnmap);
+                (name, ptr as PtrSend)
+            })
+            .collect::<Vec<(_, _)>>());
 
     XBD_CELL
-        .try_init_once(|| Xbd(fnmap))
+        .try_init_once(|| Xbd(fns))
         .expect("init_once() should only be called once");
 }
 
