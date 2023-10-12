@@ -16,7 +16,7 @@ use mcu_if::{
 
 extern "C" {
     fn strlen(ptr: *const u8) -> usize;
-    fn _xbd_resp_handler(
+    fn xbd_resp_handler(
         memo: *const c_void, pdu: *const c_void, remote: *const c_void,
         payload: *mut c_void, payload_len: *mut c_void, context: *mut c_void);
 }
@@ -87,12 +87,13 @@ impl Xbd {
     }
 
     pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce(Vec<u8>) + 'static {
-        type Ty = unsafe extern "C" fn(*const u8, *const u8, *const c_void);
+        type Ty = unsafe extern "C" fn(*const u8, *const u8, *const c_void, *const c_void);
         unsafe {
             (get_xbd_fn!("xbd_gcoap_req_send", Ty))(
                 null_terminate_str!(addr).as_ptr(),
                 null_terminate_str!(uri).as_ptr(),
-                callbacks::into_raw(cb)); // context
+                callbacks::into_raw(cb), // context
+                gcoap_get_resp_handler as *const c_void);
         }
     }
 
@@ -113,13 +114,12 @@ impl Xbd {
 
 //
 
-#[no_mangle]
-pub extern fn xbd_resp_handler(memo: *const c_void, pdu: *const c_void, remote: *const c_void) {
+fn gcoap_get_resp_handler(memo: *const c_void, pdu: *const c_void, remote: *const c_void) {
     let mut context: *const c_void = core::ptr::null_mut();
     let mut payload_ptr: *const u8 = core::ptr::null_mut();
     let mut payload_len: usize = 0;
     unsafe {
-        _xbd_resp_handler(
+        xbd_resp_handler(
             memo, pdu, remote,
             (&mut payload_ptr) as *mut *const u8 as *mut c_void,
             (&mut payload_len) as *mut usize as *mut c_void,
