@@ -1,5 +1,3 @@
-#include "minerva_gcoap.h"
-
 typedef void (*xbd_fn_ptr_t)(void);
 typedef struct xbd_fn_t {
     const char *name;
