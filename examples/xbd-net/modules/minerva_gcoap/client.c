@@ -400,3 +400,11 @@ int gcoap_cli_cmd(int argc, char **argv)
 
     return _print_usage(argv);
 }
+
+int test_gcoap_req(char *req, char *addr, char *payload) {
+    char *argv[] = {"coap", req, addr, payload};
+    int argc = sizeof(argv) / sizeof(argv[0]);
+
+    printf("@@ test_gcoap_req(): coap %s %s %s\n", req, addr, payload);
+    return gcoap_cli_cmd(argc, argv);
+}

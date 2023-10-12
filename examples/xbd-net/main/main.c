@@ -43,14 +43,6 @@ void start_shell(const shell_command_t *shell_commands /* `null`able */) {
     shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
 }
 
-static void test_gcoap_req(char *req, char *addr, char *payload) {
-    char *argv[] = {"coap", req, addr, payload};
-    int argc = sizeof(argv) / sizeof(argv[0]);
-
-    printf("@@ test_gcoap_req(): coap %s %s %s\n", req, addr, payload);
-    gcoap_cli_cmd(argc, argv);
-}
-
 //
 
 //---------------- TODO into minerva_gcoap API
