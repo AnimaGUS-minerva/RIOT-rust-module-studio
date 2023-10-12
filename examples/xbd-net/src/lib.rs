@@ -32,13 +32,16 @@ pub extern fn rustmod_start(
 
     xbd::init_once(xbd_fns_ptr, xbd_fns_sz);
 
-    if 1 == 1 { // debug
+    if 0 == 1 { // debug
         Xbd::usleep(2_000_000);
         Xbd::msleep(2_000, true);
+
+        if 0 == 1 { rustmod_test_runtime_old_v1(); }
+        if 0 == 1 { rustmod_test_runtime_old_v2(); }
+        if 0 == 1 { rustmod_test_blogos12(); }
+
         panic!("!!!! debug ok");
     }
-
-    if 0 == 1 { rustmod_start_debug(); }
 
     // c.f. https://docs.rs/tokio/latest/tokio/runtime/struct.Runtime.html#method.block_on
     Runtime::new().unwrap().block_on(async move {
@@ -105,12 +108,6 @@ pub extern fn rustmod_start(
         }
     });
     panic!("should be never reached");
-}
-
-fn rustmod_start_debug() {
-    if 100 == 1 { rustmod_test_runtime_old_v1(); }
-    if 100 == 1 { rustmod_test_runtime_old_v2(); }
-    if 100 == 1 { rustmod_test_blogos12(); }
 }
 
 fn rustmod_test_blogos12() {

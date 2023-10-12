@@ -53,33 +53,6 @@ static void test_gcoap_req(char *req, char *addr, char *payload) {
 
 //
 
-// ---- "minerva_xbd.h" !!
-
-static bool blink = false;
-static void xbd_ztimer_msleep(uint32_t delay, bool debug) {
-    if (debug) {
-        //putchar('.');
-        //====
-        putchar((blink = !blink) ? '#' : ' ');
-        putchar('\b');
-    }
-
-    ztimer_sleep(ZTIMER_MSEC, delay);
-}
-
-static void xbd_ztimer_set(uint32_t delay, void (*cb_handler)(void *), void *arg_ptr, void **timeout_pp) {
-    printf("@@ xbd_ztimer_set(): delay(ms): %d\n", delay);
-
-    ztimer_t *timeout = (ztimer_t *) calloc(sizeof(ztimer_t), 1);
-    timeout->callback = cb_handler;
-    timeout->arg = arg_ptr;
-
-    *timeout_pp = timeout;
-    //printf("@@ xbd_ztimer_set(): *timeout_pp (= timeout_ptr): %p\n", *timeout_pp);
-
-    ztimer_set(ZTIMER_MSEC, timeout, delay);
-}
-
 //---------------- TODO into minerva_gcoap API
 static void _resp_handler(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
                           const sock_udp_ep_t *remote)
