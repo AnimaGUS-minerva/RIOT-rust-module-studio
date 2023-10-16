@@ -86,13 +86,13 @@ impl Xbd {
         }
     }
 
-    pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce(u8, Vec<u8>) + 'static {
+    pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce((u8, Vec<u8>)) + 'static {
         type Ty = unsafe extern "C" fn(*const u8, *const u8, *const c_void, *const c_void);
         unsafe {
             (get_xbd_fn!("xbd_gcoap_req_send", Ty))(
                 null_terminate_str!(addr).as_ptr(),
                 null_terminate_str!(uri).as_ptr(),
-                callbacks::into_raw_2(cb), // context
+                callbacks::into_raw(cb), // context
                 gcoap_get_resp_handler as *const c_void);
         }
     }

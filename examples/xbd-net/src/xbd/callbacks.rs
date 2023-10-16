@@ -33,8 +33,8 @@ pub async fn process_xbd_callbacks() {
             },
             XbdCallback::_GcoapPing(_) => todo!(),
             XbdCallback::GcoapGet(arg_ptr) => {
-                let (cb_ptr, memo_state, payload): (CVoidPtr, u8, Vec<u8>) = arg_from_2(arg_ptr);
-                (*(cb_from_2(cb_ptr)))(memo_state, payload); // call, move, drop
+                let (cb_ptr, output): (CVoidPtr, (u8, Vec<u8>)) = arg_from(arg_ptr);
+                (*(cb_from(cb_ptr)))(output); // call, move, drop
             },
         }
     }
@@ -46,25 +46,11 @@ pub fn into_raw<F, T>(cb: F) -> CVoidPtr where F: FnOnce(T) + 'static {
     Box::into_raw(cb) as *const _
 }
 
-pub fn into_raw_2<F, T, U>(cb: F) -> CVoidPtr where F: FnOnce(T, U) + 'static {
-    let cb: Box<Box<dyn FnOnce(T, U) + 'static>> = Box::new(Box::new(cb));
-
-    Box::into_raw(cb) as *const _
-}
-
 fn arg_from<T>(arg_ptr: PtrSend) -> (CVoidPtr, T) {
     unsafe { *Box::from_raw(arg_ptr as *mut _) }
 }
 
-fn arg_from_2<T, U>(arg_ptr: PtrSend) -> (CVoidPtr, T, U) {
-    unsafe { *Box::from_raw(arg_ptr as *mut _) }
-}
-
 fn cb_from<T>(cb_ptr: CVoidPtr) -> Box<Box<dyn FnOnce(T) + 'static>> {
-    unsafe { Box::from_raw(cb_ptr as *mut _) }
-}
-
-fn cb_from_2<T, U>(cb_ptr: CVoidPtr) -> Box<Box<dyn FnOnce(T, U) + 'static>> {
     unsafe { Box::from_raw(cb_ptr as *mut _) }
 }
 

@@ -71,7 +71,7 @@ pub extern fn rustmod_start(
         let req_external_native = ("[fe80::20be:cdff:fe0e:44a1]:5683", "/hello");
 
         if 0 == 1 { // non-blocking, ok
-            let cb = |_memo_state, payload| { println!("@@ payload: {:?}", payload); };
+            let cb = |output: (_, _)| { println!("@@ payload: {:?}", output.1); };
 
             //==== native, internal server
             let (addr, uri) = req_internal_native;
@@ -87,6 +87,8 @@ pub extern fn rustmod_start(
             let (addr, uri) = req_internal_native;
 
             // test case invalid `addr`
+            // TODO - GCOAP_MEMO_RESP -> GcoapMemoResp<payload> abstraction
+            //     RIOT--latest (master)$ less sys/include/net/gcoap.h
             let (memo_state, payload) = Xbd::async_gcoap_get("[fe80::78ec:5fff:febd:aaaa]:5683", uri).await;
             println!("@@ memo_state: {} payload: {:?}", memo_state, payload);
             assert_eq!(payload.len(), 0);
