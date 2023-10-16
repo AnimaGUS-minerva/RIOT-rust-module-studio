@@ -171,7 +171,7 @@ static void _resp_handler(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
 #endif //@@ not support next block for now
 }
 
-void xbd_resp_handler(
+uint8_t xbd_resp_handler(
         const gcoap_request_memo_t *memo, coap_pkt_t* pdu, const sock_udp_ep_t *remote,
         uint8_t **payload, size_t *payload_len, void **context
 ) {
@@ -179,7 +179,6 @@ void xbd_resp_handler(
 
     *context = memo->context;
 
-    // @@1111 TODO return the C error to Rust
     if (memo->state == GCOAP_MEMO_TIMEOUT || memo->state != GCOAP_MEMO_RESP) {
         *payload = NULL;
         *payload_len = 0;
@@ -187,4 +186,6 @@ void xbd_resp_handler(
         *payload = pdu->payload_len ? pdu->payload : NULL;
         *payload_len = pdu->payload_len;
     }
+
+    return memo->state;
 }

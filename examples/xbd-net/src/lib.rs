@@ -71,7 +71,7 @@ pub extern fn rustmod_start(
         let req_external_native = ("[fe80::20be:cdff:fe0e:44a1]:5683", "/hello");
 
         if 0 == 1 { // non-blocking, ok
-            let cb = |payload| { println!("@@ payload: {:?}", payload); };
+            let cb = |_memo_state, payload| { println!("@@ payload: {:?}", payload); };
 
             //==== native, internal server
             let (addr, uri) = req_internal_native;
@@ -87,23 +87,23 @@ pub extern fn rustmod_start(
             let (addr, uri) = req_internal_native;
 
             // test case invalid `addr`
-            let payload = Xbd::async_gcoap_get("[fe80::78ec:5fff:febd:aaaa]:5683", uri).await;
-            println!("@@ payload: {:?}", payload);
+            let (memo_state, payload) = Xbd::async_gcoap_get("[fe80::78ec:5fff:febd:aaaa]:5683", uri).await;
+            println!("@@ memo_state: {} payload: {:?}", memo_state, payload);
             assert_eq!(payload.len(), 0);
 
             // test case invalid `uri`
-            let payload = Xbd::async_gcoap_get(addr, "/.well-known/cccc").await;
-            println!("@@ payload: {:?}", payload);
+            let (memo_state, payload) = Xbd::async_gcoap_get(addr, "/.well-known/cccc").await;
+            println!("@@ memo_state: {} payload: {:?}", memo_state, payload);
             assert_eq!(payload.len(), 0);
 
             // test hitting the internal server, native-only!!
-            let payload = Xbd::async_gcoap_get(addr, uri).await;
-            println!("@@ payload: {:?}", payload);
+            let (memo_state, payload) = Xbd::async_gcoap_get(addr, uri).await;
+            println!("@@ memo_state: {} payload: {:?}", memo_state, payload);
             assert_eq!(payload.len(), 46);
 
             // test hitting the external server
-            let payload = Xbd::async_gcoap_get(req_external_native.0, req_external_native.1).await;
-            println!("@@ payload: {:?}", payload);
+            let (memo_state, payload) = Xbd::async_gcoap_get(req_external_native.0, req_external_native.1).await;
+            println!("@@ memo_state: {} payload: {:?}", memo_state, payload);
             assert_eq!(payload.len(), 5);
         }
     });

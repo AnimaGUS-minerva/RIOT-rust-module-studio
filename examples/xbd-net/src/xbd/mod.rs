@@ -18,7 +18,7 @@ extern "C" {
     fn strlen(ptr: *const u8) -> usize;
     fn xbd_resp_handler(
         memo: *const c_void, pdu: *const c_void, remote: *const c_void,
-        payload: *mut c_void, payload_len: *mut c_void, context: *mut c_void);
+        payload: *mut c_void, payload_len: *mut c_void, context: *mut c_void) -> u8;
 }
 
 static XBD_CELL: OnceCell<Xbd> = OnceCell::uninit();
@@ -86,13 +86,13 @@ impl Xbd {
         }
     }
 
-    pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce(Vec<u8>) + 'static {
+    pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce(u8, Vec<u8>) + 'static {
         type Ty = unsafe extern "C" fn(*const u8, *const u8, *const c_void, *const c_void);
         unsafe {
             (get_xbd_fn!("xbd_gcoap_req_send", Ty))(
                 null_terminate_str!(addr).as_ptr(),
                 null_terminate_str!(uri).as_ptr(),
-                callbacks::into_raw(cb), // context
+                callbacks::into_raw_2(cb), // context
                 gcoap_get_resp_handler as *const c_void);
         }
     }
@@ -107,7 +107,7 @@ impl Xbd {
         Timeout::new(msec, Some(Box::new(cb)))
     }
 
-    pub fn async_gcoap_get(addr: &str, uri: &str) -> impl Future<Output = Vec<u8>> + 'static {
+    pub fn async_gcoap_get(addr: &str, uri: &str) -> impl Future<Output = (u8, Vec<u8>)> + 'static {
         GcoapGet::new(addr, uri)
     }
 }
@@ -118,13 +118,12 @@ fn gcoap_get_resp_handler(memo: *const c_void, pdu: *const c_void, remote: *cons
     let mut context: *const c_void = core::ptr::null_mut();
     let mut payload_ptr: *const u8 = core::ptr::null_mut();
     let mut payload_len: usize = 0;
-    unsafe {
+    let memo_state = unsafe {
         xbd_resp_handler(
             memo, pdu, remote,
             (&mut payload_ptr) as *mut *const u8 as *mut c_void,
             (&mut payload_len) as *mut usize as *mut c_void,
-            (&mut context) as *mut *const c_void as *mut c_void);
-    }
+            (&mut context) as *mut *const c_void as *mut c_void) };
 
     let payload = if payload_len > 0 {
         u8_slice_from(payload_ptr, payload_len).to_vec()
@@ -132,8 +131,7 @@ fn gcoap_get_resp_handler(memo: *const c_void, pdu: *const c_void, remote: *cons
         assert_eq!(payload_ptr, core::ptr::null_mut());
         vec![]
     };
-    //crate::println!("xbd_resp_handler(): --------\n  context: {:?}\n  payload: {:?}", context, payload);
 
     add_xbd_gcoap_get_callback(
-        Box::into_raw(Box::new((context /* cb_ptr */, payload))) as *const c_void); // arg_ptr
+        Box::into_raw(Box::new((context /* cb_ptr */, memo_state, payload))) as *const c_void); // arg_ptr
 }
