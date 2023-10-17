@@ -10,7 +10,7 @@ pub struct _GcoapPing {
 pub struct GcoapGet {
     addr: String,
     uri: String,
-    output: Rc<RefCell<Option<(u8, Vec<u8>)>>>,
+    output: Rc<RefCell<Option<(u8, Option<Vec<u8>>)>>>,
     _waker: Option<AtomicWaker>,
 }
 
@@ -26,7 +26,7 @@ impl GcoapGet {
 }
 
 impl Future for GcoapGet {
-    type Output = (u8, Vec<u8>);
+    type Output = (u8, Option<Vec<u8>>);
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<<Self as Future>::Output> {
         if let Some(_waker) = self._waker.take() {

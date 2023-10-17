@@ -91,22 +91,22 @@ pub extern fn rustmod_start(
             //     RIOT--latest (master)$ less sys/include/net/gcoap.h
             let (memo_state, payload) = Xbd::async_gcoap_get("[fe80::78ec:5fff:febd:aaaa]:5683", uri).await;
             println!("@@ memo_state: {} payload: {:?}", memo_state, payload);
-            assert_eq!(payload.len(), 0);
+            assert_eq!(payload, None);
 
             // test case invalid `uri`
             let (memo_state, payload) = Xbd::async_gcoap_get(addr, "/.well-known/cccc").await;
             println!("@@ memo_state: {} payload: {:?}", memo_state, payload);
-            assert_eq!(payload.len(), 0);
+            assert_eq!(payload, None);
 
             // test hitting the internal server, native-only!!
             let (memo_state, payload) = Xbd::async_gcoap_get(addr, uri).await;
             println!("@@ memo_state: {} payload: {:?}", memo_state, payload);
-            assert_eq!(payload.len(), 46);
+            assert_eq!(payload.unwrap().len(), 46);
 
             // test hitting the external server
             let (memo_state, payload) = Xbd::async_gcoap_get(req_external_native.0, req_external_native.1).await;
             println!("@@ memo_state: {} payload: {:?}", memo_state, payload);
-            assert_eq!(payload.len(), 5);
+            assert_eq!(payload.unwrap().len(), 5);
         }
     });
     panic!("should be never reached");

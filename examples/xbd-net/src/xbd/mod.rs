@@ -11,7 +11,7 @@ use gcoap::GcoapGet;
 use core::future::Future;
 use conquer_once::spin::OnceCell;
 use mcu_if::{
-    alloc::{boxed::Box, vec::Vec, vec, collections::BTreeMap, string::{String, ToString}},
+    alloc::{boxed::Box, vec::Vec, collections::BTreeMap, string::{String, ToString}},
     c_types::c_void, null_terminate_str, utils::u8_slice_from};
 
 extern "C" {
@@ -86,18 +86,38 @@ impl Xbd {
         }
     }
 
-    pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce((u8, Vec<u8>)) + 'static {
+    pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce((u8, Option<Vec<u8>>)) + 'static {
         type Ty = unsafe extern "C" fn(*const u8, *const u8, *const c_void, *const c_void);
         unsafe {
             (get_xbd_fn!("xbd_gcoap_req_send", Ty))(
                 null_terminate_str!(addr).as_ptr(),
                 null_terminate_str!(uri).as_ptr(),
                 callbacks::into_raw(cb), // context
-                gcoap_get_resp_handler as *const c_void);
+                Self::gcoap_get_resp_handler as *const c_void);
         }
     }
 
-    //
+    fn gcoap_get_resp_handler(memo: *const c_void, pdu: *const c_void, remote: *const c_void) {
+        let mut context: *const c_void = core::ptr::null_mut();
+        let mut payload_ptr: *const u8 = core::ptr::null_mut();
+        let mut payload_len: usize = 0;
+        let memo_state = unsafe {
+            xbd_resp_handler(
+                memo, pdu, remote,
+                (&mut payload_ptr) as *mut *const u8 as *mut c_void,
+                (&mut payload_len) as *mut usize as *mut c_void,
+                (&mut context) as *mut *const c_void as *mut c_void) };
+
+        let payload = if payload_len > 0 {
+            Some(u8_slice_from(payload_ptr, payload_len).to_vec())
+        } else {
+            assert_eq!(payload_ptr, core::ptr::null_mut());
+            None
+        };
+
+        add_xbd_gcoap_get_callback(
+            Box::into_raw(Box::new((context /* cb_ptr */, memo_state, payload))) as *const c_void); // arg_ptr
+    }
 
     pub fn async_sleep(msec: u32) -> impl Future<Output = ()> + 'static {
         Timeout::new(msec, None)
@@ -107,31 +127,7 @@ impl Xbd {
         Timeout::new(msec, Some(Box::new(cb)))
     }
 
-    pub fn async_gcoap_get(addr: &str, uri: &str) -> impl Future<Output = (u8, Vec<u8>)> + 'static {
+    pub fn async_gcoap_get(addr: &str, uri: &str) -> impl Future<Output = (u8, Option<Vec<u8>>)> + 'static {
         GcoapGet::new(addr, uri)
     }
-}
-
-//
-
-fn gcoap_get_resp_handler(memo: *const c_void, pdu: *const c_void, remote: *const c_void) {
-    let mut context: *const c_void = core::ptr::null_mut();
-    let mut payload_ptr: *const u8 = core::ptr::null_mut();
-    let mut payload_len: usize = 0;
-    let memo_state = unsafe {
-        xbd_resp_handler(
-            memo, pdu, remote,
-            (&mut payload_ptr) as *mut *const u8 as *mut c_void,
-            (&mut payload_len) as *mut usize as *mut c_void,
-            (&mut context) as *mut *const c_void as *mut c_void) };
-
-    let payload = if payload_len > 0 {
-        u8_slice_from(payload_ptr, payload_len).to_vec()
-    } else {
-        assert_eq!(payload_ptr, core::ptr::null_mut());
-        vec![]
-    };
-
-    add_xbd_gcoap_get_callback(
-        Box::into_raw(Box::new((context /* cb_ptr */, memo_state, payload))) as *const c_void); // arg_ptr
 }
