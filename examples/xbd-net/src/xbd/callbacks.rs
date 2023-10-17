@@ -2,7 +2,8 @@ use conquer_once::spin::OnceCell;
 use core::{pin::Pin, task::{Context, Poll}};
 use crossbeam_queue::ArrayQueue;
 use futures_util::{stream::{Stream, StreamExt}, task::AtomicWaker};
-use mcu_if::{alloc::{boxed::Box, vec::Vec}, c_types::c_void};
+use mcu_if::{alloc::boxed::Box, c_types::c_void};
+use super::gcoap::GcoapMemoState;
 
 extern "C" {
     fn free(ptr: *mut c_void);
@@ -33,8 +34,8 @@ pub async fn process_xbd_callbacks() {
             },
             XbdCallback::_GcoapPing(_) => todo!(),
             XbdCallback::GcoapGet(arg_ptr) => {
-                let (cb_ptr, output): (CVoidPtr, (u8, Vec<u8>)) = arg_from(arg_ptr);
-                (*(cb_from(cb_ptr)))(output); // call, move, drop
+                let (cb_ptr, out) = arg_from::<GcoapMemoState>(arg_ptr);
+                (*(cb_from(cb_ptr)))(out); // call, move, drop
             },
         }
     }

@@ -6,7 +6,7 @@ mod timeout;
 use timeout::Timeout;
 
 mod gcoap;
-use gcoap::GcoapGet;
+use gcoap::{GcoapGet, GcoapMemoState};
 
 use core::future::Future;
 use conquer_once::spin::OnceCell;
@@ -86,7 +86,7 @@ impl Xbd {
         }
     }
 
-    pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce((u8, Option<Vec<u8>>)) + 'static {
+    pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
         type Ty = unsafe extern "C" fn(*const u8, *const u8, *const c_void, *const c_void);
         unsafe {
             (get_xbd_fn!("xbd_gcoap_req_send", Ty))(
@@ -101,6 +101,7 @@ impl Xbd {
         let mut context: *const c_void = core::ptr::null_mut();
         let mut payload_ptr: *const u8 = core::ptr::null_mut();
         let mut payload_len: usize = 0;
+
         let memo_state = unsafe {
             xbd_resp_handler(
                 memo, pdu, remote,
@@ -114,9 +115,10 @@ impl Xbd {
             assert_eq!(payload_ptr, core::ptr::null_mut());
             None
         };
+        let out = GcoapMemoState::new(memo_state, payload);
 
         add_xbd_gcoap_get_callback(
-            Box::into_raw(Box::new((context /* cb_ptr */, memo_state, payload))) as *const c_void); // arg_ptr
+            Box::into_raw(Box::new((context /* cb_ptr */, out))) as *const c_void); // arg_ptr
     }
 
     pub fn async_sleep(msec: u32) -> impl Future<Output = ()> + 'static {
@@ -127,7 +129,7 @@ impl Xbd {
         Timeout::new(msec, Some(Box::new(cb)))
     }
 
-    pub fn async_gcoap_get(addr: &str, uri: &str) -> impl Future<Output = (u8, Option<Vec<u8>>)> + 'static {
+    pub fn async_gcoap_get(addr: &str, uri: &str) -> impl Future<Output = GcoapMemoState> + 'static {
         GcoapGet::new(addr, uri)
     }
 }
