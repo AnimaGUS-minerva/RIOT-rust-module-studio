@@ -1,6 +1,8 @@
 #![no_std]
 #![feature(alloc_error_handler)]
 #![feature(stmt_expr_attributes)]
+#![feature(type_alias_impl_trait)]
+
 
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! { mcu_if::panic(info) }
@@ -23,6 +25,68 @@ mod blogos12;
 
 //
 
+use embassy_executor::{Spawner, raw::Executor as RawExecutor};
+
+// https://github.com/embassy-rs/embassy/blob/b6fc682117a41e8e63a9632e06da5a17f46d9ab0/embassy-executor/src/raw/mod.rs#L465
+#[export_name = "__pender"]
+fn pender(context: *mut ()) {
+    let signaler: &'static Signaler = unsafe { core::mem::transmute(context) };
+    println!("@@ pender(): signaler: {:?}", signaler);
+}
+
+pub struct EmbassyRuntime {
+    executor: RawExecutor,
+    _signaler: &'static Signaler, // c.f. embassy/embassy-executor/src/arch/std.rs
+}
+
+#[derive(Debug)]
+struct Signaler(u8);
+
+impl EmbassyRuntime {
+    pub fn new() -> Self {
+        let signaler = Box::leak(Box::new(Signaler(42)));
+
+        Self {
+            executor: RawExecutor::new(signaler as *mut _ as *mut ()),
+            _signaler: signaler,
+        }
+    }
+
+    pub fn run(&'static mut self, init: impl FnOnce(Spawner)) -> ! {
+        init(self.executor.spawner());
+
+        loop {
+            unsafe { self.executor.poll() };
+        }
+    }
+}
+
+#[embassy_executor::task]
+async fn task_pre() {
+    let mut counter = 0;
+    while counter < 3 {
+        println!("@@ task_pre(): tick {}", counter);
+        counter += 1;
+        Xbd::msleep(1000, true);
+    }
+    println!("@@ task_pre(): bye");
+}
+
+#[embassy_executor::task]
+async fn task_main() {
+    //use embassy_time::Timer;
+
+    let mut counter = 0;
+    loop {
+        println!("@@ task_main(): tick {}", counter);
+        counter += 1;
+        //Timer::after_secs(1).await;
+        Xbd::msleep(1000, true);
+    }
+}
+
+//
+
 #[no_mangle]
 pub extern fn rustmod_start(
     xbd_fns_ptr: *const XbdFnsEnt,
@@ -41,6 +105,14 @@ pub extern fn rustmod_start(
         if 0 == 1 { rustmod_test_blogos12(); }
 
         panic!("!!!! debug ok");
+    }
+
+    if 1 == 1 { // !!!!
+        let exec = Box::leak(Box::new(EmbassyRuntime::new()));
+        exec.run(|spawner| {
+            spawner.spawn(task_main()).unwrap();
+            spawner.spawn(task_pre()).unwrap();
+        });
     }
 
     // c.f. https://docs.rs/tokio/latest/tokio/runtime/struct.Runtime.html#method.block_on
