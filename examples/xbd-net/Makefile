@@ -3,9 +3,18 @@ all: build-native
 include ../native.mk
 include ../esp32.mk
 
+#submodules
+
+get-crate-embassy:
+	[ -e "crates/embassy/.git" ] || \
+		(cd crates && git submodule init embassy && git submodule update)
+sync-crate-embassy:
+	git submodule update --remote crates/embassy && \
+		cd crates/embassy && git checkout minerva && git pull
+
 # native
 
-build-native:
+build-native: get-crate-embassy
 	make native-build-module
 	make native-build-riot
 
@@ -23,7 +32,7 @@ run-native-tap-second:# in second shell
 
 # esp32
 
-build-esp32:
+build-esp32: get-crate-embassy
 	make esp32-build-module
 	RIOT_BOARD=esp32-ethernet-kit-v1_0  make esp32-build-riot
 build-esp32-minimal:
