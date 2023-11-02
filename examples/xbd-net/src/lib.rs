@@ -34,71 +34,74 @@ pub extern fn rustmod_start(
         return;
     }
 
-    if 1 == 1 { // !!!!
-        let rt = embassy::Runtime::new_static().unwrap();
-        rt.run();
+    if 0 == 1 {
+        blogos12::Runtime::new().unwrap().block_on(xbd_main());
+        panic!("should be never reached");
     }
 
-    blogos12::Runtime::new().unwrap().block_on(async move {
+    if 1 == 1 {
+        embassy::Runtime::new_static().unwrap().run();
+    }
+}
 
-        if 0 == 1 { // non-blocking, ok
-            use blogos12::keyboard::add_scancode as blogos12_add_scancode;
+async fn xbd_main() {
 
-            let foo = Box::new(9);
-            Xbd::set_timeout(2500, move |_| {
-                println!("@@ ||aa: ^^ foo: {:?}", foo);
-                blogos12_add_scancode(8);
-                blogos12_add_scancode(*foo);
-            });
+    if 0 == 1 { // non-blocking, ok
+        use blogos12::keyboard::add_scancode as blogos12_add_scancode;
 
-            fn ff(_: ()) { println!("@@ ff(): ^^"); }
-            Xbd::set_timeout(2500, ff);
-        }
+        let foo = Box::new(9);
+        Xbd::set_timeout(2500, move |_| {
+            println!("@@ ||aa: ^^ foo: {:?}", foo);
+            blogos12_add_scancode(8);
+            blogos12_add_scancode(*foo);
+        });
 
-        if 0 == 1 { // async, ok
-            Xbd::async_sleep(3500).await; // ok
-            Xbd::async_set_timeout(3500, || { println!("@@ ||x: ^^"); }).await; // ok
-        }
+        fn ff(_: ()) { println!("@@ ff(): ^^"); }
+        Xbd::set_timeout(2500, ff);
+    }
 
-        //
+    if 0 == 1 { // async, ok
+        Xbd::async_sleep(3500).await; // ok
+        Xbd::async_set_timeout(3500, || { println!("@@ ||x: ^^"); }).await; // ok
+    }
 
-        let req_internal_native = ("[fe80::78ec:5fff:febd:add9]:5683", "/.well-known/core");
-        let req_external_native = ("[fe80::20be:cdff:fe0e:44a1]:5683", "/hello");
+    //
 
-        if 0 == 1 { // non-blocking, ok
-            let cb = |out| { println!("@@ out: {:?}", out); };
+    let req_internal_native = ("[fe80::78ec:5fff:febd:add9]:5683", "/.well-known/core");
+    let req_external_native = ("[fe80::20be:cdff:fe0e:44a1]:5683", "/hello");
 
-            //==== native, internal server
-            let (addr, uri) = req_internal_native;
-            Xbd::gcoap_get(addr, uri, cb);
+    if 0 == 1 { // non-blocking, ok
+        let cb = |out| { println!("@@ out: {:?}", out); };
 
-            //==== native, external server -- LD_LIBRARY_PATH=./libcoap/local/lib libcoap-minimal/server 5683 fe80::20be:cdff:fe0e:44a1%tap1 &
-            let (addr, uri) = req_external_native;
-            Xbd::gcoap_get(addr, uri, cb);
-        }
+        //==== native, internal server
+        let (addr, uri) = req_internal_native;
+        Xbd::gcoap_get(addr, uri, cb);
 
-        if 1 == 1 { // async, ok
-            Xbd::async_set_timeout(999, || { println!("!!!!---- async APIs"); }).await;
-            let (addr, uri) = req_internal_native;
+        //==== native, external server -- LD_LIBRARY_PATH=./libcoap/local/lib libcoap-minimal/server 5683 fe80::20be:cdff:fe0e:44a1%tap1 &
+        let (addr, uri) = req_external_native;
+        Xbd::gcoap_get(addr, uri, cb);
+    }
 
-            // test case invalid `addr`
-            let out = Xbd::async_gcoap_get("[fe80::78ec:5fff:febd:aaaa]:5683", uri).await;
-            println!("@@ out: {:?}", out);
+    if 1 == 1 { // async, ok
+        Xbd::async_set_timeout(999, || { println!("!!!!---- async APIs"); }).await;
+        let (addr, uri) = req_internal_native;
 
-            // test case invalid `uri`
-            let out = Xbd::async_gcoap_get(addr, "/.well-known/cccc").await;
-            println!("@@ out: {:?}", out);
+        // test case invalid `addr`
+        let out = Xbd::async_gcoap_get("[fe80::78ec:5fff:febd:aaaa]:5683", uri).await;
+        println!("@@ out: {:?}", out);
 
-            // test hitting the internal server, native-only!!
-            let out = Xbd::async_gcoap_get(addr, uri).await;
-            println!("@@ out: {:?}", out);
+        // test case invalid `uri`
+        let out = Xbd::async_gcoap_get(addr, "/.well-known/cccc").await;
+        println!("@@ out: {:?}", out);
 
-            // test hitting the external server
-            let out = Xbd::async_gcoap_get(req_external_native.0, req_external_native.1).await;
-            println!("@@ out: {:?}", out);
-        }
-    });
-    panic!("should be never reached");
+        // test hitting the internal server, native-only!!
+        let out = Xbd::async_gcoap_get(addr, uri).await;
+        println!("@@ out: {:?}", out);
+
+        // test hitting the external server
+        let out = Xbd::async_gcoap_get(req_external_native.0, req_external_native.1).await;
+        println!("@@ out: {:?}", out);
+    }
 }
 
 fn rustmod_test_blogos12() {
