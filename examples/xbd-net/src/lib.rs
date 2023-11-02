@@ -15,87 +15,7 @@ mod xbd;
 use xbd::{Xbd, XbdFnsEnt, process_xbd_callbacks};
 
 mod blogos12;
-
-//
-
-use embassy_executor::{Spawner, raw::Executor as RawExecutor};
-
-// https://github.com/embassy-rs/embassy/blob/b6fc682117a41e8e63a9632e06da5a17f46d9ab0/embassy-executor/src/raw/mod.rs#L465
-#[export_name = "__pender"]
-fn pender(context: *mut ()) {
-    let signaler: &'static Signaler = unsafe { core::mem::transmute(context) };
-    if 0 == 1 { println!("@@ pender(): signaler: {:?}", signaler); }
-}
-
-pub struct EmbassyExecutor {
-    executor: RawExecutor,
-    _signaler: &'static Signaler, // c.f. embassy/embassy-executor/src/arch/std.rs
-}
-
-#[derive(Debug)]
-struct Signaler(u8); // TODO
-
-impl EmbassyExecutor {
-    pub fn new() -> Self {
-        let signaler = Box::leak(Box::new(Signaler(42)));
-
-        Self {
-            executor: RawExecutor::new(signaler as *mut _ as *mut ()),
-            _signaler: signaler,
-        }
-    }
-
-    pub fn run(&'static mut self, init: impl FnOnce(Spawner)) -> ! {
-        init(self.executor.spawner());
-
-        loop {
-            unsafe { self.executor.poll() };
-        }
-    }
-}
-
-#[embassy_executor::task]
-async fn task_xbd_main() {
-    Xbd::async_set_timeout(999, || { println!("!!!!---- async APIs"); }).await;
-
-    let req_internal_native = ("[fe80::78ec:5fff:febd:add9]:5683", "/.well-known/core");
-    let (addr, uri) = req_internal_native;
-    let out = Xbd::async_gcoap_get(addr, uri).await;
-    println!("@@ out: {:?}", out);
-
-    //
-
-    //loop { Xbd::async_sleep(1000).await; } // yield -> executor busy
-    loop { Xbd::msleep(1000, true); } // not yield (debug only) -> executor not busy
-}
-
-#[embassy_executor::task]
-async fn task_xbd_callbacks() {
-    process_xbd_callbacks().await;
-}
-
-pub struct EmbassyRuntime(&'static mut EmbassyExecutor);
-
-impl EmbassyRuntime {
-    pub fn new_static() -> Result<&'static mut Self, ()> {
-        Ok(Self::get_static(Self::new()))
-    }
-
-    fn new() -> Self {
-        Self(Self::get_static(EmbassyExecutor::new()))
-    }
-
-    fn get_static<T>(x: T) -> &'static mut T {
-        Box::leak(Box::new(x))
-    }
-
-    pub fn run(&'static mut self) -> ! {
-        self.0.run(|spawner| {
-            spawner.spawn(task_xbd_main()).unwrap();
-            spawner.spawn(task_xbd_callbacks()).unwrap();
-        });
-    }
-}
+mod embassy;
 
 //
 
@@ -114,8 +34,8 @@ pub extern fn rustmod_start(
         return;
     }
 
-    if 100 == 1 { // !!!!
-        let rt = EmbassyRuntime::new_static().unwrap();
+    if 1 == 1 { // !!!!
+        let rt = embassy::Runtime::new_static().unwrap();
         rt.run();
     }
 
