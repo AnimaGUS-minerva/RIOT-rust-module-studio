@@ -11,9 +11,6 @@ fn alloc_error(layout: mcu_if::alloc::alloc::Layout) -> ! { mcu_if::alloc_error(
 
 use mcu_if::{println, alloc::boxed::Box, null_terminate_bytes};
 
-mod runtime;
-use runtime::Runtime;
-
 mod xbd;
 use xbd::{Xbd, XbdFnsEnt, process_xbd_callbacks};
 
@@ -30,7 +27,7 @@ fn pender(context: *mut ()) {
     if 0 == 1 { println!("@@ pender(): signaler: {:?}", signaler); }
 }
 
-pub struct EmbassyRuntime {
+pub struct EmbassyExecutor {
     executor: RawExecutor,
     _signaler: &'static Signaler, // c.f. embassy/embassy-executor/src/arch/std.rs
 }
@@ -38,7 +35,7 @@ pub struct EmbassyRuntime {
 #[derive(Debug)]
 struct Signaler(u8); // TODO
 
-impl EmbassyRuntime {
+impl EmbassyExecutor {
     pub fn new() -> Self {
         let signaler = Box::leak(Box::new(Signaler(42)));
 
@@ -77,6 +74,29 @@ async fn task_xbd_callbacks() {
     process_xbd_callbacks().await;
 }
 
+pub struct EmbassyRuntime(&'static mut EmbassyExecutor);
+
+impl EmbassyRuntime {
+    pub fn new_static() -> Result<&'static mut Self, ()> {
+        Ok(Self::get_static(Self::new()))
+    }
+
+    fn new() -> Self {
+        Self(Self::get_static(EmbassyExecutor::new()))
+    }
+
+    fn get_static<T>(x: T) -> &'static mut T {
+        Box::leak(Box::new(x))
+    }
+
+    pub fn run(&'static mut self) -> ! {
+        self.0.run(|spawner| {
+            spawner.spawn(task_xbd_main()).unwrap();
+            spawner.spawn(task_xbd_callbacks()).unwrap();
+        });
+    }
+}
+
 //
 
 #[no_mangle]
@@ -94,16 +114,12 @@ pub extern fn rustmod_start(
         return;
     }
 
-    if 1 == 1 { // !!!!
-        let exec = Box::leak(Box::new(EmbassyRuntime::new()));
-        exec.run(|spawner| {
-            spawner.spawn(task_xbd_main()).unwrap();
-            spawner.spawn(task_xbd_callbacks()).unwrap();
-        });
+    if 100 == 1 { // !!!!
+        let rt = EmbassyRuntime::new_static().unwrap();
+        rt.run();
     }
 
-    // c.f. https://docs.rs/tokio/latest/tokio/runtime/struct.Runtime.html#method.block_on
-    Runtime::new().unwrap().block_on(async move {
+    blogos12::Runtime::new().unwrap().block_on(async move {
 
         if 0 == 1 { // non-blocking, ok
             use blogos12::keyboard::add_scancode as blogos12_add_scancode;
