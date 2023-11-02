@@ -30,16 +30,18 @@ pub extern fn rustmod_start(
 
     if 0 == 1 { // debug
         Xbd::usleep(1_000_000);
-        rustmod_test_blogos12();
+        blogos12::test_misc();
         return;
     }
 
     if 0 == 1 {
+        println!("@@ running `xbd_main()` with `blogos12::Runtime` ...");
         blogos12::Runtime::new().unwrap().block_on(xbd_main());
         panic!("should be never reached");
     }
 
     if 1 == 1 {
+        println!("@@ running `xbd_main()` with `embassy::Runtime` ...");
         embassy::Runtime::new_static().unwrap().run();
     }
 }
@@ -102,36 +104,4 @@ async fn xbd_main() {
         let out = Xbd::async_gcoap_get(req_external_native.0, req_external_native.1).await;
         println!("@@ out: {:?}", out);
     }
-}
-
-fn rustmod_test_blogos12() {
-    println!("@@ rustmod_test_blogos12(): ^^");
-
-    use blogos12::{
-        Task,
-        example_task as blogos12_example_task,
-        keyboard::print_keypresses as process_blogos12_scancodes,
-        simple_executor::SimpleExecutor,
-        executor::Executor,
-    };
-
-    if 0 == 1 {
-        let mut exe = SimpleExecutor::new();
-        exe.spawn(Task::new(blogos12_example_task())); // ok
-        exe.spawn(Task::new(process_blogos12_scancodes())); // ok, CPU busy without Waker support
-        exe.run();
-    }
-
-    if 0 == 1 {
-        Executor::new()
-            .spawn(blogos12_example_task())
-            .spawn(process_blogos12_scancodes()) // processor
-            .spawn(process_xbd_callbacks()) // processor
-            .spawn(async move { // main
-                println!("@@ hello");
-            })
-            .run();
-    }
-
-    println!("@@ rustmod_test_blogos12(): $$");
 }
