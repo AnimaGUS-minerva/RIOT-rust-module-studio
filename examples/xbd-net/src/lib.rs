@@ -58,18 +58,7 @@ impl EmbassyRuntime {
 }
 
 #[embassy_executor::task]
-async fn task_pre() {
-    let mut counter = 0;
-    while counter < 3 {
-        println!("@@ task_pre(): tick {}", counter);
-        counter += 1;
-        Xbd::msleep(1000, true);
-    }
-    println!("@@ task_pre(): bye");
-}
-
-#[embassy_executor::task]
-async fn task_main_xbd() {
+async fn task_xbd_main() {
     Xbd::async_set_timeout(999, || { println!("!!!!---- async APIs"); }).await;
 
     let req_internal_native = ("[fe80::78ec:5fff:febd:add9]:5683", "/.well-known/core");
@@ -84,19 +73,7 @@ async fn task_main_xbd() {
 }
 
 #[embassy_executor::task]
-async fn task_main() {
-    //use embassy_time::Timer;
-    let mut counter = 0;
-    loop {
-        println!("@@ task_main(): tick {}", counter);
-        counter += 1;
-        //Timer::after_secs(1).await;
-        Xbd::msleep(1000, true);
-    }
-}
-
-#[embassy_executor::task]
-async fn task_process_xbd_callbacks() {
+async fn task_xbd_callbacks() {
     process_xbd_callbacks().await;
 }
 
@@ -120,11 +97,8 @@ pub extern fn rustmod_start(
     if 1 == 1 { // !!!!
         let exec = Box::leak(Box::new(EmbassyRuntime::new()));
         exec.run(|spawner| {
-            //spawner.spawn(task_main()).unwrap();
-            //spawner.spawn(task_pre()).unwrap();
-            //====
-            spawner.spawn(task_main_xbd()).unwrap();
-            spawner.spawn(task_process_xbd_callbacks()).unwrap();
+            spawner.spawn(task_xbd_main()).unwrap();
+            spawner.spawn(task_xbd_callbacks()).unwrap();
         });
     }
 
