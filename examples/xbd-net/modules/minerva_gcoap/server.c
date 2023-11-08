@@ -35,7 +35,8 @@
 
 #include "minerva_gcoap.h"
 
-#define ENABLE_DEBUG 0
+//#define ENABLE_DEBUG 0
+#define ENABLE_DEBUG 1 //@@
 #include "debug.h"
 
 #if IS_USED(MODULE_GCOAP_DTLS)
@@ -103,7 +104,7 @@ static ssize_t _encode_link(const coap_resource_t *resource, char *buf,
 
     return res;
 }
-
+// !!!! rust wrapper, get, put
 /*
  * Server callback for /cli/stats. Accepts either a GET or a PUT.
  *
@@ -146,12 +147,19 @@ static ssize_t _stats_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, coap_re
     return 0;
 }
 
+// !!!! rust wrapper, get
+extern ssize_t _xbd_riot_board_handler(coap_pkt_t *pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx);
 static ssize_t _riot_board_handler(coap_pkt_t *pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx)
 {
     (void)ctx;
     gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);
     coap_opt_add_format(pdu, COAP_FORMAT_TEXT);
     size_t resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
+
+    //====@@ !!!!
+    ssize_t ret = _xbd_riot_board_handler(pdu, buf, len, ctx);
+    printf("@@ ret: %d\n", ret);
+    //====@@
 
     /* write the RIOT board name in the response buffer */
     if (pdu->payload_len >= strlen(RIOT_BOARD)) {

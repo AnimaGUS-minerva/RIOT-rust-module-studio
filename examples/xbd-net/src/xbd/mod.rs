@@ -21,6 +21,14 @@ extern "C" {
         payload: *mut c_void, payload_len: *mut c_void, context: *mut c_void) -> u8;
 }
 
+#[no_mangle]
+pub extern fn xbd_riot_board_handler(
+    pdu: *const c_void, buf: *const c_void, len: usize, ctx: *const c_void) -> isize {
+    42
+}
+//#[no_mangle]
+//pub extern fn xbd_stats_handler(
+
 static XBD_CELL: OnceCell<Xbd> = OnceCell::uninit();
 
 pub type XbdFnsEnt = (*const i8, *const c_void);

@@ -131,7 +131,7 @@ static void _resp_handler(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
         printf(", empty payload\n");
     }
 
-#if 0 //@@ not support next block for now
+#if 0 //@@ not support next block for now; TODO !!!!
     /* ask for next block if present */
     if (coap_get_block2(pdu, &block)) {
         if (block.more) {
@@ -188,4 +188,11 @@ uint8_t xbd_resp_handler(
     }
 
     return memo->state;
+}
+
+extern ssize_t xbd_riot_board_handler(coap_pkt_t *pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx);
+ssize_t _xbd_riot_board_handler(coap_pkt_t *pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx) {
+    //(void)ctx;
+    //return gcoap_response(pdu, buf, len, COAP_CODE_INTERNAL_SERVER_ERROR); // !!!!
+    return xbd_riot_board_handler(pdu, buf, len, ctx);
 }
