@@ -70,3 +70,50 @@ impl Future for GcoapGet {
         }
     }
 }
+
+//
+
+#[derive(Debug)]
+pub enum GcoapServeResource {
+    RiotBoard(Option<Vec<u8>>),
+    Stats,
+}
+
+pub struct GcoapServe {
+    addr: String,
+    uri: String,
+    out: Rc<RefCell<Option<GcoapServeResource>>>,
+    _waker: Option<AtomicWaker>,
+}
+
+impl GcoapServe {
+    pub fn new(addr: &str, uri: &str) -> Self {
+        GcoapServe {
+            addr: addr.to_string(),
+            uri: uri.to_string(),
+            out: Rc::new(RefCell::new(None)),
+            _waker: Some(AtomicWaker::new()),
+        }
+    }
+}
+
+impl Future for GcoapServe {
+    type Output = GcoapServeResource;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<<Self as Future>::Output> {
+        if let Some(_waker) = self._waker.take() {
+            _waker.register(&cx.waker());
+
+            let outc = self.out.clone();
+            // super::Xbd::gcoap_get(&self.addr, &self.uri, move |out| {
+            //     outc.borrow_mut().replace(out);
+            //     _waker.wake();
+            // });
+
+            //Poll::Pending
+            Poll::Ready(GcoapServeResource::RiotBoard(None)) // !!!!
+        } else {
+            Poll::Ready(self.out.take().unwrap())
+        }
+    }
+}

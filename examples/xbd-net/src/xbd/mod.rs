@@ -1,12 +1,15 @@
 mod callbacks;
 pub use callbacks::process_xbd_callbacks;
-use callbacks::{add_xbd_timeout_callback, add_xbd_gcoap_get_callback};
+use callbacks::{
+    add_xbd_timeout_callback,
+    add_xbd_gcoap_get_callback,
+    add_xbd_gcoap_serve_riot_board_callback};
 
 mod timeout;
 use timeout::Timeout;
 
 mod gcoap;
-use gcoap::{GcoapGet, GcoapMemoState};
+use gcoap::{GcoapGet, GcoapMemoState, GcoapServeResource};
 
 use core::future::Future;
 use conquer_once::spin::OnceCell;
@@ -24,7 +27,15 @@ extern "C" {
 #[no_mangle]
 pub extern fn xbd_riot_board_handler(
     pdu: *const c_void, buf: *const c_void, len: usize, ctx: *const c_void) -> isize {
-    42
+
+    let out = GcoapServeResource::RiotBoard(None); // !! dummy
+
+    let mut context: *const c_void = core::ptr::null_mut(); // !! dummy
+    // yield to async runtime
+    add_xbd_gcoap_serve_riot_board_callback(
+        Box::into_raw(Box::new((context /* cb_ptr */, out))) as *const c_void); // arg_ptr
+
+    42 // !! dummy
 }
 //#[no_mangle]
 //pub extern fn xbd_stats_handler(
