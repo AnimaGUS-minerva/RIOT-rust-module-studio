@@ -40,12 +40,12 @@ pub async fn process_xbd_callbacks() {
                 call(cb_ptr, out);
             },
             XbdCallback::ServeRiotBoard(arg_ptr) => {
-                let (cb_ptr, out) = arg_from::<GcoapServeResource>(arg_ptr);
+                let (cb_ptr, _params) = arg_from::<()>(arg_ptr);
 
-                //call(cb_ptr, out); // !!
-                //==== !!!!
-                let ret = crate::xbd::gcoap::GcoapServe::new("dummy", "dummy").await; // !!
-                panic!("!!!! ret: {:?}", ret);
+                let res = crate::xbd::gcoap::GcoapServe::new("param", "param").await; // !!
+                //panic!("!!!!11 res: {:?}", res);
+
+                call(cb_ptr, res); // !!!!
             },
         }
     }

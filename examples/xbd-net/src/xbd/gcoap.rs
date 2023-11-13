@@ -111,7 +111,7 @@ impl Future for GcoapServe {
             // });
 
             //Poll::Pending
-            Poll::Ready(GcoapServeResource::RiotBoard(None)) // !!!!
+            Poll::Ready(GcoapServeResource::RiotBoard(None)) // !!!! debuggggg
         } else {
             Poll::Ready(self.out.take().unwrap())
         }

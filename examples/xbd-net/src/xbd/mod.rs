@@ -28,12 +28,16 @@ extern "C" {
 pub extern fn xbd_riot_board_handler(
     pdu: *const c_void, buf: *const c_void, len: usize, ctx: *const c_void) -> isize {
 
-    let out = GcoapServeResource::RiotBoard(None); // !! dummy
+    let params = ();
+    let cb = |res: GcoapServeResource| {
+        panic!("!!!!22 res: {:?}", res);
 
-    let mut context: *const c_void = core::ptr::null_mut(); // !! dummy
-    // yield to async runtime
+        // TODO integrate buttom part of `_riot_board_handler()` !!!!
+    };
+
+    // !!!! wip yield to async runtime
     add_xbd_gcoap_serve_riot_board_callback(
-        Box::into_raw(Box::new((context /* cb_ptr */, out))) as *const c_void); // arg_ptr
+        Box::into_raw(Box::new((callbacks::into_raw(cb), params))) as *const c_void); // arg_ptr
 
     42 // !! dummy
 }
