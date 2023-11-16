@@ -19,6 +19,10 @@ void xbd_gcoap_req_send(char *addr, char *uri, void *context, gcoap_resp_handler
 uint8_t xbd_resp_handler(const gcoap_request_memo_t *memo, coap_pkt_t* pdu, const sock_udp_ep_t *remote,
                          uint8_t **payload, size_t *payload_len, void **context);
 
+ssize_t riot_board_handler_fill(
+        coap_pkt_t *pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx,
+        const char *board);
+
 #ifdef __cplusplus
 }
 #endif

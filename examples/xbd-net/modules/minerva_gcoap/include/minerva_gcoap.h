@@ -57,6 +57,9 @@ int test_gcoap_req(char *req, char *addr, char *payload);
 int server_init(void);
 
 int server_state(void);//@@
+ssize_t riot_board_handler_fill(
+        coap_pkt_t *pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx,
+        const char *board);//@@
 
 /**
  * @brief   Notifies all observers registered to /cli/stats - if any

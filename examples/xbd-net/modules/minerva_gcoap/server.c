@@ -151,20 +151,27 @@ static ssize_t _stats_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, coap_re
 extern ssize_t _xbd_riot_board_handler(coap_pkt_t *pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx);
 static ssize_t _riot_board_handler(coap_pkt_t *pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx)
 {
+    //==== orig behavior
+    //return riot_board_handler_fill(pdu, buf, len, ctx, RIOT_BOARD);
+    //==== @@
+    return _xbd_riot_board_handler(pdu, buf, len, ctx);
+    //====
+}
+ssize_t riot_board_handler_fill(
+        coap_pkt_t *pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx,
+        const char *board) {//@@
+    printf("@@ riot_board_handler_fill(): baord: %s\n", board);
+
     (void)ctx;
     gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);
+
     coap_opt_add_format(pdu, COAP_FORMAT_TEXT);
     size_t resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
 
-    //====@@ !!!!
-    ssize_t ret = _xbd_riot_board_handler(pdu, buf, len, ctx);
-    printf("@@ ret: %d\n", ret);
-    //====@@
-
     /* write the RIOT board name in the response buffer */
-    if (pdu->payload_len >= strlen(RIOT_BOARD)) {
-        memcpy(pdu->payload, RIOT_BOARD, strlen(RIOT_BOARD));
-        return resp_len + strlen(RIOT_BOARD);
+    if (pdu->payload_len >= strlen(board)) {
+        memcpy(pdu->payload, board, strlen(board));
+        return resp_len + strlen(board);
     }
     else {
         puts("gcoap_cli: msg buffer too small");
