@@ -15,7 +15,7 @@ use core::future::Future;
 use conquer_once::spin::OnceCell;
 use mcu_if::{
     alloc::{boxed::Box, vec::Vec, collections::BTreeMap, string::{String, ToString}},
-    c_types::c_void, null_terminate_str, utils::u8_slice_from};
+    println, c_types::c_void, null_terminate_str, utils::u8_slice_from};
 
 extern "C" {
     fn strlen(ptr: *const u8) -> usize;
@@ -28,13 +28,36 @@ extern "C" {
 }
 
 #[no_mangle]
+pub extern fn xbd_on_sock_udp_evt(sock: *const c_void, flags: usize, arg: *const c_void) {
+    println!("@@ xbd_on_sock_udp_evt(): sock: {:?} type: {:?} arg: {:?}", sock, flags, arg);
+
+    let evt_args = (sock, flags, arg);
+
+    let cb = |args: PduArgs| {
+        let (pdu, buf, len, ctx) = args;
+        println!("!!!!22 args: {:?}", args); panic!("wp 22");
+
+        // let pdu_len = unsafe { riot_board_handler_fill(pdu, buf, len, ctx, board.as_ptr()) };
+        // panic!("!!!!22 pdu_len: {:?}", pdu_len);
+
+        // ........... send
+    };
+
+    // !! todo --> add_xbd_gcoap_serve_callback()
+    add_xbd_gcoap_serve_riot_board_callback(
+        Box::into_raw(Box::new((callbacks::into_raw(cb), evt_args))) as *const c_void); // arg_ptr
+}
+
+type PduArgs = (*const c_void, *const c_void, usize, *const c_void);
+
+#[no_mangle]
 pub extern fn xbd_riot_board_handler(
     pdu: *const c_void, buf: *const c_void, len: usize, ctx: *const c_void) -> isize {
     let board = null_terminate_str!("minerva");
 
     //==== !!!! dev
     let pdu_len = unsafe { riot_board_handler_fill(pdu, buf, len, ctx, board.as_ptr()) };
-    crate::println!("@@ xbd_riot_board_handler(): pdu_len: {:?}", pdu_len);
+    println!("@@ xbd_riot_board_handler(): pdu_len: {:?}", pdu_len);
     return pdu_len;
     /* TODO connect sys/net/application_layer/gcoap/gcoap.c  437,5
     if (pdu_len > 0) {
@@ -43,25 +66,6 @@ pub extern fn xbd_riot_board_handler(
             DEBUG("gcoap: send response failed: %d\n", (int)bytes);
         }
     }
-
-    */
-    //==== !!!! todo
-    /*
-    let params = ();
-    let cb = move |res: GcoapServeResource| {
-        // FIXME - `pdu, buf, len, ctx` no longer valid (out of RIOT server's thread loop call path)
-
-        //panic!("!!!!22 res: {:?}", res);
-
-        let pdu_len = unsafe { riot_board_handler_fill(pdu, buf, len, ctx, board.as_ptr()) };
-        panic!("!!!!33 pdu_len: {:?}", pdu_len);
-    };
-
-    // !!!! wip yield to async runtime
-    add_xbd_gcoap_serve_riot_board_callback(
-        Box::into_raw(Box::new((callbacks::into_raw(cb), params))) as *const c_void); // arg_ptr
-    42 // !! dummy
-    //====
     */
 }
 //#[no_mangle]

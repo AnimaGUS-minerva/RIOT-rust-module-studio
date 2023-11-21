@@ -39,13 +39,17 @@ pub async fn process_xbd_callbacks() {
                 let (cb_ptr, out) = arg_from::<GcoapMemoState>(arg_ptr);
                 call(cb_ptr, out);
             },
-            XbdCallback::ServeRiotBoard(arg_ptr) => {
-                let (cb_ptr, _params) = arg_from::<()>(arg_ptr);
+            XbdCallback::ServeRiotBoard(arg_ptr) => { // !! todo --> XbdCallback::SockUdpEvt(arg_ptr)
+                let (cb_ptr, evt_args) = arg_from::<(*const c_void, usize, *const c_void)>(arg_ptr);
+                crate::println!("!!!!11 evt_args: {:?}", evt_args); //panic!("wp 11");
 
+                //====
+                //let pdu_args = (); // !! (pdu, buf, len, ctx) = xx(evt_args);
+                //call(cb_ptr, pdu_args);
+                //====
                 let res = crate::xbd::gcoap::GcoapServe::new("param", "param").await; // !!
                 //panic!("!!!!11 res: {:?}", res);
-
-                call(cb_ptr, res); // !!!!
+                //====
             },
         }
     }
