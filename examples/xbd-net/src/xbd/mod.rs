@@ -3,7 +3,7 @@ pub use callbacks::process_xbd_callbacks;
 use callbacks::{
     add_xbd_timeout_callback,
     add_xbd_gcoap_get_callback,
-    add_xbd_gcoap_serve_riot_board_callback};
+    add_xbd_gcoap_server_sock_udp_event_callback};
 
 mod timeout;
 use timeout::Timeout;
@@ -31,24 +31,12 @@ extern "C" {
 pub extern fn xbd_on_sock_udp_evt(sock: *const c_void, flags: usize, arg: *const c_void) {
     println!("@@ xbd_on_sock_udp_evt(): sock: {:?} type: {:?} arg: {:?}", sock, flags, arg);
 
+    let cb_ptr = core::ptr::null::<()>();
     let evt_args = (sock, flags, arg);
 
-    let cb = |args: PduArgs| {
-        let (pdu, buf, len, ctx) = args;
-        println!("!!!!22 args: {:?}", args); panic!("wp 22");
-
-        // let pdu_len = unsafe { riot_board_handler_fill(pdu, buf, len, ctx, board.as_ptr()) };
-        // panic!("!!!!22 pdu_len: {:?}", pdu_len);
-
-        // ........... send
-    };
-
-    // !! todo --> add_xbd_gcoap_serve_callback()
-    add_xbd_gcoap_serve_riot_board_callback(
-        Box::into_raw(Box::new((callbacks::into_raw(cb), evt_args))) as *const c_void); // arg_ptr
+    add_xbd_gcoap_server_sock_udp_event_callback(
+        Box::into_raw(Box::new((cb_ptr, evt_args))) as *const c_void); // arg_ptr
 }
-
-type PduArgs = (*const c_void, *const c_void, usize, *const c_void);
 
 #[no_mangle]
 pub extern fn xbd_riot_board_handler(

@@ -7,6 +7,7 @@ use super::gcoap::{GcoapMemoState, GcoapServeResource};
 
 extern "C" {
     fn free(ptr: *mut c_void);
+    fn _on_sock_udp_evt_minerva(sock: *const c_void, flags: usize, arg: *const c_void);
 }
 
 type CVoidPtr = *const c_void;
@@ -16,7 +17,8 @@ enum XbdCallback {
     Timeout(PtrSend),
     _GcoapPing(PtrSend),
     GcoapGet(PtrSend),
-    ServeRiotBoard(PtrSend),
+    GcoapServerSockUdpEvt(PtrSend)
+    //ServeRiotBoard(PtrSend),
     //ServeStats(PtrSend),
 }
 
@@ -39,16 +41,22 @@ pub async fn process_xbd_callbacks() {
                 let (cb_ptr, out) = arg_from::<GcoapMemoState>(arg_ptr);
                 call(cb_ptr, out);
             },
-            XbdCallback::ServeRiotBoard(arg_ptr) => { // !! todo --> XbdCallback::SockUdpEvt(arg_ptr)
-                let (cb_ptr, evt_args) = arg_from::<(*const c_void, usize, *const c_void)>(arg_ptr);
-                crate::println!("!!!!11 evt_args: {:?}", evt_args); //panic!("wp 11");
+            XbdCallback::GcoapServerSockUdpEvt(arg_ptr) => {
+                let (cb_ptr, (sock, flags, arg) /* evt_args */) =
+                    arg_from::<(*const c_void, usize, *const c_void)>(arg_ptr);
+                assert_eq!(cb_ptr, core::ptr::null());
+
+                //let _ = crate::xbd::gcoap::GcoapServe::new("param", "param").await; // ok
+                //crate::Xbd::async_sleep(1000).await; // NG, TODO independent server Stream
 
                 //====
-                //let pdu_args = (); // !! (pdu, buf, len, ctx) = xx(evt_args);
-                //call(cb_ptr, pdu_args);
+                unsafe { _on_sock_udp_evt_minerva(sock, flags, arg) };
                 //====
-                let res = crate::xbd::gcoap::GcoapServe::new("param", "param").await; // !!
-                //panic!("!!!!11 res: {:?}", res);
+                //let pdu_args = (); // !! (pdu, buf, len, ctx) = xx(evt_args);
+                // let pdu_len = unsafe { riot_board_handler_fill(pdu, buf, len, ctx, board.as_ptr()) };
+                // panic!("!!!!22 pdu_len: {:?}", pdu_len);
+
+                // ........... send
                 //====
             },
         }
@@ -87,8 +95,8 @@ pub fn add_xbd_timeout_callback(arg_ptr: CVoidPtr) {
 pub fn add_xbd_gcoap_get_callback(arg_ptr: CVoidPtr) {
     add_xbd_callback(XbdCallback::GcoapGet(arg_ptr as PtrSend));
 }
-pub fn add_xbd_gcoap_serve_riot_board_callback(arg_ptr: CVoidPtr) {
-    add_xbd_callback(XbdCallback::ServeRiotBoard(arg_ptr as PtrSend));
+pub fn add_xbd_gcoap_server_sock_udp_event_callback(arg_ptr: CVoidPtr) {
+    add_xbd_callback(XbdCallback::GcoapServerSockUdpEvt(arg_ptr as PtrSend));
 }
 
 fn add_xbd_callback(xbd_callback: XbdCallback) { // must not block/alloc/dealloc
