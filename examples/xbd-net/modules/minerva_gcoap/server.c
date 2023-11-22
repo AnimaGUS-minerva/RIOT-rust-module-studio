@@ -64,12 +64,16 @@ static const credman_credential_t credential = {
 static ssize_t _encode_link(const coap_resource_t *resource, char *buf,
                             size_t maxlen, coap_link_encoder_ctx_t *context);
 static ssize_t _stats_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx);
-static ssize_t _riot_board_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx);
+//static ssize_t _riot_board_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx);
+extern ssize_t xbd_riot_board_handler(coap_pkt_t *pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx);
 
 /* CoAP resources. Must be sorted by path (ASCII order). */
 static const coap_resource_t _resources[] = {
     { "/cli/stats", COAP_GET | COAP_PUT, _stats_handler, NULL },
-    { "/riot/board", COAP_GET, _riot_board_handler, NULL },
+    //{ "/riot/board", COAP_GET, _riot_board_handler, NULL },
+    //====@@
+    //TODO{ "/cli/stats", COAP_GET | COAP_PUT, xbd_stats_handler, NULL },
+    { "/riot/board", COAP_GET, xbd_riot_board_handler, NULL },
 };
 
 static const char *_link_params[] = {
@@ -104,7 +108,7 @@ static ssize_t _encode_link(const coap_resource_t *resource, char *buf,
 
     return res;
 }
-// !!!! rust wrapper, get, put
+
 /*
  * Server callback for /cli/stats. Accepts either a GET or a PUT.
  *
@@ -147,20 +151,14 @@ static ssize_t _stats_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, coap_re
     return 0;
 }
 
-// !!!! rust wrapper, get
-extern ssize_t _xbd_riot_board_handler(coap_pkt_t *pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx);
-static ssize_t _riot_board_handler(coap_pkt_t *pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx)
-{
-    //==== orig behavior
-    //return riot_board_handler_fill(pdu, buf, len, ctx, RIOT_BOARD);
-    //==== @@
-    return _xbd_riot_board_handler(pdu, buf, len, ctx);
-    //====
-}
-ssize_t riot_board_handler_fill(
+//static ssize_t _riot_board_handler(coap_pkt_t *pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx)
+//{
+//    return riot_board_handler_minerva(pdu, buf, len, ctx, RIOT_BOARD);
+//}
+ssize_t riot_board_handler_minerva(
         coap_pkt_t *pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx,
         const char *board) {//@@
-    printf("@@ riot_board_handler_fill(): baord: %s\n", board);
+    printf("@@ riot_board_handler_minerva(): baord: %s\n", board);
 
     (void)ctx;
     gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);

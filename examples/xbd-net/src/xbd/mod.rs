@@ -22,7 +22,7 @@ extern "C" {
     fn xbd_resp_handler(
         memo: *const c_void, pdu: *const c_void, remote: *const c_void,
         payload: *mut c_void, payload_len: *mut c_void, context: *mut c_void) -> u8;
-    fn riot_board_handler_fill(
+    fn riot_board_handler_minerva(
         pdu: *const c_void, buf: *const c_void, len: usize, ctx: *const c_void,
         board: *const u8) -> isize;
 }
@@ -38,26 +38,20 @@ pub extern fn xbd_on_sock_udp_evt(sock: *const c_void, flags: usize, arg: *const
         Box::into_raw(Box::new((cb_ptr, evt_args))) as *const c_void); // arg_ptr
 }
 
-#[no_mangle]
+//#[no_mangle]// !!!! rust wrapper, get, put
+//pub extern fn xbd_stats_handler(
+
+#[no_mangle]// !!!! rust wrapper, get
 pub extern fn xbd_riot_board_handler(
     pdu: *const c_void, buf: *const c_void, len: usize, ctx: *const c_void) -> isize {
     let board = null_terminate_str!("minerva");
 
-    //==== !!!! dev
-    let pdu_len = unsafe { riot_board_handler_fill(pdu, buf, len, ctx, board.as_ptr()) };
+    let pdu_len = unsafe { riot_board_handler_minerva(pdu, buf, len, ctx, board.as_ptr()) };
     println!("@@ xbd_riot_board_handler(): pdu_len: {:?}", pdu_len);
     return pdu_len;
-    /* TODO connect sys/net/application_layer/gcoap/gcoap.c  437,5
-    if (pdu_len > 0) {
-        ssize_t bytes = _tl_send(sock, _listen_buf, pdu_len, remote, aux);
-        if (bytes <= 0) {
-            DEBUG("gcoap: send response failed: %d\n", (int)bytes);
-        }
-    }
-    */
 }
-//#[no_mangle]
-//pub extern fn xbd_stats_handler(
+
+//
 
 static XBD_CELL: OnceCell<Xbd> = OnceCell::uninit();
 

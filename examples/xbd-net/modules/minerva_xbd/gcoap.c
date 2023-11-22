@@ -189,12 +189,3 @@ uint8_t xbd_resp_handler(
 
     return memo->state;
 }
-
-//
-
-extern ssize_t xbd_riot_board_handler(coap_pkt_t *pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx);
-ssize_t _xbd_riot_board_handler(coap_pkt_t *pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx) {
-    ssize_t pdu_len = xbd_riot_board_handler(pdu, buf, len, ctx);
-    printf("@@ _xbd_riot_board_handler(): pdu_len: %d\n", pdu_len);
-    return pdu_len;
-}
