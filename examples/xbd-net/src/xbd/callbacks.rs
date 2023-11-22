@@ -3,7 +3,7 @@ use core::{pin::Pin, task::{Context, Poll}};
 use crossbeam_queue::ArrayQueue;
 use futures_util::{stream::{Stream, StreamExt}, task::AtomicWaker};
 use mcu_if::{alloc::boxed::Box, c_types::c_void};
-use super::gcoap::{GcoapMemoState, GcoapServeResource};
+use super::gcoap::GcoapMemoState;
 
 extern "C" {
     fn free(ptr: *mut c_void);

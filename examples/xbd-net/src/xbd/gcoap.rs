@@ -2,6 +2,10 @@ use core::{future::Future, pin::Pin, task::{Context, Poll}, cell::RefCell};
 use futures_util::task::AtomicWaker;
 use mcu_if::{alloc::{vec::Vec, string::{String, ToString}, rc::Rc}};
 
+//
+// gcoap client
+//
+
 pub struct _GcoapPing {
     // ...
     _waker: Option<AtomicWaker>,
@@ -72,7 +76,10 @@ impl Future for GcoapGet {
 }
 
 //
+// gcoap server
+//
 
+/*
 #[derive(Debug)]
 pub enum GcoapServeResource {
     RiotBoard(Option<Vec<u8>>),
@@ -116,4 +123,41 @@ impl Future for GcoapServe {
             Poll::Ready(self.out.take().unwrap())
         }
     }
+}
+*/
+
+//
+
+use super::callbacks::add_xbd_gcoap_server_sock_udp_event_callback;
+use mcu_if::{alloc::boxed::Box, c_types::c_void, null_terminate_str};
+use crate::println;
+
+extern "C" {
+    fn riot_board_handler_minerva(
+        pdu: *const c_void, buf: *const c_void, len: usize, ctx: *const c_void,
+        board: *const u8) -> isize;
+}
+
+#[no_mangle]
+pub extern fn xbd_on_sock_udp_evt(sock: *const c_void, flags: usize, arg: *const c_void) {
+    println!("@@ xbd_on_sock_udp_evt(): sock: {:?} type: {:?} arg: {:?}", sock, flags, arg);
+
+    let cb_ptr = core::ptr::null::<()>();
+    let evt_args = (sock, flags, arg);
+
+    add_xbd_gcoap_server_sock_udp_event_callback(
+        Box::into_raw(Box::new((cb_ptr, evt_args))) as *const c_void); // arg_ptr
+}
+
+//#[no_mangle]// !!!! rust wrapper, get, put
+//pub extern fn xbd_stats_handler(
+
+#[no_mangle]// !!!! rust wrapper, get
+pub extern fn xbd_riot_board_handler(
+    pdu: *const c_void, buf: *const c_void, len: usize, ctx: *const c_void) -> isize {
+    let board = null_terminate_str!("minerva");
+
+    let pdu_len = unsafe { riot_board_handler_minerva(pdu, buf, len, ctx, board.as_ptr()) };
+    println!("@@ xbd_riot_board_handler(): pdu_len: {:?}", pdu_len);
+    return pdu_len;
 }
