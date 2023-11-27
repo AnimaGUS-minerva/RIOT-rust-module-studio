@@ -13,19 +13,23 @@ extern "C" {
 type CVoidPtr = *const c_void;
 type PtrSend = u32; // support RIOT 32bit MCUs only
 
+//
+
 enum ApiCallback {
     Timeout(PtrSend),
     _GcoapPing(PtrSend),
     GcoapGet(PtrSend),
 }
-enum ServerCallback {
-    GcoapServerSockUdpEvt(PtrSend)
-    //ServeRiotBoard(PtrSend),
-    //ServeStats(PtrSend),
+
+static API_QUEUE: OnceCell<ArrayQueue<ApiCallback>> = OnceCell::uninit();
+static API_WAKER: AtomicWaker = AtomicWaker::new();
+
+fn add_api_callback(cb: ApiCallback) {
+    XbdStream::add(&API_QUEUE, &API_WAKER, cb);
 }
 
 pub async fn process_api_callbacks() {
-    let mut stream = XbdStream::new(&CALLBACK_QUEUE, &CALLBACK_WAKER);
+    let mut stream = XbdStream::new(&API_QUEUE, &API_WAKER);
 
     while let Some(cb) = stream.next().await {
         match cb {
@@ -46,6 +50,22 @@ pub async fn process_api_callbacks() {
         }
     }
 }
+
+//
+
+enum ServerCallback {
+    GcoapServerSockUdpEvt(PtrSend)
+    //ServeRiotBoard(PtrSend),
+    //ServeStats(PtrSend),
+}
+
+static SERVER_QUEUE: OnceCell<ArrayQueue<ServerCallback>> = OnceCell::uninit();
+static SERVER_WAKER: AtomicWaker = AtomicWaker::new();
+
+fn add_server_callback(cb: ServerCallback) {
+    XbdStream::add(&SERVER_QUEUE, &SERVER_WAKER, cb);
+}
+
 pub async fn process_server_callbacks() {
     let mut stream = XbdStream::new(&SERVER_QUEUE, &SERVER_WAKER);
 
@@ -72,6 +92,8 @@ pub async fn process_server_callbacks() {
         }
     }
 }
+
+//
 
 pub fn into_raw<F, T>(cb: F) -> CVoidPtr where F: FnOnce(T) + 'static {
     let cb: Box<Box<dyn FnOnce(T) + 'static>> = Box::new(Box::new(cb));
@@ -100,34 +122,4 @@ pub fn add_xbd_gcoap_get_callback(arg_ptr: CVoidPtr) {
 }
 pub fn add_xbd_gcoap_server_sock_udp_event_callback(arg_ptr: CVoidPtr) {
     add_server_callback(ServerCallback::GcoapServerSockUdpEvt(arg_ptr as PtrSend));
-}
-
-//
-
-static CALLBACK_QUEUE: OnceCell<ArrayQueue<ApiCallback>> = OnceCell::uninit();
-static CALLBACK_WAKER: AtomicWaker = AtomicWaker::new();
-fn add_api_callback(cb: ApiCallback) { // must not block/alloc/dealloc
-    if let Ok(queue) = CALLBACK_QUEUE.try_get() {
-        if let Err(_) = queue.push(cb) {
-            panic!("callback queue full");
-        } else {
-            CALLBACK_WAKER.wake();
-        }
-    } else {
-        panic!("callback queue uninitialized");
-    }
-}
-//---- !!!! refactor
-static SERVER_QUEUE: OnceCell<ArrayQueue<ServerCallback>> = OnceCell::uninit();
-static SERVER_WAKER: AtomicWaker = AtomicWaker::new();
-fn add_server_callback(cb: ServerCallback) { // must not block/alloc/dealloc
-    if let Ok(queue) = SERVER_QUEUE.try_get() {
-        if let Err(_) = queue.push(cb) {
-            panic!("callback queue full");
-        } else {
-            SERVER_WAKER.wake();
-        }
-    } else {
-        panic!("callback queue uninitialized");
-    }
 }

@@ -17,6 +17,19 @@ impl<T> XbdStream<T> {
 
         XbdStream { queue, waker }
     }
+
+    // must not block/alloc/dealloc
+    pub fn add(queue: &'static OnceCell<ArrayQueue<T>>, waker: &'static AtomicWaker, item: T) {
+        if let Ok(queue) = queue.try_get() {
+            if let Err(_) = queue.push(item) {
+                panic!("queue full");
+            } else {
+                waker.wake();
+            }
+        } else {
+            panic!("queue uninitialized");
+        }
+    }
 }
 
 impl<T> Stream for XbdStream<T> {
