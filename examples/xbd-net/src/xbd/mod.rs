@@ -4,6 +4,8 @@ use callbacks::{
     add_xbd_timeout_callback,
     add_xbd_gcoap_get_callback};
 
+mod stream;
+
 mod timeout;
 use timeout::Timeout;
 

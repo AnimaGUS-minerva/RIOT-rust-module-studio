@@ -1,9 +1,9 @@
 use conquer_once::spin::OnceCell;
-use core::{pin::Pin, task::{Context, Poll}};
 use crossbeam_queue::ArrayQueue;
-use futures_util::{stream::{Stream, StreamExt}, task::AtomicWaker};
+use futures_util::{stream::StreamExt, task::AtomicWaker};
 use mcu_if::{alloc::boxed::Box, c_types::c_void};
 use super::gcoap::GcoapMemoState;
+use super::stream::XbdStream;
 
 extern "C" {
     fn free(ptr: *mut c_void);
@@ -122,48 +122,3 @@ fn add_xbd_callback_4server(xbd_callback: XbdCallback) { // must not block/alloc
         panic!("callback queue uninitialized");
     }
 }
-
-//
-
-//---------------------------- ^^ >>>> stream.rs     ; refactor stream
-struct XbdStream {
-    queue: &'static OnceCell<ArrayQueue<XbdCallback>>,
-    waker: &'static AtomicWaker,
-}
-
-const QUEUE_CAP_DEFAULT: usize = 100;
-
-impl XbdStream {
-    pub fn new(queue: &'static OnceCell<ArrayQueue<XbdCallback>>, waker: &'static AtomicWaker) -> Self {
-        queue
-            .try_init_once(|| ArrayQueue::new(QUEUE_CAP_DEFAULT))
-            .expect("XbdStream::new should only be called once");
-
-        XbdStream { queue, waker }
-    }
-}
-
-impl Stream for XbdStream {
-    type Item = XbdCallback;
-
-    fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
-        let queue = self.queue
-            .try_get()
-            .expect("callback queue not initialized");
-
-        // fast path
-        if let Some(arg_ptr) = queue.pop() {
-            return Poll::Ready(Some(arg_ptr));
-        }
-
-        self.waker.register(&cx.waker());
-        match queue.pop() {
-            Some(arg_ptr) => {
-                self.waker.take();
-                Poll::Ready(Some(arg_ptr))
-            }
-            None => Poll::Pending,
-        }
-    }
-}
-//---------------------------- $$ >>>> stream.rs
