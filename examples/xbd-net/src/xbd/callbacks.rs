@@ -13,22 +13,23 @@ extern "C" {
 type CVoidPtr = *const c_void;
 type PtrSend = u32; // support RIOT 32bit MCUs only
 
-enum XbdCallback {
+enum ApiCallback {
     Timeout(PtrSend),
     _GcoapPing(PtrSend),
     GcoapGet(PtrSend),
+}
+enum ServerCallback {
     GcoapServerSockUdpEvt(PtrSend)
     //ServeRiotBoard(PtrSend),
     //ServeStats(PtrSend),
 }
 
-pub async fn process_xbd_callbacks() {
-    // let mut callbacks = CallbackStream::new();
-    let mut callbacks = XbdStream::new(&CALLBACK_QUEUE, &CALLBACK_WAKER);
+pub async fn process_api_callbacks() {
+    let mut stream = XbdStream::new(&CALLBACK_QUEUE, &CALLBACK_WAKER);
 
-    while let Some(xbd_callback) = callbacks.next().await {
-        match xbd_callback {
-            XbdCallback::Timeout(arg_ptr) => {
+    while let Some(cb) = stream.next().await {
+        match cb {
+            ApiCallback::Timeout(arg_ptr) => {
                 let (cb_ptr, timeout_pp): (CVoidPtr, *mut CVoidPtr) = arg_from(arg_ptr);
 
                 let timeout_ptr = unsafe { *Box::from_raw(timeout_pp) };
@@ -37,12 +38,20 @@ pub async fn process_xbd_callbacks() {
 
                 call(cb_ptr, ());
             },
-            XbdCallback::_GcoapPing(_) => todo!(),
-            XbdCallback::GcoapGet(arg_ptr) => {
+            ApiCallback::_GcoapPing(_) => todo!(),
+            ApiCallback::GcoapGet(arg_ptr) => {
                 let (cb_ptr, out) = arg_from::<GcoapMemoState>(arg_ptr);
                 call(cb_ptr, out);
             },
-            XbdCallback::GcoapServerSockUdpEvt(arg_ptr) => {
+        }
+    }
+}
+pub async fn process_server_callbacks() {
+    let mut stream = XbdStream::new(&SERVER_QUEUE, &SERVER_WAKER);
+
+    while let Some(cb) = stream.next().await {
+        match cb {
+            ServerCallback::GcoapServerSockUdpEvt(arg_ptr) => {
                 let (cb_ptr, (sock, flags, arg) /* evt_args */) =
                     arg_from::<(*const c_void, usize, *const c_void)>(arg_ptr);
                 assert_eq!(cb_ptr, core::ptr::null());
@@ -84,22 +93,22 @@ fn call<T>(cb_ptr: CVoidPtr, out: T) {
 }
 
 pub fn add_xbd_timeout_callback(arg_ptr: CVoidPtr) {
-    add_xbd_callback(XbdCallback::Timeout(arg_ptr as PtrSend));
+    add_api_callback(ApiCallback::Timeout(arg_ptr as PtrSend));
 }
 pub fn add_xbd_gcoap_get_callback(arg_ptr: CVoidPtr) {
-    add_xbd_callback(XbdCallback::GcoapGet(arg_ptr as PtrSend));
+    add_api_callback(ApiCallback::GcoapGet(arg_ptr as PtrSend));
 }
 pub fn add_xbd_gcoap_server_sock_udp_event_callback(arg_ptr: CVoidPtr) {
-    add_xbd_callback(XbdCallback::GcoapServerSockUdpEvt(arg_ptr as PtrSend));
+    add_server_callback(ServerCallback::GcoapServerSockUdpEvt(arg_ptr as PtrSend));
 }
 
 //
 
-static CALLBACK_QUEUE: OnceCell<ArrayQueue<XbdCallback>> = OnceCell::uninit();
+static CALLBACK_QUEUE: OnceCell<ArrayQueue<ApiCallback>> = OnceCell::uninit();
 static CALLBACK_WAKER: AtomicWaker = AtomicWaker::new();
-fn add_xbd_callback(xbd_callback: XbdCallback) { // must not block/alloc/dealloc
+fn add_api_callback(cb: ApiCallback) { // must not block/alloc/dealloc
     if let Ok(queue) = CALLBACK_QUEUE.try_get() {
-        if let Err(_) = queue.push(xbd_callback) {
+        if let Err(_) = queue.push(cb) {
             panic!("callback queue full");
         } else {
             CALLBACK_WAKER.wake();
@@ -109,11 +118,11 @@ fn add_xbd_callback(xbd_callback: XbdCallback) { // must not block/alloc/dealloc
     }
 }
 //---- !!!! refactor
-static SERVER_QUEUE: OnceCell<ArrayQueue<XbdCallback>> = OnceCell::uninit();
+static SERVER_QUEUE: OnceCell<ArrayQueue<ServerCallback>> = OnceCell::uninit();
 static SERVER_WAKER: AtomicWaker = AtomicWaker::new();
-fn add_xbd_callback_4server(xbd_callback: XbdCallback) { // must not block/alloc/dealloc
+fn add_server_callback(cb: ServerCallback) { // must not block/alloc/dealloc
     if let Ok(queue) = SERVER_QUEUE.try_get() {
-        if let Err(_) = queue.push(xbd_callback) {
+        if let Err(_) = queue.push(cb) {
             panic!("callback queue full");
         } else {
             SERVER_WAKER.wake();

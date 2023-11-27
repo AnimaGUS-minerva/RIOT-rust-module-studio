@@ -12,8 +12,7 @@ const QUEUE_CAP_DEFAULT: usize = 100;
 
 impl<T> XbdStream<T> {
     pub fn new(queue: &'static OnceCell<ArrayQueue<T>>, waker: &'static AtomicWaker) -> Self {
-        queue
-            .try_init_once(|| ArrayQueue::new(QUEUE_CAP_DEFAULT))
+        queue.try_init_once(|| ArrayQueue::new(QUEUE_CAP_DEFAULT))
             .expect("XbdStream::new should only be called once");
 
         XbdStream { queue, waker }
@@ -26,7 +25,7 @@ impl<T> Stream for XbdStream<T> {
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
         let queue = self.queue
             .try_get()
-            .expect("callback queue not initialized");
+            .expect("queue not initialized");
 
         // fast path
         if let Some(arg_ptr) = queue.pop() {

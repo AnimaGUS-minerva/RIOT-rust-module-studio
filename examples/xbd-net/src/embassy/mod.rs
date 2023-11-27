@@ -1,5 +1,5 @@
 use mcu_if::alloc::boxed::Box;
-use super::xbd::Xbd;
+use super::xbd::{self, Xbd};
 
 mod executor;
 use executor::Executor;
@@ -13,8 +13,13 @@ async fn task_xbd_main() {
 }
 
 #[embassy_executor::task]
-async fn task_xbd_callbacks() {
-    super::process_xbd_callbacks().await;
+async fn task_api_callbacks() {
+    xbd::process_api_callbacks().await;
+}
+
+#[embassy_executor::task]
+async fn task_server_callbacks() {
+    xbd::process_server_callbacks().await;
 }
 
 pub struct Runtime(&'static mut Executor);
@@ -35,7 +40,8 @@ impl Runtime {
     pub fn run(&'static mut self) -> ! {
         self.0.run(|spawner| {
             spawner.spawn(task_xbd_main()).unwrap();
-            spawner.spawn(task_xbd_callbacks()).unwrap();
+            spawner.spawn(task_server_callbacks()).unwrap();
+            spawner.spawn(task_api_callbacks()).unwrap();
         });
     }
 }

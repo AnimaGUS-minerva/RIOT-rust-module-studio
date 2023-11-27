@@ -12,7 +12,7 @@ fn alloc_error(layout: mcu_if::alloc::alloc::Layout) -> ! { mcu_if::alloc_error(
 use mcu_if::{println, alloc::boxed::Box, null_terminate_bytes};
 
 mod xbd;
-use xbd::{Xbd, XbdFnsEnt, process_xbd_callbacks};
+use xbd::{Xbd, XbdFnsEnt};
 
 mod blogos12;
 mod embassy;

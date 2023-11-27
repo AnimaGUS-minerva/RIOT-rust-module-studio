@@ -1,5 +1,7 @@
 mod callbacks;
-pub use callbacks::process_xbd_callbacks;
+pub use callbacks::{
+    process_api_callbacks,
+    process_server_callbacks};
 use callbacks::{
     add_xbd_timeout_callback,
     add_xbd_gcoap_get_callback};

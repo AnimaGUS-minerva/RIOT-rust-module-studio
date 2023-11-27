@@ -161,3 +161,7 @@ pub extern fn xbd_riot_board_handler(
     println!("@@ xbd_riot_board_handler(): pdu_len: {:?}", pdu_len);
     return pdu_len;
 }
+
+// !!!!
+// - ServerStream impl
+// - server_init() of main.c into e.g. process_gcoap_server()
