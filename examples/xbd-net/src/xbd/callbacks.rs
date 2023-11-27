@@ -23,7 +23,8 @@ enum XbdCallback {
 }
 
 pub async fn process_xbd_callbacks() {
-    let mut callbacks = CallbackStream::new();
+    // let mut callbacks = CallbackStream::new();
+    let mut callbacks = XbdStream::new(&CALLBACK_QUEUE, &CALLBACK_WAKER);
 
     while let Some(xbd_callback) = callbacks.next().await {
         match xbd_callback {
@@ -32,7 +33,7 @@ pub async fn process_xbd_callbacks() {
 
                 let timeout_ptr = unsafe { *Box::from_raw(timeout_pp) };
                 assert_ne!(timeout_ptr, core::ptr::null());
-                unsafe { free(timeout_ptr as *mut _); }
+                unsafe { free(timeout_ptr as *mut _); }// !!!!
 
                 call(cb_ptr, ());
             },
@@ -47,7 +48,7 @@ pub async fn process_xbd_callbacks() {
                 assert_eq!(cb_ptr, core::ptr::null());
 
                 //let _ = crate::xbd::gcoap::GcoapServe::new("param", "param").await; // ok
-                //crate::Xbd::async_sleep(1000).await; // NG, TODO independent server Stream
+                //crate::Xbd::async_sleep(1000).await; // NG,333
 
                 //====
                 unsafe { _on_sock_udp_evt_minerva(sock, flags, arg) };
@@ -82,13 +83,6 @@ fn call<T>(cb_ptr: CVoidPtr, out: T) {
     (*(cb_from(cb_ptr)))(out); // call, move, drop
 }
 
-//
-
-const CALLBACK_QUEUE_CAP_DEFAULT: usize = 100;
-
-static CALLBACK_QUEUE: OnceCell<ArrayQueue<XbdCallback>> = OnceCell::uninit();
-static WAKER: AtomicWaker = AtomicWaker::new();
-
 pub fn add_xbd_timeout_callback(arg_ptr: CVoidPtr) {
     add_xbd_callback(XbdCallback::Timeout(arg_ptr as PtrSend));
 }
@@ -99,36 +93,61 @@ pub fn add_xbd_gcoap_server_sock_udp_event_callback(arg_ptr: CVoidPtr) {
     add_xbd_callback(XbdCallback::GcoapServerSockUdpEvt(arg_ptr as PtrSend));
 }
 
+//
+
+static CALLBACK_QUEUE: OnceCell<ArrayQueue<XbdCallback>> = OnceCell::uninit();
+static CALLBACK_WAKER: AtomicWaker = AtomicWaker::new();
 fn add_xbd_callback(xbd_callback: XbdCallback) { // must not block/alloc/dealloc
     if let Ok(queue) = CALLBACK_QUEUE.try_get() {
         if let Err(_) = queue.push(xbd_callback) {
             panic!("callback queue full");
         } else {
-            WAKER.wake();
+            CALLBACK_WAKER.wake();
+        }
+    } else {
+        panic!("callback queue uninitialized");
+    }
+}
+//---- !!!! refactor
+static SERVER_QUEUE: OnceCell<ArrayQueue<XbdCallback>> = OnceCell::uninit();
+static SERVER_WAKER: AtomicWaker = AtomicWaker::new();
+fn add_xbd_callback_4server(xbd_callback: XbdCallback) { // must not block/alloc/dealloc
+    if let Ok(queue) = SERVER_QUEUE.try_get() {
+        if let Err(_) = queue.push(xbd_callback) {
+            panic!("callback queue full");
+        } else {
+            SERVER_WAKER.wake();
         }
     } else {
         panic!("callback queue uninitialized");
     }
 }
 
-struct CallbackStream {
-    _private: (),
+//
+
+//---------------------------- ^^ >>>> stream.rs     ; refactor stream
+struct XbdStream {
+    queue: &'static OnceCell<ArrayQueue<XbdCallback>>,
+    waker: &'static AtomicWaker,
 }
 
-impl CallbackStream {
-    pub fn new() -> Self {
-        CALLBACK_QUEUE
-            .try_init_once(|| ArrayQueue::new(CALLBACK_QUEUE_CAP_DEFAULT))
-            .expect("CallbackStream::new should only be called once");
-        CallbackStream { _private: () }
+const QUEUE_CAP_DEFAULT: usize = 100;
+
+impl XbdStream {
+    pub fn new(queue: &'static OnceCell<ArrayQueue<XbdCallback>>, waker: &'static AtomicWaker) -> Self {
+        queue
+            .try_init_once(|| ArrayQueue::new(QUEUE_CAP_DEFAULT))
+            .expect("XbdStream::new should only be called once");
+
+        XbdStream { queue, waker }
     }
 }
 
-impl Stream for CallbackStream {
+impl Stream for XbdStream {
     type Item = XbdCallback;
 
-    fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<XbdCallback>> {
-        let queue = CALLBACK_QUEUE
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
+        let queue = self.queue
             .try_get()
             .expect("callback queue not initialized");
 
@@ -137,13 +156,14 @@ impl Stream for CallbackStream {
             return Poll::Ready(Some(arg_ptr));
         }
 
-        WAKER.register(&cx.waker());
+        self.waker.register(&cx.waker());
         match queue.pop() {
             Some(arg_ptr) => {
-                WAKER.take();
+                self.waker.take();
                 Poll::Ready(Some(arg_ptr))
             }
             None => Poll::Pending,
         }
     }
 }
+//---------------------------- $$ >>>> stream.rs
