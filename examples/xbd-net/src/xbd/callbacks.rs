@@ -28,6 +28,13 @@ fn add_api_callback(cb: ApiCallback) {
     XbdStream::add(&API_QUEUE, &API_WAKER, cb);
 }
 
+pub fn add_xbd_timeout_callback(arg_ptr: CVoidPtr) {
+    add_api_callback(ApiCallback::Timeout(arg_ptr as PtrSend));
+}
+pub fn add_xbd_gcoap_get_callback(arg_ptr: CVoidPtr) {
+    add_api_callback(ApiCallback::GcoapGet(arg_ptr as PtrSend));
+}
+
 pub async fn process_api_callbacks() {
     let mut stream = XbdStream::new(&API_QUEUE, &API_WAKER);
 
@@ -66,6 +73,10 @@ fn add_server_callback(cb: ServerCallback) {
     XbdStream::add(&SERVER_QUEUE, &SERVER_WAKER, cb);
 }
 
+pub fn add_xbd_gcoap_server_sock_udp_event_callback(arg_ptr: CVoidPtr) {
+    add_server_callback(ServerCallback::GcoapServerSockUdpEvt(arg_ptr as PtrSend));
+}
+
 pub async fn process_server_callbacks() {
     let mut stream = XbdStream::new(&SERVER_QUEUE, &SERVER_WAKER);
 
@@ -77,7 +88,7 @@ pub async fn process_server_callbacks() {
                 assert_eq!(cb_ptr, core::ptr::null());
 
                 //let _ = crate::xbd::gcoap::GcoapServe::new("param", "param").await; // ok
-                //crate::Xbd::async_sleep(1000).await; // NG,333
+                if 0 == 1 { crate::Xbd::async_sleep(100).await; } // ok
 
                 //====
                 unsafe { _on_sock_udp_evt_minerva(sock, flags, arg) };
@@ -112,14 +123,4 @@ fn cb_from<T>(cb_ptr: CVoidPtr) -> Box<Box<dyn FnOnce(T) + 'static>> {
 fn call<T>(cb_ptr: CVoidPtr, out: T) {
     assert_ne!(cb_ptr, core::ptr::null());
     (*(cb_from(cb_ptr)))(out); // call, move, drop
-}
-
-pub fn add_xbd_timeout_callback(arg_ptr: CVoidPtr) {
-    add_api_callback(ApiCallback::Timeout(arg_ptr as PtrSend));
-}
-pub fn add_xbd_gcoap_get_callback(arg_ptr: CVoidPtr) {
-    add_api_callback(ApiCallback::GcoapGet(arg_ptr as PtrSend));
-}
-pub fn add_xbd_gcoap_server_sock_udp_event_callback(arg_ptr: CVoidPtr) {
-    add_server_callback(ServerCallback::GcoapServerSockUdpEvt(arg_ptr as PtrSend));
 }
