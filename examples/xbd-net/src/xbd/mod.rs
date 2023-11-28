@@ -5,7 +5,7 @@ use callbacks::{
     add_xbd_gcoap_get_callback};
 
 mod server;
-pub use server::process_server_callbacks;
+pub use server::{start_gcoap_server, process_gcoap_server_callbacks};
 
 mod stream;
 

@@ -78,17 +78,19 @@ int main(void) {
     find_ifces(&outer_interface, &inner_interface);
     set_ips(outer_interface, inner_interface);
 
-    if (outer_interface) {
-        puts("@@ main(): initializing CoAP server (hint: check with `> coap info`)");
-        server_init();
-    }
-
     if (0) {
-        // hit the internal server
-        test_gcoap_req("get", "[::1]:5683", "/.well-known/core");
+        if (outer_interface) {
+            puts("@@ main(): initializing CoAP server (hint: check with `> coap info`)");
+            server_init();
+
+            // hit the internal server
+            test_gcoap_req("get", "[::1]:5683", "/.well-known/core");
+        }
 
         // hit the external 'libcoap-minimal/server'
         test_gcoap_req("get", "[" IP6_FIXTURE_SERVER "]:5683", "/hello");
+
+        return 0;
     }
 
     if (1) {

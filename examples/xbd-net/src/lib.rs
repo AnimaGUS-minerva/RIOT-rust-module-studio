@@ -47,6 +47,7 @@ pub extern fn rustmod_start(
 }
 
 async fn xbd_main() {
+    xbd::start_gcoap_server().unwrap();
 
     if 0 == 1 { // non-blocking, ok
         use blogos12::keyboard::add_scancode as blogos12_add_scancode;
