@@ -7,13 +7,10 @@ use super::stream::XbdStream;
 
 extern "C" {
     fn free(ptr: *mut c_void);
-    fn _on_sock_udp_evt_minerva(sock: *const c_void, flags: usize, arg: *const c_void);
 }
 
 type CVoidPtr = *const c_void;
-type PtrSend = u32; // support RIOT 32bit MCUs only
-
-//
+pub type PtrSend = u32; // support RIOT 32bit MCUs only
 
 enum ApiCallback {
     Timeout(PtrSend),
@@ -60,59 +57,13 @@ pub async fn process_api_callbacks() {
 
 //
 
-enum ServerCallback {
-    GcoapServerSockUdpEvt(PtrSend)
-    //ServeRiotBoard(PtrSend),
-    //ServeStats(PtrSend),
-}
-
-static SERVER_QUEUE: OnceCell<ArrayQueue<ServerCallback>> = OnceCell::uninit();
-static SERVER_WAKER: AtomicWaker = AtomicWaker::new();
-
-fn add_server_callback(cb: ServerCallback) {
-    XbdStream::add(&SERVER_QUEUE, &SERVER_WAKER, cb);
-}
-
-pub fn add_xbd_gcoap_server_sock_udp_event_callback(arg_ptr: CVoidPtr) {
-    add_server_callback(ServerCallback::GcoapServerSockUdpEvt(arg_ptr as PtrSend));
-}
-
-pub async fn process_server_callbacks() {
-    let mut stream = XbdStream::new(&SERVER_QUEUE, &SERVER_WAKER);
-
-    while let Some(cb) = stream.next().await {
-        match cb {
-            ServerCallback::GcoapServerSockUdpEvt(arg_ptr) => {
-                let (cb_ptr, (sock, flags, arg) /* evt_args */) =
-                    arg_from::<(*const c_void, usize, *const c_void)>(arg_ptr);
-                assert_eq!(cb_ptr, core::ptr::null());
-
-                //let _ = crate::xbd::gcoap::GcoapServe::new("param", "param").await; // ok
-                if 0 == 1 { crate::Xbd::async_sleep(100).await; } // ok
-
-                //====
-                unsafe { _on_sock_udp_evt_minerva(sock, flags, arg) };
-                //====
-                //let pdu_args = (); // !! (pdu, buf, len, ctx) = xx(evt_args);
-                // let pdu_len = unsafe { riot_board_handler_fill(pdu, buf, len, ctx, board.as_ptr()) };
-                // panic!("!!!!22 pdu_len: {:?}", pdu_len);
-
-                // ........... send
-                //====
-            },
-        }
-    }
-}
-
-//
-
 pub fn into_raw<F, T>(cb: F) -> CVoidPtr where F: FnOnce(T) + 'static {
     let cb: Box<Box<dyn FnOnce(T) + 'static>> = Box::new(Box::new(cb));
 
     Box::into_raw(cb) as *const _
 }
 
-fn arg_from<T>(arg_ptr: PtrSend) -> (CVoidPtr, T) {
+pub fn arg_from<T>(arg_ptr: PtrSend) -> (CVoidPtr, T) {
     unsafe { *Box::from_raw(arg_ptr as *mut _) }
 }
 

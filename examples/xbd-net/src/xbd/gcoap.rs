@@ -128,7 +128,7 @@ impl Future for GcoapServe {
 
 //
 
-use super::callbacks::add_xbd_gcoap_server_sock_udp_event_callback;
+use super::server::add_xbd_gcoap_server_sock_udp_event_callback;
 use mcu_if::{alloc::boxed::Box, c_types::c_void, null_terminate_str};
 use crate::println;
 
@@ -161,7 +161,3 @@ pub extern fn xbd_riot_board_handler(
     println!("@@ xbd_riot_board_handler(): pdu_len: {:?}", pdu_len);
     return pdu_len;
 }
-
-// !!!!
-// - ServerStream impl
-// - server_init() of main.c into e.g. process_gcoap_server()
