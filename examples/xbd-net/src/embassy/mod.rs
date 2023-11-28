@@ -13,13 +13,13 @@ async fn task_xbd_main() {
 }
 
 #[embassy_executor::task]
-async fn task_api_callbacks() {
-    xbd::process_api_callbacks().await;
+async fn task_api_stream() {
+    xbd::process_api_stream().await;
 }
 
 #[embassy_executor::task]
-async fn task_gcoap_server_callbacks() {
-    xbd::process_gcoap_server_callbacks().await;
+async fn task_gcoap_server_stream() {
+    xbd::process_gcoap_server_stream().await;
 }
 
 pub struct Runtime(&'static mut Executor);
@@ -40,8 +40,8 @@ impl Runtime {
     pub fn run(&'static mut self) -> ! {
         self.0.run(|spawner| {
             spawner.spawn(task_xbd_main()).unwrap();
-            spawner.spawn(task_gcoap_server_callbacks()).unwrap();
-            spawner.spawn(task_api_callbacks()).unwrap();
+            spawner.spawn(task_gcoap_server_stream()).unwrap();
+            spawner.spawn(task_api_stream()).unwrap();
         });
     }
 }

@@ -1,11 +1,11 @@
 mod callbacks;
-pub use callbacks::process_api_callbacks;
+pub use callbacks::process_api_stream;
 use callbacks::{
     add_xbd_timeout_callback,
     add_xbd_gcoap_get_callback};
 
 mod server;
-pub use server::{start_gcoap_server, process_gcoap_server_callbacks};
+pub use server::{start_gcoap_server, process_gcoap_server_stream};
 
 mod stream;
 

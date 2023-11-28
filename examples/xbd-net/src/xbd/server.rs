@@ -14,7 +14,8 @@ extern "C" {
 }
 
 enum ServerCallback {
-    GcoapServerSockUdpEvt(PtrSend)
+    GcoapServerSockUdpEvt(PtrSend),
+    GcoapServerSockDtlsEvt(PtrSend),
     //ServeRiotBoard(PtrSend),
     //ServeStats(PtrSend),
 }
@@ -36,7 +37,7 @@ pub fn start_gcoap_server() -> Result<(), i8> {
     if ret == 0 { Ok(()) } else { Err(ret) }
 }
 
-pub async fn process_gcoap_server_callbacks() {
+pub async fn process_gcoap_server_stream() {
     let mut stream = XbdStream::new(&SERVER_QUEUE, &SERVER_WAKER);
 
     while let Some(cb) = stream.next().await {
@@ -59,6 +60,7 @@ pub async fn process_gcoap_server_callbacks() {
                 // ........... send
                 //====
             },
+            ServerCallback::GcoapServerSockDtlsEvt(_) => todo!(),
         }
     }
 }
@@ -123,6 +125,13 @@ pub extern fn xbd_on_sock_udp_evt(sock: *const c_void, flags: usize, arg: *const
 
     add_xbd_gcoap_server_sock_udp_event_callback(
         Box::into_raw(Box::new((cb_ptr, evt_args))) as *const c_void); // arg_ptr
+}
+
+#[no_mangle]
+pub extern fn xbd_on_sock_dtls_evt(sock: *const c_void, flags: usize, arg: *const c_void) {
+    println!("@@ xbd_on_sock_dtls_evt(): sock: {:?} type: {:?} arg: {:?}", sock, flags, arg);
+
+    todo!();
 }
 
 //#[no_mangle]// !!!! rust wrapper, get, put
