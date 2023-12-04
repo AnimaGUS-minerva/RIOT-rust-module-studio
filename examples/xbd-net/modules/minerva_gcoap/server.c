@@ -63,16 +63,19 @@ static const credman_credential_t credential = {
 
 static ssize_t _encode_link(const coap_resource_t *resource, char *buf,
                             size_t maxlen, coap_link_encoder_ctx_t *context);
-static ssize_t _stats_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx);
+
+//static ssize_t _stats_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx);
 //static ssize_t _riot_board_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx);
+//==== @@
+extern ssize_t xbd_riot_stats_handler(coap_pkt_t *pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx);
 extern ssize_t xbd_riot_board_handler(coap_pkt_t *pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx);
 
 /* CoAP resources. Must be sorted by path (ASCII order). */
 static const coap_resource_t _resources[] = {
-    { "/cli/stats", COAP_GET | COAP_PUT, _stats_handler, NULL },
+    //{ "/cli/stats", COAP_GET | COAP_PUT, _stats_handler, NULL },
     //{ "/riot/board", COAP_GET, _riot_board_handler, NULL },
     //====@@
-    //TODO{ "/cli/stats", COAP_GET | COAP_PUT, xbd_stats_handler, NULL },
+    { "/cli/stats", COAP_GET | COAP_PUT, xbd_riot_stats_handler, NULL },
     { "/riot/board", COAP_GET, xbd_riot_board_handler, NULL },
 };
 
@@ -149,6 +152,11 @@ static ssize_t _stats_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, coap_re
     }
 
     return 0;
+}
+ssize_t riot_stats_handler_minerva(coap_pkt_t *pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx)
+{
+    printf("@@ riot_stats_handler_minerva(): ^^\n");
+    return _stats_handler(pdu, buf, len, ctx); // !!!!
 }
 
 //static ssize_t _riot_board_handler(coap_pkt_t *pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx)

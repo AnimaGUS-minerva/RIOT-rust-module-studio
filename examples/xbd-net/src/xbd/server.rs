@@ -8,6 +8,8 @@ use super::callbacks::{PtrSend, arg_from};
 extern "C" {
     fn server_init() -> i8;
     fn _on_sock_udp_evt_minerva(sock: *const c_void, flags: usize, arg: *const c_void);
+    fn riot_stats_handler_minerva(
+        pdu: *const c_void, buf: *const c_void, len: usize, ctx: *const c_void) -> isize;
     fn riot_board_handler_minerva(
         pdu: *const c_void, buf: *const c_void, len: usize, ctx: *const c_void,
         board: *const u8) -> isize;
@@ -134,15 +136,23 @@ pub extern fn xbd_on_sock_dtls_evt(sock: *const c_void, flags: usize, arg: *cons
     todo!();
 }
 
-//#[no_mangle]// !!!! rust wrapper, get, put
-//pub extern fn xbd_stats_handler(
+#[no_mangle]
+pub extern fn xbd_riot_stats_handler(
+    pdu: *const c_void, buf: *const c_void, len: usize, ctx: *const c_void) -> isize {
 
-#[no_mangle]// !!!! rust wrapper, get
+    let pdu_len = unsafe { riot_stats_handler_minerva(pdu, buf, len, ctx) };
+    println!("@@ xbd_riot_stats_handler(): pdu_len: {:?}", pdu_len);
+
+    pdu_len
+}
+
+#[no_mangle]
 pub extern fn xbd_riot_board_handler(
     pdu: *const c_void, buf: *const c_void, len: usize, ctx: *const c_void) -> isize {
     let board = null_terminate_str!("minerva");
 
     let pdu_len = unsafe { riot_board_handler_minerva(pdu, buf, len, ctx, board.as_ptr()) };
     println!("@@ xbd_riot_board_handler(): pdu_len: {:?}", pdu_len);
-    return pdu_len;
+
+    pdu_len
 }
