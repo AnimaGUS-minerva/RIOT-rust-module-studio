@@ -125,8 +125,11 @@ pub extern fn xbd_on_sock_udp_evt(sock: *const c_void, flags: usize, arg: *const
     let cb_ptr = core::ptr::null::<()>();
     let evt_args = (sock, flags, arg);
 
+    //==== Xbd::async_gcoap_get(): ok, Xbd::gcoap_get(): NG (FIXME)
     add_xbd_gcoap_server_sock_udp_event_callback(
         Box::into_raw(Box::new((cb_ptr, evt_args))) as *const c_void); // arg_ptr
+    //==== Xbd::async_gcoap_get(): NG (FIXME), Xbd::gcoap_get(): ok
+    //unsafe { _on_sock_udp_evt_minerva(sock, flags, arg) };
 }
 
 #[no_mangle]
