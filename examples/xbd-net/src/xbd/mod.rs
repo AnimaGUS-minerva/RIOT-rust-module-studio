@@ -95,18 +95,19 @@ impl Xbd {
     }
 
     pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
-        type Ty = unsafe extern "C" fn(*const u8, *const u8, *const c_void, *const c_void);
+        type Ty = unsafe extern "C" fn(*const u8, *const u8, *const u8, *const c_void, *const c_void);
         unsafe {
             (get_xbd_fn!("xbd_gcoap_req_send", Ty))(
                 null_terminate_str!(addr).as_ptr(),
                 null_terminate_str!(uri).as_ptr(),
+                core::ptr::null(),
                 callbacks::into_raw(cb), // context
                 Self::gcoap_get_resp_handler as *const c_void);
         }
     }
 
     pub fn gcoap_put<F>(addr: &str, uri: &str, data: *const u8, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
-        type Ty = unsafe extern "C" fn(*const u8, *const u8, *const c_void, *const c_void);
+        type Ty = unsafe extern "C" fn(*const u8, *const u8, *const u8, *const c_void, *const c_void);
         unsafe {
             (get_xbd_fn!("xbd_gcoap_req_send", Ty))(
                 null_terminate_str!(addr).as_ptr(),
