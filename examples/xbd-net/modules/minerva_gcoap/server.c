@@ -137,7 +137,7 @@ static ssize_t _stats_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, coap_re
             resp_len += fmt_u16_dec((char *)pdu->payload, req_count);
             return resp_len;
 
-        case COAP_PUT:
+        case COAP_PUT:// !!
             /* convert the payload to an integer and update the internal
                value */
             if (pdu->payload_len <= 5) {
@@ -156,7 +156,7 @@ static ssize_t _stats_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, coap_re
 ssize_t riot_stats_handler_minerva(coap_pkt_t *pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx)
 {
     printf("@@ riot_stats_handler_minerva(): ^^\n");
-    return _stats_handler(pdu, buf, len, ctx); // !!!!
+    return _stats_handler(pdu, buf, len, ctx);
 }
 
 //static ssize_t _riot_board_handler(coap_pkt_t *pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx)

@@ -37,6 +37,8 @@ impl GcoapMemoState {
     }
 }
 
+//
+
 pub struct GcoapGet {
     addr: String,
     uri: String,
@@ -64,6 +66,48 @@ impl Future for GcoapGet {
 
             let outc = self.out.clone();
             super::Xbd::gcoap_get(&self.addr, &self.uri, move |out| {
+                outc.borrow_mut().replace(out);
+                _waker.wake();
+            });
+
+            Poll::Pending
+        } else {
+            Poll::Ready(self.out.take().unwrap())
+        }
+    }
+}
+
+//
+
+pub struct GcoapPut {
+    addr: String,
+    uri: String,
+    data: *const u8,
+    out: Rc<RefCell<Option<GcoapMemoState>>>,
+    _waker: Option<AtomicWaker>,
+}
+
+impl GcoapPut {
+    pub fn new(addr: &str, uri: &str, data: &[u8]) -> Self {
+        GcoapPut {
+            addr: addr.to_string(),
+            uri: uri.to_string(),
+            data: data.as_ptr(),
+            out: Rc::new(RefCell::new(None)),
+            _waker: Some(AtomicWaker::new()),
+        }
+    }
+}
+
+impl Future for GcoapPut {
+    type Output = GcoapMemoState;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<<Self as Future>::Output> {
+        if let Some(_waker) = self._waker.take() {
+            _waker.register(&cx.waker());
+
+            let outc = self.out.clone();
+            super::Xbd::gcoap_put(&self.addr, &self.uri, self.data, move |out| {
                 outc.borrow_mut().replace(out);
                 _waker.wake();
             });

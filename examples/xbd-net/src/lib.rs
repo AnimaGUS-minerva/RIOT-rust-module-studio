@@ -92,7 +92,7 @@ async fn xbd_main() {
         //let out = Xbd::async_gcoap_get(addr_self, "/.well-known/core").await; println!("@@ out: {:?}", out);
         let out = Xbd::async_gcoap_get(addr_self, "/cli/stats").await; /* 1 */ println!("@@ out: {:?}", out);
         //let out = Xbd::async_gcoap_get(addr_self, "/riot/board").await; println!("@@ out: {:?}", out);
-//        let out = Xbd::async_gcoap_put(addr_self, "/cli/stats", "42").await; // !!
+        let _out = Xbd::async_gcoap_put(addr_self, "/cli/stats", b"42").await; // !!
         //let out = Xbd::async_gcoap_get(addr_self, "/cli/stats").await; /* 3 */ println!("@@ out: {:?}", out);
         panic!("ok");
 
