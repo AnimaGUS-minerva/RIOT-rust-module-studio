@@ -129,6 +129,7 @@ static ssize_t _stats_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, coap_re
 
     switch (method_flag) {
         case COAP_GET:
+            printf("@@ _stats_handler(): method_flag: COAP_GET\n");
             gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);
             coap_opt_add_format(pdu, COAP_FORMAT_TEXT);
             size_t resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
@@ -137,7 +138,8 @@ static ssize_t _stats_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, coap_re
             resp_len += fmt_u16_dec((char *)pdu->payload, req_count);
             return resp_len;
 
-        case COAP_PUT:// !!
+        case COAP_PUT:
+            printf("@@ _stats_handler(): method_flag: COAP_PUT\n");
             /* convert the payload to an integer and update the internal
                value */
             if (pdu->payload_len <= 5) {

@@ -61,17 +61,14 @@ static size_t _send(uint8_t *buf, size_t len, char *addr_str, void *context, gco
     return bytes_sent;
 }
 
-void xbd_gcoap_req_send(char *addr, char *uri, uint8_t *data, void *context, gcoap_resp_handler_t resp_handler) {
+void xbd_gcoap_req_send(char *addr, char *uri, uint8_t method, uint8_t *data, void *context, gcoap_resp_handler_t resp_handler) {
     uint8_t buf[CONFIG_GCOAP_PDU_BUF_SIZE];
     coap_pkt_t pdu;
     size_t len;
 
-    (void)data; // !!!! TODO generalize `pdu` for GET|PUT
-#if 0
-    gcoap_req_init(&pdu, &buf[0], CONFIG_GCOAP_PDU_BUF_SIZE, 1 /* GET */, uri);
-#else// WIP
-    gcoap_req_init(&pdu, &buf[0], CONFIG_GCOAP_PDU_BUF_SIZE, 3 /* PUT */, uri);
-#endif
+    (void)data; // !! WIP
+    gcoap_req_init(&pdu, &buf[0], CONFIG_GCOAP_PDU_BUF_SIZE, method, uri);
+
     unsigned msg_type = COAP_TYPE_NON;
     coap_hdr_set_type(pdu.hdr, msg_type);
     len = coap_opt_finish(&pdu, COAP_OPT_FINISH_NONE);

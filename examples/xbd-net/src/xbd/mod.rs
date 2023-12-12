@@ -2,7 +2,7 @@ mod callbacks;
 pub use callbacks::process_api_stream;
 use callbacks::{
     add_xbd_timeout_callback,
-    add_xbd_gcoap_get_callback};
+    add_xbd_gcoap_req_callback};
 
 mod server;
 pub use server::{start_gcoap_server, process_gcoap_server_stream};
@@ -95,30 +95,26 @@ impl Xbd {
     }
 
     pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
-        type Ty = unsafe extern "C" fn(*const u8, *const u8, *const u8, *const c_void, *const c_void);
-        unsafe {
-            (get_xbd_fn!("xbd_gcoap_req_send", Ty))(
-                null_terminate_str!(addr).as_ptr(),
-                null_terminate_str!(uri).as_ptr(),
-                core::ptr::null(),
-                callbacks::into_raw(cb), // context
-                Self::gcoap_get_resp_handler as *const c_void);
-        }
+        Self::gcoap_req(addr, uri, gcoap::COAP_METHOD_GET, core::ptr::null(), cb);
     }
 
     pub fn gcoap_put<F>(addr: &str, uri: &str, data: *const u8, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
-        type Ty = unsafe extern "C" fn(*const u8, *const u8, *const u8, *const c_void, *const c_void);
+        Self::gcoap_req(addr, uri, gcoap::COAP_METHOD_PUT, data, cb);
+    }
+
+    fn gcoap_req<F>(addr: &str, uri: &str, method: gcoap::CoapMethod, data: *const u8, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
+        type Ty = unsafe extern "C" fn(*const u8, *const u8, u8, *const u8, *const c_void, *const c_void);
         unsafe {
             (get_xbd_fn!("xbd_gcoap_req_send", Ty))(
                 null_terminate_str!(addr).as_ptr(),
                 null_terminate_str!(uri).as_ptr(),
-                data,
+                method, data,
                 callbacks::into_raw(cb), // context
-                Self::gcoap_get_resp_handler as *const c_void);
+                Self::gcoap_req_resp_handler as *const c_void);
         }
     }
 
-    fn gcoap_get_resp_handler(memo: *const c_void, pdu: *const c_void, remote: *const c_void) {
+    fn gcoap_req_resp_handler(memo: *const c_void, pdu: *const c_void, remote: *const c_void) {
         let mut context: *const c_void = core::ptr::null_mut();
         let mut payload_ptr: *const u8 = core::ptr::null_mut();
         let mut payload_len: usize = 0;
@@ -138,7 +134,7 @@ impl Xbd {
         };
         let out = GcoapMemoState::new(memo_state, payload);
 
-        add_xbd_gcoap_get_callback(
+        add_xbd_gcoap_req_callback(
             Box::into_raw(Box::new((context /* cb_ptr */, out))) as *const c_void); // arg_ptr
     }
 

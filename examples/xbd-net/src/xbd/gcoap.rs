@@ -39,6 +39,28 @@ impl GcoapMemoState {
 
 //
 
+/* RIOT/sys/include/net/coap.h
+#define COAP_CLASS_REQ          (0)
+#define COAP_METHOD_GET         (1)
+#define COAP_METHOD_POST        (2)
+#define COAP_METHOD_PUT         (3)
+#define COAP_METHOD_DELETE      (4)
+#define COAP_METHOD_FETCH       (5)
+#define COAP_METHOD_PATCH       (6)
+#define COAP_METHOD_IPATCH      (7)
+*/
+
+pub type CoapMethod = u8;
+pub const COAP_METHOD_GET      : CoapMethod = 0x01;
+// pub const COAP_METHOD_POST     : CoapMethod = 0x02;
+pub const COAP_METHOD_PUT      : CoapMethod = 0x03;
+// pub const COAP_METHOD_DELETE   : CoapMethod = 0x04;
+// pub const COAP_METHOD_FETCH    : CoapMethod = 0x05;
+// pub const COAP_METHOD_PATCH    : CoapMethod = 0x06;
+// pub const COAP_METHOD_IPATCH   : CoapMethod = 0x07;
+
+//
+
 pub struct GcoapGet {
     addr: String,
     uri: String,
@@ -77,7 +99,7 @@ impl Future for GcoapGet {
     }
 }
 
-//
+//TODO refactor !!
 
 pub struct GcoapPut {
     addr: String,

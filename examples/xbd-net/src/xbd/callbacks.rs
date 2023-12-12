@@ -15,7 +15,7 @@ pub type PtrSend = u32; // support RIOT 32bit MCUs only
 enum ApiCallback {
     Timeout(PtrSend),
     _GcoapPing(PtrSend),
-    GcoapGet(PtrSend),
+    GcoapReq(PtrSend),
 }
 
 static API_QUEUE: OnceCell<ArrayQueue<ApiCallback>> = OnceCell::uninit();
@@ -28,8 +28,8 @@ fn add_api_callback(cb: ApiCallback) {
 pub fn add_xbd_timeout_callback(arg_ptr: CVoidPtr) {
     add_api_callback(ApiCallback::Timeout(arg_ptr as PtrSend));
 }
-pub fn add_xbd_gcoap_get_callback(arg_ptr: CVoidPtr) {
-    add_api_callback(ApiCallback::GcoapGet(arg_ptr as PtrSend));
+pub fn add_xbd_gcoap_req_callback(arg_ptr: CVoidPtr) {
+    add_api_callback(ApiCallback::GcoapReq(arg_ptr as PtrSend));
 }
 
 pub async fn process_api_stream() {
@@ -47,7 +47,7 @@ pub async fn process_api_stream() {
                 call(cb_ptr, ());
             },
             ApiCallback::_GcoapPing(_) => todo!(),
-            ApiCallback::GcoapGet(arg_ptr) => {
+            ApiCallback::GcoapReq(arg_ptr) => {
                 let (cb_ptr, out) = arg_from::<GcoapMemoState>(arg_ptr);
                 call(cb_ptr, out);
             },
