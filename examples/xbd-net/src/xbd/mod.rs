@@ -13,7 +13,7 @@ mod timeout;
 use timeout::Timeout;
 
 mod gcoap;
-use gcoap::{GcoapGet, GcoapPut, GcoapMemoState};
+use gcoap::GcoapMemoState;
 
 use core::future::Future;
 use conquer_once::spin::OnceCell;
@@ -152,10 +152,10 @@ impl Xbd {
     }
 
     pub fn async_gcoap_get(addr: &str, uri: &str) -> impl Future<Output = GcoapMemoState> + 'static {
-        GcoapGet::new(addr, uri)
+        gcoap::Req::new(gcoap::COAP_METHOD_GET, addr, uri, None)
     }
 
     pub fn async_gcoap_put(addr: &str, uri: &str, payload: &[u8]) -> impl Future<Output = GcoapMemoState> + 'static {
-        GcoapPut::new(addr, uri, payload.to_vec())
+        gcoap::Req::new(gcoap::COAP_METHOD_PUT, addr, uri, Some(payload.to_vec()))
     }
 }

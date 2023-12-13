@@ -61,25 +61,65 @@ pub const COAP_METHOD_PUT      : CoapMethod = 0x03;
 
 //
 
-pub struct GcoapGet {
+#[repr(u8)]
+#[derive(Debug)]
+pub enum Req {
+    Get(ReqInner) = COAP_METHOD_GET,
+    Put(ReqInner) = COAP_METHOD_PUT,
+}
+
+impl Req {
+    pub fn new(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>) -> Self {
+        let inner = ReqInner::new(method, addr, uri, payload);
+
+        match method {
+            COAP_METHOD_GET => Self::Get(inner),
+            COAP_METHOD_PUT => Self::Put(inner),
+            _ => todo!(),
+        }
+    }
+}
+
+impl Future for Req {
+    type Output = GcoapMemoState;
+
+    fn poll(self: Pin<&mut Self>, cx: &mut Context) -> Poll<<Self as Future>::Output> {
+        // https://internals.rust-lang.org/t/idea-enhance-match-ergonomics-to-match-on-pinned-enums-without-unsafe/9317
+        unsafe {
+            match Pin::get_unchecked_mut(self) {
+                Req::Get(req) => Pin::new_unchecked(req).poll(cx),
+                Req::Put(req) => Pin::new_unchecked(req).poll(cx),
+            }
+        }
+    }
+}
+
+//
+
+#[derive(Debug)]
+pub struct ReqInner {
+    method: CoapMethod,
     addr: String,
     uri: String,
+    payload: Option<Vec<u8>>,
     out: Rc<RefCell<Option<GcoapMemoState>>>,
     _waker: Option<AtomicWaker>,
 }
 
-impl GcoapGet {
-    pub fn new(addr: &str, uri: &str) -> Self {
-        GcoapGet {
+impl ReqInner {
+    pub fn new(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>) -> Self {
+        ReqInner {
+            method,
             addr: addr.to_string(),
             uri: uri.to_string(),
+            payload,
             out: Rc::new(RefCell::new(None)),
             _waker: Some(AtomicWaker::new()),
         }
     }
 }
 
-impl Future for GcoapGet {
+impl Future for ReqInner {
     type Output = GcoapMemoState;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<<Self as Future>::Output> {
@@ -87,52 +127,17 @@ impl Future for GcoapGet {
             _waker.register(&cx.waker());
 
             let outc = self.out.clone();
-            super::Xbd::gcoap_get(&self.addr, &self.uri, move |out| {
+            let cb = move |out| {
                 outc.borrow_mut().replace(out);
                 _waker.wake();
-            });
-
-            Poll::Pending
-        } else {
-            Poll::Ready(self.out.take().unwrap())
-        }
-    }
-}
-
-//TODO refactor !!33
-
-pub struct GcoapPut {
-    addr: String,
-    uri: String,
-    payload: Vec<u8>,
-    out: Rc<RefCell<Option<GcoapMemoState>>>,
-    _waker: Option<AtomicWaker>,
-}
-
-impl GcoapPut {
-    pub fn new(addr: &str, uri: &str, payload: Vec<u8>) -> Self {
-        GcoapPut {
-            addr: addr.to_string(),
-            uri: uri.to_string(),
-            payload: payload,
-            out: Rc::new(RefCell::new(None)),
-            _waker: Some(AtomicWaker::new()),
-        }
-    }
-}
-
-impl Future for GcoapPut {
-    type Output = GcoapMemoState;
-
-    fn poll(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<<Self as Future>::Output> {
-        if let Some(_waker) = self._waker.take() {
-            _waker.register(&cx.waker());
-
-            let outc = self.out.clone();
-            super::Xbd::gcoap_put(&self.addr, &self.uri, self.payload.as_slice(), move |out| {
-                outc.borrow_mut().replace(out);
-                _waker.wake();
-            });
+            };
+            match self.method {
+                COAP_METHOD_GET => super::Xbd::gcoap_get(
+                    &self.addr, &self.uri, cb),
+                COAP_METHOD_PUT => super::Xbd::gcoap_put(
+                    &self.addr, &self.uri, self.payload.as_ref().unwrap().as_slice(), cb),
+                _ => todo!(),
+            }
 
             Poll::Pending
         } else {

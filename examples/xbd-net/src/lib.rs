@@ -96,8 +96,10 @@ async fn xbd_main() {
         //panic!("ok");
 
         let _out = Xbd::async_gcoap_put(addr_self, "/cli/stats", b"1000").await; // static lifetime payload
+        //--
         use mcu_if::alloc::string::ToString;
         let payload = "2000".to_string(); // non-static lifetime payload
+        //--
         let _out = Xbd::async_gcoap_put(addr_self, "/cli/stats", payload.as_bytes()).await;
         println!("@@ out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
         panic!("ok");
