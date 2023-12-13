@@ -95,20 +95,25 @@ impl Xbd {
     }
 
     pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
-        Self::gcoap_req(addr, uri, gcoap::COAP_METHOD_GET, core::ptr::null(), cb);
+        Self::gcoap_req(addr, uri, gcoap::COAP_METHOD_GET, None, cb);
     }
 
-    pub fn gcoap_put<F>(addr: &str, uri: &str, data: *const u8, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
-        Self::gcoap_req(addr, uri, gcoap::COAP_METHOD_PUT, data, cb);
+    pub fn gcoap_put<F>(addr: &str, uri: &str, payload: &[u8], cb: F) where F: FnOnce(GcoapMemoState) + 'static {
+        Self::gcoap_req(addr, uri, gcoap::COAP_METHOD_PUT, Some(payload), cb);
     }
 
-    fn gcoap_req<F>(addr: &str, uri: &str, method: gcoap::CoapMethod, data: *const u8, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
-        type Ty = unsafe extern "C" fn(*const u8, *const u8, u8, *const u8, *const c_void, *const c_void);
+    fn gcoap_req<F>(addr: &str, uri: &str, method: gcoap::CoapMethod,
+                    payload: Option<&[u8]>, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
+        let payload_ptr = payload.map_or(core::ptr::null(), |payload| payload.as_ptr());
+        let payload_len = payload.map_or(0, |payload| payload.len());
+
+        type Ty = unsafe extern "C" fn(*const u8, *const u8, u8,
+                                       *const u8, usize, *const c_void, *const c_void);
         unsafe {
             (get_xbd_fn!("xbd_gcoap_req_send", Ty))(
                 null_terminate_str!(addr).as_ptr(),
                 null_terminate_str!(uri).as_ptr(),
-                method, data,
+                method, payload_ptr, payload_len,
                 callbacks::into_raw(cb), // context
                 Self::gcoap_req_resp_handler as *const c_void);
         }
@@ -150,7 +155,7 @@ impl Xbd {
         GcoapGet::new(addr, uri)
     }
 
-    pub fn async_gcoap_put(addr: &str, uri: &str, data: &[u8]) -> impl Future<Output = GcoapMemoState> + 'static {
-        GcoapPut::new(addr, uri, data)
+    pub fn async_gcoap_put(addr: &str, uri: &str, payload: &[u8]) -> impl Future<Output = GcoapMemoState> + 'static {
+        GcoapPut::new(addr, uri, payload.to_vec())
     }
 }

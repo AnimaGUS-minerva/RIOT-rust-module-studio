@@ -140,6 +140,7 @@ static ssize_t _stats_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, coap_re
 
         case COAP_PUT:
             printf("@@ _stats_handler(): method_flag: COAP_PUT\n");
+            printf("@@ _stats_handler(): pdu->payload_len: %d\n", pdu->payload_len);
             /* convert the payload to an integer and update the internal
                value */
             if (pdu->payload_len <= 5) {

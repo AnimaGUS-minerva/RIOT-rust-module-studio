@@ -99,22 +99,22 @@ impl Future for GcoapGet {
     }
 }
 
-//TODO refactor !!
+//TODO refactor !!33
 
 pub struct GcoapPut {
     addr: String,
     uri: String,
-    data: *const u8,
+    payload: Vec<u8>,
     out: Rc<RefCell<Option<GcoapMemoState>>>,
     _waker: Option<AtomicWaker>,
 }
 
 impl GcoapPut {
-    pub fn new(addr: &str, uri: &str, data: &[u8]) -> Self {
+    pub fn new(addr: &str, uri: &str, payload: Vec<u8>) -> Self {
         GcoapPut {
             addr: addr.to_string(),
             uri: uri.to_string(),
-            data: data.as_ptr(),
+            payload: payload,
             out: Rc::new(RefCell::new(None)),
             _waker: Some(AtomicWaker::new()),
         }
@@ -129,7 +129,7 @@ impl Future for GcoapPut {
             _waker.register(&cx.waker());
 
             let outc = self.out.clone();
-            super::Xbd::gcoap_put(&self.addr, &self.uri, self.data, move |out| {
+            super::Xbd::gcoap_put(&self.addr, &self.uri, self.payload.as_slice(), move |out| {
                 outc.borrow_mut().replace(out);
                 _waker.wake();
             });
