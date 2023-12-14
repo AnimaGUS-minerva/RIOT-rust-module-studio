@@ -87,8 +87,7 @@ impl Future for Req {
         // https://internals.rust-lang.org/t/idea-enhance-match-ergonomics-to-match-on-pinned-enums-without-unsafe/9317
         unsafe {
             match Pin::get_unchecked_mut(self) {
-                Req::Get(req) => Pin::new_unchecked(req).poll(cx),
-                Req::Put(req) => Pin::new_unchecked(req).poll(cx),
+                Req::Get(req) | Req::Put(req) => Pin::new_unchecked(req).poll(cx),
             }
         }
     }
