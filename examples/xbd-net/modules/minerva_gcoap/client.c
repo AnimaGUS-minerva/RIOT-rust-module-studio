@@ -401,10 +401,11 @@ int gcoap_cli_cmd(int argc, char **argv)
     return _print_usage(argv);
 }
 
-int test_gcoap_req(char *req, char *addr, char *payload) {
-    char *argv[] = {"coap", req, addr, payload};
+int test_gcoap_req(char *req, char *addr, char *uri) {
+    char *argv[] = {"coap", req, addr, uri};
     int argc = sizeof(argv) / sizeof(argv[0]);
+    if (!uri) { argc--; } // support "ping"
 
-    printf("@@ test_gcoap_req(): coap %s %s %s\n", req, addr, payload);
+    printf("@@-------- test_gcoap_req(): coap %s %s %s\n", req, addr, uri);
     return gcoap_cli_cmd(argc, argv);
 }
