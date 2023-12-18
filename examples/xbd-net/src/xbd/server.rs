@@ -118,8 +118,8 @@ impl Future for GcoapServe {
 
 //
 
-//const KLUDGE_FORCE_NO_ASYNC: bool = false;
-const KLUDGE_FORCE_NO_ASYNC: bool = true; // !!
+const KLUDGE_FORCE_NO_ASYNC: bool = false;
+//const KLUDGE_FORCE_NO_ASYNC: bool = true;
 
 #[no_mangle]
 pub extern fn xbd_on_sock_udp_evt(sock: *const c_void, flags: usize, arg: *const c_void) {

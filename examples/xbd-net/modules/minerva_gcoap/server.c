@@ -75,7 +75,7 @@ static const coap_resource_t _resources[] = {
     //{ "/cli/stats", COAP_GET | COAP_PUT, _stats_handler, NULL },
     //{ "/riot/board", COAP_GET, _riot_board_handler, NULL },
     //====@@
-    { "/cli/stats", COAP_GET | COAP_PUT, xbd_riot_stats_handler, NULL },
+    { "/cli/stats", COAP_GET | COAP_POST | COAP_PUT, xbd_riot_stats_handler, NULL },
     { "/riot/board", COAP_GET, xbd_riot_board_handler, NULL },
 };
 
@@ -138,6 +138,7 @@ static ssize_t _stats_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, coap_re
             resp_len += fmt_u16_dec((char *)pdu->payload, req_count);
             return resp_len;
 
+        case COAP_POST://@@
         case COAP_PUT:
             printf("@@ _stats_handler(): method_flag: COAP_PUT\n");
             printf("@@ _stats_handler(): pdu->payload_len: %d\n", pdu->payload_len);

@@ -52,7 +52,7 @@ impl GcoapMemoState {
 
 pub type CoapMethod = u8;
 pub const COAP_METHOD_GET      : CoapMethod = 0x01;
-// pub const COAP_METHOD_POST     : CoapMethod = 0x02;
+pub const COAP_METHOD_POST     : CoapMethod = 0x02;
 pub const COAP_METHOD_PUT      : CoapMethod = 0x03;
 // pub const COAP_METHOD_DELETE   : CoapMethod = 0x04;
 // pub const COAP_METHOD_FETCH    : CoapMethod = 0x05;
@@ -65,6 +65,7 @@ pub const COAP_METHOD_PUT      : CoapMethod = 0x03;
 #[derive(Debug)]
 pub enum Req {
     Get(ReqInner) = COAP_METHOD_GET,
+    Post(ReqInner) = COAP_METHOD_POST,
     Put(ReqInner) = COAP_METHOD_PUT,
 }
 
@@ -74,6 +75,7 @@ impl Req {
 
         match method {
             COAP_METHOD_GET => Self::Get(inner),
+            COAP_METHOD_POST => Self::Post(inner),
             COAP_METHOD_PUT => Self::Put(inner),
             _ => todo!(),
         }
@@ -87,7 +89,7 @@ impl Future for Req {
         // https://internals.rust-lang.org/t/idea-enhance-match-ergonomics-to-match-on-pinned-enums-without-unsafe/9317
         unsafe {
             match Pin::get_unchecked_mut(self) {
-                Req::Get(req) | Req::Put(req) => Pin::new_unchecked(req).poll(cx),
+                Req::Get(req) | Req::Post(req) | Req::Put(req) => Pin::new_unchecked(req).poll(cx),
             }
         }
     }
@@ -133,6 +135,8 @@ impl Future for ReqInner {
             match self.method {
                 COAP_METHOD_GET => super::Xbd::gcoap_get(
                     &self.addr, &self.uri, cb),
+                COAP_METHOD_POST => super::Xbd::gcoap_post(
+                    &self.addr, &self.uri, self.payload.as_ref().unwrap().as_slice(), cb),
                 COAP_METHOD_PUT => super::Xbd::gcoap_put(
                     &self.addr, &self.uri, self.payload.as_ref().unwrap().as_slice(), cb),
                 _ => todo!(),

@@ -79,7 +79,7 @@ int main(void) {
     set_ips(outer_interface, inner_interface);
 
     //---- FIXME !!!! requiring KLUDGE_FORCE_NO_ASYNC == true in 'server.rs'
-    if (1) {
+    if (0) {
         if (outer_interface) {
             puts("@@ main(): initializing CoAP server (hint: check with `> coap info`)");
             server_init();
@@ -87,6 +87,7 @@ int main(void) {
             // hit the internal server
 //            test_gcoap_req("get", "[::1]:5683", "/.well-known/core");
             test_gcoap_req("ping", "[::1]:5683", NULL);
+
             // hit the external 'libcoap-minimal/server'
 //            test_gcoap_req("get", "[" IP6_FIXTURE_SERVER "]:5683", "/hello");
             test_gcoap_req("ping", "[" IP6_FIXTURE_SERVER "]:5683", NULL);
@@ -104,7 +105,7 @@ gcoap: @@ after _process_coap_pdu() via _on_sock_udp_evt()
     }
     //----
 
-    if (0) {
+    if (1) {
         rustmod_start(xbd_fns, xbd_fns_sz);
 
         /* !!!! WIP async shell

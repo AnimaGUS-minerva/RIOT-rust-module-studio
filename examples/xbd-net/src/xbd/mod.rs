@@ -98,6 +98,10 @@ impl Xbd {
         Self::gcoap_req(addr, uri, gcoap::COAP_METHOD_GET, None, cb);
     }
 
+    pub fn gcoap_post<F>(addr: &str, uri: &str, payload: &[u8], cb: F) where F: FnOnce(GcoapMemoState) + 'static {
+        Self::gcoap_req(addr, uri, gcoap::COAP_METHOD_POST, Some(payload), cb);
+    }
+
     pub fn gcoap_put<F>(addr: &str, uri: &str, payload: &[u8], cb: F) where F: FnOnce(GcoapMemoState) + 'static {
         Self::gcoap_req(addr, uri, gcoap::COAP_METHOD_PUT, Some(payload), cb);
     }
@@ -153,6 +157,10 @@ impl Xbd {
 
     pub fn async_gcoap_get(addr: &str, uri: &str) -> impl Future<Output = GcoapMemoState> + 'static {
         gcoap::Req::new(gcoap::COAP_METHOD_GET, addr, uri, None)
+    }
+
+    pub fn async_gcoap_post(addr: &str, uri: &str, payload: &[u8]) -> impl Future<Output = GcoapMemoState> + 'static {
+        gcoap::Req::new(gcoap::COAP_METHOD_POST, addr, uri, Some(payload.to_vec()))
     }
 
     pub fn async_gcoap_put(addr: &str, uri: &str, payload: &[u8]) -> impl Future<Output = GcoapMemoState> + 'static {

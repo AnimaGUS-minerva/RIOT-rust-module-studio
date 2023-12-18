@@ -96,14 +96,27 @@ async fn xbd_main() {
         //let out = Xbd::async_gcoap_get(addr_self, "/cli/stats").await; /* 3 */ println!("@@ out: {:?}", out);
         //panic!("ok");
 
-        let _out = Xbd::async_gcoap_put(addr_self, "/cli/stats", b"1000").await; // static lifetime payload
-        //--
-        use mcu_if::alloc::string::ToString;
-        let payload = "2000".to_string(); // non-static lifetime payload
-        //--
-        let _out = Xbd::async_gcoap_put(addr_self, "/cli/stats", payload.as_bytes()).await;
-        println!("@@ out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
-        panic!("ok");
+        if 1 == 1 {
+            let _out = Xbd::async_gcoap_post(addr_self, "/cli/stats", b"3000").await; // static lifetime payload
+            //--
+            use mcu_if::alloc::string::ToString;
+            let payload = "4000".to_string(); // non-static lifetime payload
+            //--
+            let _out = Xbd::async_gcoap_post(addr_self, "/cli/stats", payload.as_bytes()).await;
+            println!("@@ out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
+            panic!("ok");
+        }
+
+        if 1 == 1 {
+            let _out = Xbd::async_gcoap_put(addr_self, "/cli/stats", b"1000").await; // static lifetime payload
+            //--
+            use mcu_if::alloc::string::ToString;
+            let payload = "2000".to_string(); // non-static lifetime payload
+            //--
+            let _out = Xbd::async_gcoap_put(addr_self, "/cli/stats", payload.as_bytes()).await;
+            println!("@@ out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
+            panic!("ok");
+        }
 
         // [FIXME c.f. server.rs::xbd_on_sock_udp_evt()]
         //println!("!! ======== dev calling non-blocking");
