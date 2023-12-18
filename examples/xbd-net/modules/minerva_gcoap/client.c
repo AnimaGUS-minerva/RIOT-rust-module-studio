@@ -406,6 +406,6 @@ int test_gcoap_req(char *req, char *addr, char *uri) {
     int argc = sizeof(argv) / sizeof(argv[0]);
     if (!uri) { argc--; } // support "ping"
 
-    printf("@@-------- test_gcoap_req(): coap %s %s %s\n", req, addr, uri);
+    printf("@@-------- test_gcoap_req(): coap %s %s %s\n", req, addr, uri ? uri : "(null)");
     return gcoap_cli_cmd(argc, argv);
 }
