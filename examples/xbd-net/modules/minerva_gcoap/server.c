@@ -127,9 +127,9 @@ static ssize_t _stats_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, coap_re
     /* read coap method type in packet */
     unsigned method_flag = coap_method2flag(coap_get_code_detail(pdu));
 
+    printf("@@ _stats_handler(): method_flag: %d (1=GET,2=POST,3=PUT)\n", method_flag);
     switch (method_flag) {
         case COAP_GET:
-            printf("@@ _stats_handler(): method_flag: COAP_GET\n");
             gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);
             coap_opt_add_format(pdu, COAP_FORMAT_TEXT);
             size_t resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
@@ -140,7 +140,6 @@ static ssize_t _stats_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, coap_re
 
         case COAP_POST://@@
         case COAP_PUT:
-            printf("@@ _stats_handler(): method_flag: COAP_PUT\n");
             printf("@@ _stats_handler(): pdu->payload_len: %d\n", pdu->payload_len);
             /* convert the payload to an integer and update the internal
                value */
