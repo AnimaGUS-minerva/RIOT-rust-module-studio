@@ -85,14 +85,22 @@ int main(void) {
             server_init();
 
             // hit the internal server
-            test_gcoap_req("get", "[::1]:5683", "/.well-known/core");
-            test_gcoap_req("ping", "[::1]:5683", NULL); // debug, crashes on ee
+//            test_gcoap_req("get", "[::1]:5683", "/.well-known/core");
+            test_gcoap_req("ping", "[::1]:5683", NULL);
+            // hit the external 'libcoap-minimal/server'
+//            test_gcoap_req("get", "[" IP6_FIXTURE_SERVER "]:5683", "/hello");
+            test_gcoap_req("ping", "[" IP6_FIXTURE_SERVER "]:5683", NULL);
+            /*
+gcoap_cli: sending msg ID 45090, 4 bytes
+gcoap: @@ _on_sock_udp_evt(): sock: 0x809dc20 type: 16 arg: (nil)
+@@ xbd_on_sock_udp_evt(): sock: 0x809dc20 type: 16 arg: 0x0
+gcoap: received RST, expiring potentially existing memo
+coap: received timeout message
+gcoap: timeout for msg ID 45090
+gcoap: Ignoring empty non-CON request
+gcoap: @@ after _process_coap_pdu() via _on_sock_udp_evt()
+             */
         }
-    }
-    if (0) {
-        // hit the external 'libcoap-minimal/server'
-        test_gcoap_req("get", "[" IP6_FIXTURE_SERVER "]:5683", "/hello");
-        test_gcoap_req("ping", "[" IP6_FIXTURE_SERVER "]:5683", NULL);
     }
     //----
 

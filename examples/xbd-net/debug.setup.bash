@@ -28,6 +28,10 @@ sudo ip -6 addr add fe80::20be:cdff:fe0e:44a1/64 dev tap1
 ip a && brctl show
 fi
 
+if [ 0 = 1 ]; then
+LD_LIBRARY_PATH=./libcoap/local/lib libcoap-minimal/server   5683 fe80::20be:cdff:fe0e:44a1%tap1
+fi
+
 ##
 
 #$ ip a
