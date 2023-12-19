@@ -13,6 +13,8 @@ extern "C" {
     fn riot_board_handler_minerva(
         pdu: *const c_void, buf: *const c_void, len: usize, ctx: *const c_void,
         board: *const u8) -> isize;
+    fn gcoap_fileserver_handler(// !!!!!!!!!!!!
+        pdu: *const c_void, buf: *const c_void, len: usize, ctx: *const c_void) -> isize;
 }
 
 enum ServerCallback {
@@ -118,8 +120,8 @@ impl Future for GcoapServe {
 
 //
 
-const KLUDGE_FORCE_NO_ASYNC: bool = false;
-//const KLUDGE_FORCE_NO_ASYNC: bool = true;
+//const KLUDGE_FORCE_NO_ASYNC: bool = false;
+const KLUDGE_FORCE_NO_ASYNC: bool = true;
 
 #[no_mangle]
 pub extern fn xbd_on_sock_udp_evt(sock: *const c_void, flags: usize, arg: *const c_void) {
@@ -160,6 +162,16 @@ pub extern fn xbd_riot_board_handler(
 
     let pdu_len = unsafe { riot_board_handler_minerva(pdu, buf, len, ctx, board.as_ptr()) };
     println!("@@ xbd_riot_board_handler(): pdu_len: {:?}", pdu_len);
+
+    pdu_len
+}
+
+#[no_mangle]
+pub extern fn xbd_riot_fileserver_handler(// !!!!
+    pdu: *const c_void, buf: *const c_void, len: usize, ctx: *const c_void) -> isize {
+
+    let pdu_len = unsafe { gcoap_fileserver_handler(pdu, buf, len, ctx) };
+    println!("@@ xbd_riot_fileserver_handler(): pdu_len: {:?}", pdu_len);
 
     pdu_len
 }

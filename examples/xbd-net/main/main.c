@@ -7,6 +7,56 @@
 #include "minerva_xbd.h"
 #include "rustmod.h"
 
+//-------- !!!! WIP
+//#include <stdio.h>
+//#include "kernel_defines.h"
+#include "net/gcoap.h"
+#include "net/gcoap/fileserver.h"
+//#include "shell.h"
+#include "vfs_default.h"
+
+/* CoAP resources. Must be sorted by path (ASCII order). */
+static const coap_resource_t _resources[] = {
+    { "/vfs",
+      COAP_GET |
+#if IS_USED(MODULE_GCOAP_FILESERVER_PUT)
+      COAP_PUT |
+#endif
+#if IS_USED(MODULE_GCOAP_FILESERVER_DELETE)
+      COAP_DELETE |
+#endif
+      COAP_MATCH_SUBTREE,
+      gcoap_fileserver_handler, VFS_DEFAULT_DATA },
+//      xbd_riot_fileserver_handler, VFS_DEFAULT_DATA },// !!!!
+};
+
+static gcoap_listener_t _listener = {
+    .resources = _resources,
+    .resources_len = ARRAY_SIZE(_resources),
+};
+
+static void _event_cb(gcoap_fileserver_event_t event, gcoap_fileserver_event_ctx_t *ctx)
+{
+    switch (event) {
+    case GCOAP_FILESERVER_GET_FILE_START:
+        printf("gcoap fileserver: Download started: %s\n", ctx->path);
+        break;
+    case GCOAP_FILESERVER_GET_FILE_END:
+        printf("gcoap fileserver: Download finished: %s\n", ctx->path);
+        break;
+    case GCOAP_FILESERVER_PUT_FILE_START:
+        printf("gcoap fileserver: Upload started: %s\n", ctx->path);
+        break;
+    case GCOAP_FILESERVER_PUT_FILE_END:
+        printf("gcoap fileserver: Upload finished: %s\n", ctx->path);
+        break;
+    case GCOAP_FILESERVER_DELETE_FILE:
+        printf("gcoap fileserver: Delete %s\n", ctx->path);
+        break;
+    }
+}
+//--------
+
 //
 
 #if defined(MINERVA_DEBUG_ETH_MINIMAL)
@@ -62,6 +112,20 @@ static msg_t main_msg_queue[16];
 static gnrc_netif_t *outer_interface = NULL;
 static gnrc_netif_t *inner_interface = NULL;
 
+int main_gcoap_fileserver(void) { // !!!!
+    //msg_init_queue(_main_msg_queue, MAIN_QUEUE_SIZE);
+    gcoap_register_listener(&_listener);
+
+    if (IS_USED(MODULE_GCOAP_FILESERVER_CALLBACK)) {
+        gcoap_fileserver_set_event_cb(_event_cb, NULL);
+    }
+
+    //char line_buf[SHELL_DEFAULT_BUFSIZE];
+    //shell_run(NULL, line_buf, SHELL_DEFAULT_BUFSIZE);
+
+    return 0;
+}
+
 int main(void) {
     /* we need a message queue for the thread running the shell in order to
      * receive potentially fast incoming networking packets */
@@ -79,6 +143,11 @@ int main(void) {
     set_ips(outer_interface, inner_interface);
 
     //---- FIXME !!!! requiring KLUDGE_FORCE_NO_ASYNC == true in 'server.rs'
+    if (1) {
+        main_gcoap_fileserver(); // !!!!
+
+        test_gcoap_req("get", "[::1]:5683", "/vfs");
+    }
     if (0) {
         if (outer_interface) {
             puts("@@ main(): initializing CoAP server (hint: check with `> coap info`)");
@@ -105,7 +174,7 @@ gcoap: @@ after _process_coap_pdu() via _on_sock_udp_evt()
     }
     //----
 
-    if (1) {
+    if (0) {
         rustmod_start(xbd_fns, xbd_fns_sz);
 
         /* !!!! WIP async shell

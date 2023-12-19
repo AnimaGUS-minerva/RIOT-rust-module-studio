@@ -22,6 +22,17 @@ INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_gnrc/include
 USEMODULE += minerva_gcoap
 INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_gcoap/include
 
+#-------- !!!! WIP
+USEMODULE += gcoap_fileserver
+USEMODULE += gcoap_fileserver_callback
+USEMODULE += gcoap_fileserver_delete
+USEMODULE += gcoap_fileserver_put
+
+# enable default file system mount points
+USEMODULE += vfs_default
+# USEMODULE += vfs_auto_format
+#--------
+
 USEMODULE += minerva_xbd
 INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_xbd/include
 
