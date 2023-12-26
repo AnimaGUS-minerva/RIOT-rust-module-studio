@@ -8,6 +8,7 @@ use super::callbacks::{PtrSend, arg_from};
 extern "C" {
     fn server_init() -> i8;
     fn _on_sock_udp_evt_minerva(sock: *const c_void, flags: usize, arg: *const c_void);
+    fn get_kludge_force_no_async() -> bool; // !!
     fn riot_stats_handler_minerva(
         pdu: *const c_void, buf: *const c_void, len: usize, ctx: *const c_void) -> isize;
     fn riot_board_handler_minerva(
@@ -130,7 +131,8 @@ pub extern fn xbd_on_sock_udp_evt(sock: *const c_void, flags: usize, arg: *const
     let cb_ptr = core::ptr::null::<()>();
     let evt_args = (sock, flags, arg);
 
-    if KLUDGE_FORCE_NO_ASYNC { //==== Xbd::async_gcoap_get(): NG (FIXME), Xbd::gcoap_get(): ok
+    let flag = unsafe { get_kludge_force_no_async() }; // !!
+    if flag { //==== Xbd::async_gcoap_get(): NG (FIXME), Xbd::gcoap_get(): ok
         unsafe { _on_sock_udp_evt_minerva(sock, flags, arg) };
     } else { //==== Xbd::async_gcoap_get(): ok, Xbd::gcoap_get(): NG (FIXME)
         add_xbd_gcoap_server_sock_udp_event_callback(

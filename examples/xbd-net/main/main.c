@@ -126,6 +126,9 @@ int main_gcoap_fileserver(void) { // !!!!
     return 0;
 }
 
+static bool KLUDGE_FORCE_NO_ASYNC = false; // !!
+bool get_kludge_force_no_async(void) { return KLUDGE_FORCE_NO_ASYNC; } // !!
+
 int main(void) {
     /* we need a message queue for the thread running the shell in order to
      * receive potentially fast incoming networking packets */
@@ -143,12 +146,13 @@ int main(void) {
     set_ips(outer_interface, inner_interface);
 
     //---- FIXME !!!! requiring KLUDGE_FORCE_NO_ASYNC == true in 'server.rs'
-    if (1) {
+    if (1) {KLUDGE_FORCE_NO_ASYNC = true; // !!
         main_gcoap_fileserver(); // !!!!
 
         test_gcoap_req("get", "[::1]:5683", "/vfs");
     }
-    if (0) {
+    if (0) {KLUDGE_FORCE_NO_ASYNC = true; // !!
+
         if (outer_interface) {
             puts("@@ main(): initializing CoAP server (hint: check with `> coap info`)");
             server_init();
