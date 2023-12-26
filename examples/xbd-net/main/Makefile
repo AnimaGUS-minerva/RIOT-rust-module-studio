@@ -28,9 +28,12 @@ USEMODULE += gcoap_fileserver_callback
 USEMODULE += gcoap_fileserver_delete
 USEMODULE += gcoap_fileserver_put
 
+USEMODULE += nanocoap_vfs
+USEMODULE += constfs
+
 # enable default file system mount points
 USEMODULE += vfs_default
-# USEMODULE += vfs_auto_format
+USEMODULE += vfs_auto_format
 #--------
 
 USEMODULE += minerva_xbd

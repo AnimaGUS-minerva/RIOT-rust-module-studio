@@ -8,14 +8,17 @@
 #include "rustmod.h"
 
 //-------- !!!! WIP
-//#include <stdio.h>
-//#include "kernel_defines.h"
+#include "fs/constfs.h"
+
+//--#include <stdio.h>
+//--#include "kernel_defines.h"
 #include "net/gcoap.h"
 #include "net/gcoap/fileserver.h"
-//#include "shell.h"
+//--#include "shell.h"
 #include "vfs_default.h"
 
 /* CoAP resources. Must be sorted by path (ASCII order). */
+#if 0//====
 static const coap_resource_t _resources[] = {
     { "/vfs",
       COAP_GET |
@@ -27,13 +30,76 @@ static const coap_resource_t _resources[] = {
 #endif
       COAP_MATCH_SUBTREE,
       gcoap_fileserver_handler, VFS_DEFAULT_DATA },
-//      xbd_riot_fileserver_handler, VFS_DEFAULT_DATA },// !!!!
+//      xbd_riot_fileserver_handler, VFS_DEFAULT_DATA },// !!!! TODO custom sync/async
 };
+#else//==== 'tests/gcoap_fileserver' code
+static const coap_resource_t _resources[] = {
+    {
+        .path = "/const",
+        .methods = COAP_GET | COAP_MATCH_SUBTREE,
+        .handler = gcoap_fileserver_handler,
+        .context = "/const"
+    },
+    {
+        .path = "/vfs",
+        .methods = COAP_GET | COAP_PUT | COAP_MATCH_SUBTREE,
+        .handler = gcoap_fileserver_handler,
+        .context = VFS_DEFAULT_DATA
+    },
+};
+#endif//====
+
 
 static gcoap_listener_t _listener = {
     .resources = _resources,
     .resources_len = ARRAY_SIZE(_resources),
 };
+
+//--------^^ 'tests/gcoap_fileserver' code
+static const char song[] =
+    "Join us now and share the software;\n"
+    "You'll be free, hackers, you'll be free.\n"
+    "Join us now and share the software;\n"
+    "You'll be free, hackers, you'll be free.\n"
+    "\n"
+    "Hoarders can get piles of money,\n"
+    "That is true, hackers, that is true.\n"
+    "But they cannot help their neighbors;\n"
+    "That's not good, hackers, that's not good.\n"
+    "\n"
+    "When we have enough free software\n"
+    "At our call, hackers, at our call,\n"
+    "We'll kick out those dirty licenses\n"
+    "Ever more, hackers, ever more.\n"
+    "\n"
+    "Join us now and share the software;\n"
+    "You'll be free, hackers, you'll be free.\n"
+    "Join us now and share the software;\n"
+    "You'll be free, hackers, you'll be free.\n";
+
+/* this defines two const files in the constfs */
+static constfs_file_t constfs_files[] = {
+    {
+        .path = "/song.txt",
+        .size = sizeof(song),
+        .data = song,
+    },
+};
+
+/* this is the constfs specific descriptor */
+static constfs_t constfs_desc = {
+    .nfiles = ARRAY_SIZE(constfs_files),
+    .files = constfs_files,
+};
+
+/* constfs mount point, as for previous example, it needs a file system driver,
+ * a mount point and private_data as a pointer to the constfs descriptor */
+static vfs_mount_t const_mount = {
+    .fs = &constfs_file_system,
+    .mount_point = "/const",
+    .private_data = &constfs_desc,
+};
+//--------$$ 'tests/gcoap_fileserver' code
 
 static void _event_cb(gcoap_fileserver_event_t event, gcoap_fileserver_event_ctx_t *ctx)
 {
@@ -55,6 +121,43 @@ static void _event_cb(gcoap_fileserver_event_t event, gcoap_fileserver_event_ctx
         break;
     }
 }
+
+int main_gcoap_fileserver(void) { // !!!!
+
+    vfs_mount(&const_mount); // <<
+    /*
+> vfs df
+vfs df
+Mountpoint              Total         Used    Available     Use%
+/nvm0                   8 MiB        8 KiB     8184 KiB       0%
+/const                  599 B        599 B          0 B     100%  <<
+> vfs ls /const
+vfs ls /const
+song.txt	599 B
+total 1 files
+> vfs ls /nvm0
+vfs ls /nvm0
+./
+../
+total 0 files
+    */
+
+    //--msg_init_queue(_main_msg_queue, MAIN_QUEUE_SIZE);
+    gcoap_register_listener(&_listener);
+
+    if (IS_USED(MODULE_GCOAP_FILESERVER_CALLBACK)) {
+        gcoap_fileserver_set_event_cb(_event_cb, NULL);
+    }
+
+    test_gcoap_req("get", "[::1]:5683", "/const/song.txt");
+    //test_gcoap_req("get", "[::1]:5683", "/const/song2.txt");
+
+    //++char line_buf[SHELL_DEFAULT_BUFSIZE];
+    //++shell_run(NULL, line_buf, SHELL_DEFAULT_BUFSIZE);
+
+    return 0;
+}
+
 //--------
 
 //
@@ -108,26 +211,12 @@ static const size_t xbd_fns_sz = sizeof(xbd_fns) / sizeof(xbd_fns[0]);
 
 //
 
+static bool KLUDGE_FORCE_NO_ASYNC = false; // !! cf. 'server.rs'
+bool get_kludge_force_no_async(void) { return KLUDGE_FORCE_NO_ASYNC; } // !!
+
 static msg_t main_msg_queue[16];
 static gnrc_netif_t *outer_interface = NULL;
 static gnrc_netif_t *inner_interface = NULL;
-
-int main_gcoap_fileserver(void) { // !!!!
-    //msg_init_queue(_main_msg_queue, MAIN_QUEUE_SIZE);
-    gcoap_register_listener(&_listener);
-
-    if (IS_USED(MODULE_GCOAP_FILESERVER_CALLBACK)) {
-        gcoap_fileserver_set_event_cb(_event_cb, NULL);
-    }
-
-    //char line_buf[SHELL_DEFAULT_BUFSIZE];
-    //shell_run(NULL, line_buf, SHELL_DEFAULT_BUFSIZE);
-
-    return 0;
-}
-
-static bool KLUDGE_FORCE_NO_ASYNC = false; // !!
-bool get_kludge_force_no_async(void) { return KLUDGE_FORCE_NO_ASYNC; } // !!
 
 int main(void) {
     /* we need a message queue for the thread running the shell in order to
@@ -145,13 +234,10 @@ int main(void) {
     find_ifces(&outer_interface, &inner_interface);
     set_ips(outer_interface, inner_interface);
 
-    //---- FIXME !!!! requiring KLUDGE_FORCE_NO_ASYNC == true in 'server.rs'
-    if (1) {KLUDGE_FORCE_NO_ASYNC = true; // !!
+    if (1) { KLUDGE_FORCE_NO_ASYNC = true; // !!
         main_gcoap_fileserver(); // !!!!
-
-        test_gcoap_req("get", "[::1]:5683", "/vfs");
     }
-    if (0) {KLUDGE_FORCE_NO_ASYNC = true; // !!
+    if (0) { KLUDGE_FORCE_NO_ASYNC = true; // !!
 
         if (outer_interface) {
             puts("@@ main(): initializing CoAP server (hint: check with `> coap info`)");
