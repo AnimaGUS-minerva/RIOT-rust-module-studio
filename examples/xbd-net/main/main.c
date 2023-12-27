@@ -122,8 +122,7 @@ static void _event_cb(gcoap_fileserver_event_t event, gcoap_fileserver_event_ctx
     }
 }
 
-int main_gcoap_fileserver(void) { // !!!!
-
+void init_gcoap_fileserver(void) {
     vfs_mount(&const_mount); // <<
     /*
 > vfs df
@@ -149,13 +148,8 @@ total 0 files
         gcoap_fileserver_set_event_cb(_event_cb, NULL);
     }
 
-    test_gcoap_req("get", "[::1]:5683", "/const/song.txt");
-    //test_gcoap_req("get", "[::1]:5683", "/const/song2.txt");
-
     //++char line_buf[SHELL_DEFAULT_BUFSIZE];
     //++shell_run(NULL, line_buf, SHELL_DEFAULT_BUFSIZE);
-
-    return 0;
 }
 
 //--------
@@ -234,9 +228,6 @@ int main(void) {
     find_ifces(&outer_interface, &inner_interface);
     set_ips(outer_interface, inner_interface);
 
-    if (1) { KLUDGE_FORCE_NO_ASYNC = true; // !!
-        main_gcoap_fileserver(); // !!!!
-    }
     if (0) { KLUDGE_FORCE_NO_ASYNC = true; // !!
 
         if (outer_interface) {
@@ -262,9 +253,15 @@ gcoap: @@ after _process_coap_pdu() via _on_sock_udp_evt()
              */
         }
     }
-    //----
 
-    if (0) {
+    if (1) { KLUDGE_FORCE_NO_ASYNC = true; // !!
+        init_gcoap_fileserver();
+
+        test_gcoap_req("get", "[::1]:5683", "/const/song.txt"); // ok
+        //test_gcoap_req("get", "[::1]:5683", "/const/song2.txt"); // ok, 4.04
+    }
+
+    if (1) { KLUDGE_FORCE_NO_ASYNC = false; // !!
         rustmod_start(xbd_fns, xbd_fns_sz);
 
         /* !!!! WIP async shell
@@ -289,6 +286,7 @@ gcoap: @@ after _process_coap_pdu() via _on_sock_udp_evt()
         */
     }
 
+    // TODO - upgrade to use `shell_run()` instread
     start_shell(shell_commands_minerva);
 
     /* should be never reached */

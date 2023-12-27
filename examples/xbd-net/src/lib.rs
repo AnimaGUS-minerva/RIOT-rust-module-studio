@@ -25,7 +25,7 @@ pub extern fn rustmod_start(
     xbd_fns_ptr: *const XbdFnsEnt,
     xbd_fns_sz: usize
 ) {
-    println!("[src/lib.rs] rustmod_start(): ^^");
+    println!("[src/lib.rs] rustmod_start(): ^^ ================");
 
     xbd::init_once(xbd_fns_ptr, xbd_fns_sz);
 
@@ -90,13 +90,15 @@ async fn xbd_main() {
     if 1 == 1 { // async, dev, server !!!!
         let addr_self = "[::1]:5683";
 
-        //let out = Xbd::async_gcoap_get(addr_self, "/.well-known/core").await; println!("@@ out: {:?}", out);
-        //let out = Xbd::async_gcoap_get(addr_self, "/cli/stats").await; /* 1 */ println!("@@ out: {:?}", out);
-        //let out = Xbd::async_gcoap_get(addr_self, "/riot/board").await; println!("@@ out: {:?}", out);
-        //let out = Xbd::async_gcoap_get(addr_self, "/cli/stats").await; /* 3 */ println!("@@ out: {:?}", out);
-        //panic!("ok");
+        if 10 == 1 {
+            let out = Xbd::async_gcoap_get(addr_self, "/.well-known/core").await; println!("@@ out: {:?}", out);
+            let out = Xbd::async_gcoap_get(addr_self, "/cli/stats").await; /* 1 */ println!("@@ out: {:?}", out);
+            let out = Xbd::async_gcoap_get(addr_self, "/riot/board").await; println!("@@ out: {:?}", out);
+            let out = Xbd::async_gcoap_get(addr_self, "/cli/stats").await; /* 3 */ println!("@@ out: {:?}", out);
+            panic!("ok");
+        }
 
-        if 1 == 1 {
+        if 10 == 1 {
             let _out = Xbd::async_gcoap_post(addr_self, "/cli/stats", b"3000").await; // static lifetime payload
             //--
             use mcu_if::alloc::string::ToString;
@@ -107,7 +109,7 @@ async fn xbd_main() {
             panic!("ok");
         }
 
-        if 1 == 1 {
+        if 10 == 1 {
             let _out = Xbd::async_gcoap_put(addr_self, "/cli/stats", b"1000").await; // static lifetime payload
             //--
             use mcu_if::alloc::string::ToString;
@@ -118,12 +120,21 @@ async fn xbd_main() {
             panic!("ok");
         }
 
-        // [FIXME c.f. server.rs::xbd_on_sock_udp_evt()]
-        //println!("!! ======== dev calling non-blocking");
-        //Xbd::gcoap_get(addr_self, "/cli/stats", |out| { println!("!! out: {:?}", out); });
-        //Xbd::gcoap_get(addr_self, "/cli/stats", |out| { println!("!! out: {:?}", out); });
+        if 10 == 1 { // [FIXME c.f. server.rs::xbd_on_sock_udp_evt()]
+            println!("!! ======== dev calling non-blocking");
+            Xbd::gcoap_get(addr_self, "/cli/stats", |out| { println!("!! out: {:?}", out); });
+            Xbd::gcoap_get(addr_self, "/cli/stats", |out| { println!("!! out: {:?}", out); });
+        }
 
         // TODO async gcoap ping
+
+        if 1 == 1 { // fileserver, blockwise
+            let out = Xbd::async_gcoap_get(addr_self, "/const/song.txt").await;
+            println!("@@ out: {:?}", out);
+            //panic!("ok");
+        }
+
+
     }
 
     if 100 == 1 { // async, ok
