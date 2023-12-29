@@ -120,7 +120,7 @@ async fn xbd_main() {
             panic!("ok");
         }
 
-        if 10 == 1 { // [FIXME c.f. server.rs::xbd_on_sock_udp_evt()]
+        if 1 == 1 { // [FIXME c.f. server.rs::xbd_on_sock_udp_evt()]
             println!("!! ======== dev calling non-blocking");
             Xbd::gcoap_get(addr_self, "/cli/stats", |out| { println!("!! out: {:?}", out); });
             Xbd::gcoap_get(addr_self, "/cli/stats", |out| { println!("!! out: {:?}", out); });
@@ -128,7 +128,7 @@ async fn xbd_main() {
 
         // TODO async gcoap ping
 
-        if 1 == 1 { // fileserver, blockwise
+        if 10 == 1 { // fileserver, blockwise
             let out = Xbd::async_gcoap_get(addr_self, "/const/song.txt").await;
             println!("@@ out: {:?}", out);
             //panic!("ok");

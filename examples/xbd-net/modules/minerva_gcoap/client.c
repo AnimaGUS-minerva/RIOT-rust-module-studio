@@ -54,7 +54,7 @@ static char proxy_uri[64];
  * start a new request (with a new path) until any blockwise transfer
  * completes or times out. */
 #define _LAST_REQ_PATH_MAX (64)
-static char _last_req_path[_LAST_REQ_PATH_MAX];
+char _last_req_path[_LAST_REQ_PATH_MAX];
 
 uint16_t req_count = 0;
 
