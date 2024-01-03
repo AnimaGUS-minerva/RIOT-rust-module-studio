@@ -14,7 +14,7 @@ extern "C" {
     fn riot_board_handler_minerva(
         pdu: *const c_void, buf: *const c_void, len: usize, ctx: *const c_void,
         board: *const u8) -> isize;
-    fn gcoap_fileserver_handler(// !!!!!!!!!!!!
+    fn gcoap_fileserver_handler(
         pdu: *const c_void, buf: *const c_void, len: usize, ctx: *const c_void) -> isize;
 }
 
@@ -56,6 +56,7 @@ pub async fn process_gcoap_server_stream() {
                 if 0 == 1 { crate::Xbd::async_sleep(100).await; } // ok
 
                 //====
+                println!("@@ process_gcoap_server_stream(): calling _on_sock_udp_evt_minerva(sock, flags, arg)");
                 unsafe { _on_sock_udp_evt_minerva(sock, flags, arg) };
                 //====
                 //let pdu_args = (); // !! (pdu, buf, len, ctx) = xx(evt_args);
@@ -117,7 +118,7 @@ pub extern fn xbd_riot_board_handler(
 }
 
 #[no_mangle]
-pub extern fn xbd_riot_fileserver_handler(// !!!!
+pub extern fn xbd_riot_fileserver_handler(
     pdu: *const c_void, buf: *const c_void, len: usize, ctx: *const c_void) -> isize {
 
     let pdu_len = unsafe { gcoap_fileserver_handler(pdu, buf, len, ctx) };

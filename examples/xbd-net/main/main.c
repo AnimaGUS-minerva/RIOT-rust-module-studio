@@ -30,20 +30,20 @@ static const coap_resource_t _resources[] = {
 #endif
       COAP_MATCH_SUBTREE,
       gcoap_fileserver_handler, VFS_DEFAULT_DATA },
-//      xbd_riot_fileserver_handler, VFS_DEFAULT_DATA },// !!!! TODO custom sync/async
 };
 #else//==== 'tests/gcoap_fileserver' code
+extern ssize_t xbd_riot_fileserver_handler(coap_pkt_t *pdu, uint8_t *buf, size_t len, coap_request_ctx_t *ctx);
 static const coap_resource_t _resources[] = {
     {
         .path = "/const",
         .methods = COAP_GET | COAP_MATCH_SUBTREE,
-        .handler = gcoap_fileserver_handler,
+        .handler = xbd_riot_fileserver_handler,
         .context = "/const"
     },
     {
         .path = "/vfs",
         .methods = COAP_GET | COAP_PUT | COAP_MATCH_SUBTREE,
-        .handler = gcoap_fileserver_handler,
+        .handler = xbd_riot_fileserver_handler,
         .context = VFS_DEFAULT_DATA
     },
 };
@@ -124,7 +124,7 @@ static void _event_cb(gcoap_fileserver_event_t event, gcoap_fileserver_event_ctx
 
 void init_gcoap_fileserver(void) {
     vfs_mount(&const_mount); // <<
-    /*
+    /* todo - dump on start
 > vfs df
 vfs df
 Mountpoint              Total         Used    Available     Use%
@@ -254,11 +254,12 @@ gcoap: @@ after _process_coap_pdu() via _on_sock_udp_evt()
         }
     }
 
-    if (1) { KLUDGE_FORCE_NO_ASYNC = true; // !!
-        init_gcoap_fileserver();
+    init_gcoap_fileserver(); // !!!!
 
+    if (0) { KLUDGE_FORCE_NO_ASYNC = true; // !!
         test_gcoap_req("get", "[::1]:5683", "/const/song.txt"); // ok
         //test_gcoap_req("get", "[::1]:5683", "/const/song2.txt"); // ok, 4.04
+        assert(0); // ok
     }
 
     if (1) { KLUDGE_FORCE_NO_ASYNC = false; // !!

@@ -74,7 +74,7 @@ async fn xbd_main() {
     let req_internal_native = ("[fe80::78ec:5fff:febd:add9]:5683", "/.well-known/core");
     let req_external_native = ("[fe80::20be:cdff:fe0e:44a1]:5683", "/hello");
 
-    if 0 == 1 { // non-blocking [FIXME c.f. server.rs::xbd_on_sock_udp_evt()]
+    if 0 == 1 { // non-blocking [FIXME c.f. server.rs::xbd_on_sock_udp_evt() - assume KLUDGE_FORCE_NO_ASYNC==true]
 
         let cb = |out| { println!("@@ out: {:?}", out); };
 
@@ -120,7 +120,7 @@ async fn xbd_main() {
             panic!("ok");
         }
 
-        if 1 == 1 { // [FIXME c.f. server.rs::xbd_on_sock_udp_evt()]
+        if 0 == 1 { // [FIXME c.f. server.rs::xbd_on_sock_udp_evt() - assume KLUDGE_FORCE_NO_ASYNC==true]
             println!("!! ======== dev calling non-blocking");
             Xbd::gcoap_get(addr_self, "/cli/stats", |out| { println!("!! out: {:?}", out); });
             Xbd::gcoap_get(addr_self, "/cli/stats", |out| { println!("!! out: {:?}", out); });
@@ -128,13 +128,11 @@ async fn xbd_main() {
 
         // TODO async gcoap ping
 
-        if 10 == 1 { // fileserver, blockwise
+        if 1 == 1 { // fileserver, blockwise
             let out = Xbd::async_gcoap_get(addr_self, "/const/song.txt").await;
             println!("@@ out: {:?}", out);
             //panic!("ok");
         }
-
-
     }
 
     if 100 == 1 { // async, ok

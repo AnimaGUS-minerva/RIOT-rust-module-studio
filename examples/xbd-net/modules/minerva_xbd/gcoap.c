@@ -66,7 +66,6 @@ void xbd_gcoap_req_send(char *addr, char *uri, uint8_t method, uint8_t *payload,
     coap_pkt_t pdu;
     size_t hdr_len;
 
-
     gcoap_req_init(&pdu, &buf[0], CONFIG_GCOAP_PDU_BUF_SIZE, method, uri);
 
     unsigned msg_type = COAP_TYPE_NON;
@@ -74,6 +73,13 @@ void xbd_gcoap_req_send(char *addr, char *uri, uint8_t method, uint8_t *payload,
     hdr_len = coap_opt_finish(&pdu, payload_len ? COAP_OPT_FINISH_PAYLOAD : COAP_OPT_FINISH_NONE);
     printf("@@ xbd_gcoap_req_send(): addr: %s, uri: %s\n", addr, uri);
     printf("    sending msg ID %u, %u bytes (hdr_len)\n", coap_get_id(&pdu), (unsigned) hdr_len);
+
+    // for blockwise handling
+    memset(_last_req_path, 0, _LAST_REQ_PATH_MAX);
+    int uri_len = strlen(uri);
+    if (uri_len < _LAST_REQ_PATH_MAX) {
+        memcpy(_last_req_path, uri, uri_len);
+    }
 
     printf("@@ payload: %p payload_len: %d\n", payload, payload_len);
     if (payload_len) {
