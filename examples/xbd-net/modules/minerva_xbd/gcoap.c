@@ -143,42 +143,43 @@ static void _resp_handler(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
     else {
         printf(", empty payload\n");
     }
+}
 
-    /* ask for next block if present */
-    if (coap_get_block2(pdu, &block)) {
-        if (block.more) {
-            unsigned msg_type = coap_get_type(pdu);
-            if (block.blknum == 0 && !strlen(_last_req_path)) {
-                puts("Path too long; can't complete blockwise");
-                return;
-            }
+static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
+                                          const sock_udp_ep_t *remote, coap_block1_t *block) {//@@
+    if (block->more) {
+        unsigned msg_type = coap_get_type(pdu);
+        if (block->blknum == 0 && !strlen(_last_req_path)) {
+            puts("Path too long; can't complete blockwise");
+            return;
+        }
 
 //            if (_proxied) {
 //                gcoap_req_init(pdu, (uint8_t *)pdu->hdr, CONFIG_GCOAP_PDU_BUF_SIZE,
 //                               COAP_METHOD_GET, NULL);
 //            }
 //            else {
-                gcoap_req_init(pdu, (uint8_t *)pdu->hdr, CONFIG_GCOAP_PDU_BUF_SIZE,
-                               COAP_METHOD_GET, _last_req_path);
+            gcoap_req_init(pdu, (uint8_t *)pdu->hdr, CONFIG_GCOAP_PDU_BUF_SIZE,
+                           COAP_METHOD_GET, _last_req_path);
 //            }
 
-            if (msg_type == COAP_TYPE_ACK) {
-                coap_hdr_set_type(pdu->hdr, COAP_TYPE_CON);
-            }
-            block.blknum++;
-            coap_opt_add_block2_control(pdu, &block);
+        if (msg_type == COAP_TYPE_ACK) {
+            coap_hdr_set_type(pdu->hdr, COAP_TYPE_CON);
+        }
+        block->blknum++;
+        coap_opt_add_block2_control(pdu, block);
 
 //            if (_proxied) {
 //                coap_opt_add_proxy_uri(pdu, _last_req_path);
 //            }
 
-            int len = coap_opt_finish(pdu, COAP_OPT_FINISH_NONE);
-            gcoap_req_send((uint8_t *)pdu->hdr, len, remote,
-                           _resp_handler, memo->context);
-        }
-        else {
-            puts("--- blockwise complete ---");
-        }
+        int len = coap_opt_finish(pdu, COAP_OPT_FINISH_NONE);
+        puts("@@ 🎃 WIP !!!! having only `_resp_handler` here is NG; need adapting to async req subsystem !!!!");
+        gcoap_req_send((uint8_t *)pdu->hdr, len, remote,
+                       _resp_handler, memo->context);
+    }
+    else {
+        puts("--- blockwise complete ---");
     }
 }
 
@@ -196,6 +197,11 @@ uint8_t xbd_resp_handler(
     } else {
         *payload = pdu->payload_len ? pdu->payload : NULL;
         *payload_len = pdu->payload_len;
+    }
+
+    coap_block1_t block;
+    if (coap_get_block2(pdu, &block)) { // ask for next block if present
+        _resp_handler_blockwise_async(memo, pdu, remote, &block);
     }
 
     return memo->state;
