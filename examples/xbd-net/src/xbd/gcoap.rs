@@ -100,6 +100,7 @@ impl Future for Req {
 #[derive(Debug)]
 pub struct ReqInner {
     method: CoapMethod,
+    blockwise: bool,
     addr: String,
     uri: String,
     payload: Option<Vec<u8>>,
@@ -111,6 +112,25 @@ impl ReqInner {
     pub fn new(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>) -> Self {
         ReqInner {
             method,
+            blockwise: false,
+            addr: addr.to_string(),
+            uri: uri.to_string(),
+            payload,
+            out: Rc::new(RefCell::new(None)),
+            _waker: Some(AtomicWaker::new()),
+        }
+    }
+
+    pub fn new_blockwise(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>) -> Self {
+        crate::println!("!!!! [gcoap.rs] ReqInner::new_blockwise(): ^^");
+
+        assert_eq!(method, COAP_METHOD_GET);
+        assert_eq!(payload, None);
+
+        // TODO cleanup
+        ReqInner {
+            method,
+            blockwise: true,
             addr: addr.to_string(),
             uri: uri.to_string(),
             payload,
@@ -133,8 +153,13 @@ impl Future for ReqInner {
                 _waker.wake();
             };
             match self.method {
-                COAP_METHOD_GET => super::Xbd::gcoap_get(
-                    &self.addr, &self.uri, cb),
+                COAP_METHOD_GET => {
+                    if self.blockwise {
+                        todo!("!!!! ****");
+                    } else {
+                        super::Xbd::gcoap_get(&self.addr, &self.uri, cb);
+                    }
+                },
                 COAP_METHOD_POST => super::Xbd::gcoap_post(
                     &self.addr, &self.uri, self.payload.as_ref().unwrap().as_slice(), cb),
                 COAP_METHOD_PUT => super::Xbd::gcoap_put(

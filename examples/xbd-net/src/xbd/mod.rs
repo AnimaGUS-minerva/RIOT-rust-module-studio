@@ -158,6 +158,11 @@ impl Xbd {
     pub fn async_gcoap_get(addr: &str, uri: &str) -> impl Future<Output = GcoapMemoState> + 'static {
         gcoap::Req::new(gcoap::COAP_METHOD_GET, addr, uri, None)
     }
+//-------- !!!!
+    pub fn async_gcoap_get_blockwise(addr: &str, uri: &str) -> impl Future<Output = GcoapMemoState> + 'static {
+        gcoap::ReqInner::new_blockwise(gcoap::COAP_METHOD_GET, addr, uri, None)
+    }
+//-------- !!!!
 
     pub fn async_gcoap_post(addr: &str, uri: &str, payload: &[u8]) -> impl Future<Output = GcoapMemoState> + 'static {
         gcoap::Req::new(gcoap::COAP_METHOD_POST, addr, uri, Some(payload.to_vec()))

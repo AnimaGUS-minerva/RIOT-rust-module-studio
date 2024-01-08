@@ -128,6 +128,7 @@ pub extern fn xbd_riot_fileserver_handler(
 }
 
 //-------- !!!!
+//==== ****
 #[no_mangle]
 pub extern fn xbd_kludge_get_context() -> *const c_void {
     use crate::xbd::GcoapMemoState;
@@ -138,7 +139,7 @@ pub extern fn xbd_kludge_get_context() -> *const c_void {
 
         match out {
             Some(GcoapMemoState::Resp(Some(v))) => {
-                println!("!!!! payload [len={}]: {:?}", v.len(), v);
+                println!("!!!! [server.rs] payload [len={}]: {:?}", v.len(), v);
             },
             _ => panic!(),
         }
@@ -156,5 +157,11 @@ pub extern fn xbd_kludge_get_context() -> *const c_void {
 #[no_mangle]
 pub extern fn xbd_kludge_get_handler() -> *const c_void {
     crate::xbd::Xbd::gcoap_req_resp_handler as _
+}
+//====
+#[no_mangle]
+pub extern fn xbd_kludge_async_gcoap_get_blockwise() {
+    let _fut = crate::xbd::Xbd::async_gcoap_get_blockwise("!!", "!!");
+    println!("!!!! xbd_kludge_async_gcoap_get_blockwise(): manage polling futures for blockwise resps");
 }
 //-------- !!!!
