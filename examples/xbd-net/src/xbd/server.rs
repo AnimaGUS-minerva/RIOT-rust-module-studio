@@ -126,3 +126,35 @@ pub extern fn xbd_riot_fileserver_handler(
 
     pdu_len
 }
+
+//-------- !!!!
+#[no_mangle]
+pub extern fn xbd_kludge_get_context() -> *const c_void {
+    use crate::xbd::GcoapMemoState;
+    let cb = |out: Option<GcoapMemoState>| {
+        //---- c.f. 'gcoap.rs'
+        // outc.borrow_mut().replace(out);
+        // _waker.wake();
+
+        match out {
+            Some(GcoapMemoState::Resp(Some(v))) => {
+                println!("!!!! payload [len={}]: {:?}", v.len(), v);
+            },
+            _ => panic!(),
+        }
+/* last 23 bytes
+>>> a =[107, 101, 114, 115, 44, 32, 121, 111, 117, 39, 108, 108, 32, 98, 101, 32, 102, 114, 101, 101,
+46, 10, 0]
+>>> bytes(a).hex()
+'6b6572732c20796f75276c6c20626520667265652e0a00'
+ */
+    };
+
+    crate::xbd::callbacks::into_raw(cb)
+}
+
+#[no_mangle]
+pub extern fn xbd_kludge_get_handler() -> *const c_void {
+    crate::xbd::Xbd::gcoap_req_resp_handler as _
+}
+//-------- !!!!

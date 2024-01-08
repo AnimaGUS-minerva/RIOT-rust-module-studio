@@ -145,6 +145,8 @@ static void _resp_handler(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
     }
 }
 
+extern void * xbd_kludge_get_context(void); // !!!!
+extern gcoap_resp_handler_t xbd_kludge_get_handler(void); // !!!!
 static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
                                           const sock_udp_ep_t *remote, coap_block1_t *block) {//@@
     if (block->more) {
@@ -174,9 +176,17 @@ static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap
 //            }
 
         int len = coap_opt_finish(pdu, COAP_OPT_FINISH_NONE);
-        puts("@@ 🎃 WIP !!!! having only `_resp_handler` here is NG; need adapting to async req subsystem !!!!");
-        gcoap_req_send((uint8_t *)pdu->hdr, len, remote,
-                       _resp_handler, memo->context);
+        //====
+//        puts("@@ !!!! having only `_resp_handler` here is NG; need adapting to async req subsystem !!!!");
+//        gcoap_req_send((uint8_t *)pdu->hdr, len, remote, _resp_handler, memo->context);
+        //==== !!!! c.f. `xbd_gcoap_req_send()` in 'server.rs'
+        (void)memo;  (void)remote;  (void)len;
+        if (!_send((uint8_t *)pdu->hdr, len,
+                   "[::1]:5683", // !!!
+                   xbd_kludge_get_context(), xbd_kludge_get_handler())) { // !!! via 'server.rs'
+            printf("@@ _resp_handler_blockwise_async(): `_send()` failed for block: %u\n", block->blknum);
+        }
+        //====
     }
     else {
         puts("--- blockwise complete ---");
