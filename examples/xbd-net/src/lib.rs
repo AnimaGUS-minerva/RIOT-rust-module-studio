@@ -128,10 +128,24 @@ async fn xbd_main() {
 
         // TODO async gcoap ping
 
-        if 1 == 1 { // fileserver, blockwise
+        if 1777 == 1 { // fileserver, blockwise, TEMP
             let out = Xbd::async_gcoap_get(addr_self, "/const/song.txt").await;
             println!("@@ out: {:?}", out);
             //panic!("ok");
+        }
+        if 1 == 1 { // fileserver, blockwise, stream
+            use futures_util::stream::StreamExt;
+
+            let mut bs = Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt");
+            while let Some(block) = bs.next().await {
+                println!("block: {:?}", block);
+
+                if let xbd::GcoapBlock::Last = block {
+                    break;
+                }
+            }
+
+            //let mut bs = Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt"); // FIXME AlreadyInit
         }
     }
 

@@ -173,3 +173,26 @@ impl Future for ReqInner {
         }
     }
 }
+
+//
+
+#[derive(Debug)]
+pub enum GcoapBlock {
+    First,
+    Second,
+    Last,
+}
+
+use conquer_once::spin::OnceCell;
+use crossbeam_queue::ArrayQueue;
+use super::stream::XbdStream;
+pub static BLOCKWISE_QUEUE: OnceCell<ArrayQueue<GcoapBlock>> = OnceCell::uninit();
+pub static BLOCKWISE_WAKER: AtomicWaker = AtomicWaker::new();
+
+pub type BlockwiseStream = XbdStream<GcoapBlock>;
+
+pub fn add_blockwise_req(req: GcoapBlock) {
+    XbdStream::add(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER, req);
+}
+
+//

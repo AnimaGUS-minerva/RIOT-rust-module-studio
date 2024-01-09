@@ -14,6 +14,7 @@ use timeout::Timeout;
 
 mod gcoap;
 use gcoap::GcoapMemoState;
+pub use gcoap::GcoapBlock;
 
 use core::future::Future;
 use conquer_once::spin::OnceCell;
@@ -159,8 +160,17 @@ impl Xbd {
         gcoap::Req::new(gcoap::COAP_METHOD_GET, addr, uri, None)
     }
 //-------- !!!!
-    pub fn async_gcoap_get_blockwise(addr: &str, uri: &str) -> impl Future<Output = GcoapMemoState> + 'static {
-        gcoap::ReqInner::new_blockwise(gcoap::COAP_METHOD_GET, addr, uri, None)
+    pub fn async_gcoap_get_blockwise(addr: &str, uri: &str) -> gcoap::BlockwiseStream {
+        use crate::xbd::{stream::XbdStream, gcoap::{BLOCKWISE_QUEUE, BLOCKWISE_WAKER, GcoapBlock, add_blockwise_req}};
+
+        let _fut = gcoap::ReqInner::new_blockwise(gcoap::COAP_METHOD_GET, "!!!", "!!!", None);
+        // ^^^^ vvvv TODO fuse
+        let bs = XbdStream::new(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER);
+        add_blockwise_req(GcoapBlock::First);
+        add_blockwise_req(GcoapBlock::Second);
+        add_blockwise_req(GcoapBlock::Last);
+
+        bs
     }
 //-------- !!!!
 
