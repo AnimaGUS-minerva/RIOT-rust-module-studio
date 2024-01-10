@@ -57,6 +57,7 @@ pub async fn process_gcoap_server_stream() {
 
                 //====
                 println!("@@ process_gcoap_server_stream(): calling _on_sock_udp_evt_minerva(sock, flags, arg)");
+                // TODO check comp ,log--get-blockwise-sync (flags)
                 unsafe { _on_sock_udp_evt_minerva(sock, flags, arg) };
                 //====
                 //let pdu_args = (); // !! (pdu, buf, len, ctx) = xx(evt_args);

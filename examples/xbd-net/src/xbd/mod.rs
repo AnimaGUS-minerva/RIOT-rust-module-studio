@@ -159,20 +159,10 @@ impl Xbd {
     pub fn async_gcoap_get(addr: &str, uri: &str) -> impl Future<Output = GcoapMemoState> + 'static {
         gcoap::Req::new(gcoap::COAP_METHOD_GET, addr, uri, None)
     }
-//-------- !!!!
+
     pub fn async_gcoap_get_blockwise(addr: &str, uri: &str) -> gcoap::BlockwiseStream {
-        use crate::xbd::{stream::XbdStream, gcoap::{BLOCKWISE_QUEUE, BLOCKWISE_WAKER, GcoapBlock, add_blockwise_req}};
-
-        let _fut = gcoap::ReqInner::new_blockwise(gcoap::COAP_METHOD_GET, "!!!", "!!!", None);
-        // ^^^^ vvvv TODO fuse
-        let bs = XbdStream::new(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER);
-        add_blockwise_req(GcoapBlock::First);
-        add_blockwise_req(GcoapBlock::Second);
-        add_blockwise_req(GcoapBlock::Last);
-
-        bs
+        gcoap::ReqInner::new_blockwise(gcoap::COAP_METHOD_GET, addr, uri, None)
     }
-//-------- !!!!
 
     pub fn async_gcoap_post(addr: &str, uri: &str, payload: &[u8]) -> impl Future<Output = GcoapMemoState> + 'static {
         gcoap::Req::new(gcoap::COAP_METHOD_POST, addr, uri, Some(payload.to_vec()))

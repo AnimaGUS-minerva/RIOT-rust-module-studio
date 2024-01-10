@@ -121,14 +121,14 @@ impl ReqInner {
         }
     }
 
-    pub fn new_blockwise(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>) -> Self {
+    pub fn new_blockwise(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>) -> BlockwiseStream {
         crate::println!("!!!! [gcoap.rs] ReqInner::new_blockwise(): ^^");
 
-        assert_eq!(method, COAP_METHOD_GET);
+        assert_eq!(method, COAP_METHOD_GET); // !!
         assert_eq!(payload, None);
 
-        // TODO cleanup
-        ReqInner {
+        // TODO !!!! fuse
+        let _fut = ReqInner {
             method,
             blockwise: true,
             addr: addr.to_string(),
@@ -136,7 +136,14 @@ impl ReqInner {
             payload,
             out: Rc::new(RefCell::new(None)),
             _waker: Some(AtomicWaker::new()),
-        }
+        };
+
+        let bs = BlockwiseStream::new();
+        add_blockwise_req(GcoapBlock::First); // !!!
+        add_blockwise_req(GcoapBlock::Second); // !!!
+        add_blockwise_req(GcoapBlock::Last); // !!!
+
+        bs
     }
 }
 
@@ -189,10 +196,28 @@ use super::stream::XbdStream;
 pub static BLOCKWISE_QUEUE: OnceCell<ArrayQueue<GcoapBlock>> = OnceCell::uninit();
 pub static BLOCKWISE_WAKER: AtomicWaker = AtomicWaker::new();
 
-pub type BlockwiseStream = XbdStream<GcoapBlock>;
-
 pub fn add_blockwise_req(req: GcoapBlock) {
     XbdStream::add(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER, req);
 }
+//----
+use futures_util::Stream;
+pub struct BlockwiseStream(XbdStream<GcoapBlock>);
+impl BlockwiseStream {
+    pub fn new() -> Self {
+        Self(XbdStream::new(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER))
+    }
+}
+impl Stream for BlockwiseStream {
+    type Item = GcoapBlock;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
+        unsafe {
+            match Pin::get_unchecked_mut(self) {
+                Self(inner) => Pin::new_unchecked(inner).poll_next(cx),
+            }
+        }
+    }
+}
+//----
 
 //
