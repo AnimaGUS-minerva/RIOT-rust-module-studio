@@ -14,7 +14,6 @@ use timeout::Timeout;
 
 mod gcoap;
 use gcoap::GcoapMemoState;
-pub use gcoap::GcoapBlock;
 
 use core::future::Future;
 use conquer_once::spin::OnceCell;

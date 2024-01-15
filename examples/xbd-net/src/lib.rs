@@ -137,13 +137,17 @@ async fn xbd_main() {
             use futures_util::stream::StreamExt;
 
             let mut bs = Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt");
-            while let Some(block) = bs.next().await {
-                println!("block: {:?}", block);
+            while let Some(req) = bs.next().await {
+                println!("req: {:?}", req);
 
-                if let xbd::GcoapBlock::Last = block {
-                    break;
-                }
+                //if let xbd::GcoapBlock::Last = req { break; }
+                //====
+                let out = req.await;
+                println!("@@ out: {:?}", out);
+                break; // !!!!
+                //====
             }
+            panic!("ok"); // !!!!
 
             //let mut bs = Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt"); // FIXME AlreadyInit
         }
