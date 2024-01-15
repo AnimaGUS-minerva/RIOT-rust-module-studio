@@ -162,7 +162,9 @@ pub extern fn xbd_kludge_get_handler() -> *const c_void {
 //====
 #[no_mangle]
 pub extern fn xbd_kludge_async_gcoap_get_blockwise() {
-    let _fut = crate::xbd::Xbd::async_gcoap_get_blockwise("!!", "!!");
-    println!("!!!! xbd_kludge_async_gcoap_get_blockwise(): manage polling futures for blockwise resps");
+    println!("!!!! xbd_kludge_async_gcoap_get_blockwise(): ^^");
+
+    use crate::xbd::gcoap::{ReqInner, COAP_METHOD_GET};
+    ReqInner::add_blockwise_raw(COAP_METHOD_GET, "[::1]:5683", "/const/song.txt", None);
 }
 //-------- !!!!
