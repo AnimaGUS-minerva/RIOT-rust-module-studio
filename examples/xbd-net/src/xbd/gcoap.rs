@@ -128,16 +128,21 @@ impl ReqInner {
         assert_eq!(payload, None);
 
         let bs = BlockwiseStream::new();
-        Self::add_blockwise(method, addr, uri, payload);
+        Self::add_blockwise(
+            core::ptr::null(), 0,
+            method, addr, uri, payload);
 
         bs
     }
 
-    pub fn add_blockwise(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>) {
+    pub fn add_blockwise(hdr: *const mcu_if::c_types::c_void, hdr_len: usize,
+        method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>) {
         crate::println!("!!!! [gcoap.rs] ReqInner::add_blockwise(): ^^");
 
         assert_eq!(method, COAP_METHOD_GET); // !!
         assert_eq!(payload, None);
+
+        // WIP handle `hdr` stuff
 
         add_blockwise_req(ReqInner {// !! cleanup####
             method,
@@ -148,21 +153,6 @@ impl ReqInner {
             out: Rc::new(RefCell::new(None)),
             _waker: Some(AtomicWaker::new()),
         });
-    }
-
-    pub fn add_blockwise_raw(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>) {
-        crate::println!("!!!! [gcoap.rs] ReqInner::add_blockwise_raw(): ^^");
-
-        Self::add_blockwise(method, addr, uri, payload); // !!!! temp
-        //==== !!!!
-        //todo!("!!! adapt [gcoap.c] `_resp_handler_blockwise_async()`");
-//        (void)memo;  (void)remote;
-//        if (!_send((uint8_t *)pdu->hdr, len,
-//                   "[::1]:5683", // !!!
-//                   xbd_kludge_get_context(), xbd_kludge_get_handler())) { // !!! via 'server.rs'
-//            printf("@@ _resp_handler_blockwise_async(): `_send()` failed for block: %u\n", block->blknum);
-//        }
-
     }
 }
 
@@ -180,9 +170,9 @@ impl Future for ReqInner {
             };
             match self.method {
                 COAP_METHOD_GET => {
-                    if self.blockwise {// !!!! necessary ??
-                        crate::println!("!!!! calling `super::Xbd::gcoap_get()`");
-                        super::Xbd::gcoap_get(&self.addr, &self.uri, cb); // !!!#### temp
+                    if self.blockwise {
+                        crate::println!("!!!! [todo pass `hdr`] calling `super::Xbd::gcoap_get_blockwise()`");
+                        super::Xbd::gcoap_get_blockwise(&self.addr, &self.uri, cb); // !!!
                     } else {
                         super::Xbd::gcoap_get(&self.addr, &self.uri, cb);
                     }

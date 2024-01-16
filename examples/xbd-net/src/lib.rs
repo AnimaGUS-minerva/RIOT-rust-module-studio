@@ -137,7 +137,7 @@ async fn xbd_main() {
             use futures_util::stream::StreamExt;
 
             let mut bs = Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt");
-            let mut debug = 0;
+            let mut _debug = 0;
             while let Some(req) = bs.next().await {
                 println!("req: {:?}", req);
 
@@ -147,8 +147,13 @@ async fn xbd_main() {
 
                 //break; // !!!! TODO check whether end block
                 //====
-                debug += 1;
-                if debug > 1 { break; }
+                _debug += 1;
+                if _debug > 1 { break; } // return on 2nd packet
+                //====
+                // if let xbd::GcoapMemoState::Resp(Some(payload)) = out {
+                //     if payload.len() == 23 { break; } // !!!
+                // }
+                //====
             }
             panic!("ok"); // !!!!
 

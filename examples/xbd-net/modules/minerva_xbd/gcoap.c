@@ -61,6 +61,59 @@ static size_t _send(uint8_t *buf, size_t len, char *addr_str, void *context, gco
     return bytes_sent;
 }
 
+//---- !!!!
+#define _LAST_BLOCKWISE_HDR_MAX (64)
+static char _last_blockwise_hdr[_LAST_BLOCKWISE_HDR_MAX];
+static size_t _last_blockwise_len;
+
+void xbd_gcoap_req_send_blockwise(char *addr, char *uri, uint8_t method, uint8_t *payload, size_t payload_len, void *context, gcoap_resp_handler_t resp_handler) {
+    // @@ ^---- add `hdr` info handling (instead of `_last_blockwise_*` stuff)
+
+    uint8_t buf[CONFIG_GCOAP_PDU_BUF_SIZE];
+    coap_pkt_t pdu;
+    size_t hdr_len;
+
+    //==== !!!!
+    if (_last_blockwise_len) {
+        memcpy(&buf[0], _last_blockwise_hdr, _last_blockwise_len);
+        hdr_len = _last_blockwise_len;
+
+        // @@ clear blockwise pdu hdr cache
+        memset(_last_blockwise_hdr, 0, _LAST_BLOCKWISE_HDR_MAX);
+        _last_blockwise_len = 0;
+    } else {
+        gcoap_req_init(&pdu, &buf[0], CONFIG_GCOAP_PDU_BUF_SIZE, method, uri);
+
+        unsigned msg_type = COAP_TYPE_NON;
+        coap_hdr_set_type(pdu.hdr, msg_type);
+        hdr_len = coap_opt_finish(&pdu, payload_len ? COAP_OPT_FINISH_PAYLOAD : COAP_OPT_FINISH_NONE);
+    }
+    //====
+
+    printf("@@ xbd_gcoap_req_send(): addr: %s, uri: %s\n", addr, uri);
+    printf("    sending msg ID %u, %u bytes (hdr_len)\n", coap_get_id(&pdu), (unsigned) hdr_len);
+
+    // for blockwise handling
+    memset(_last_req_path, 0, _LAST_REQ_PATH_MAX);
+    int uri_len = strlen(uri);
+    if (uri_len < _LAST_REQ_PATH_MAX) {
+        memcpy(_last_req_path, uri, uri_len);
+    }
+
+    printf("@@ payload: %p payload_len: %d\n", payload, payload_len);
+    if (payload_len) {
+        memcpy(buf + hdr_len /* (== `pdu.payload`) */, payload, payload_len);
+    }
+
+    if (!_send(&buf[0], hdr_len + payload_len, addr, context, resp_handler)) {
+        puts("gcoap_cli: msg send failed");
+    } else {
+        /* send Observe notification for /cli/stats */
+        notify_observers();
+    }
+    //--------
+}
+//---- !!!!
 void xbd_gcoap_req_send(char *addr, char *uri, uint8_t method, uint8_t *payload, size_t payload_len, void *context, gcoap_resp_handler_t resp_handler) {
     uint8_t buf[CONFIG_GCOAP_PDU_BUF_SIZE];
     coap_pkt_t pdu;
@@ -147,7 +200,9 @@ static void _resp_handler(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
 
 extern void * xbd_kludge_get_context(void); // !!!!
 extern gcoap_resp_handler_t xbd_kludge_get_handler(void); // !!!!
-extern void xbd_kludge_async_gcoap_get_blockwise(void); // !!!!
+extern void xbd_kludge_async_gcoap_get_blockwise(
+        const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
+        const sock_udp_ep_t *remote, size_t len); // !!!!
 static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
                                           const sock_udp_ep_t *remote, coap_block1_t *block) {//@@
     if (block->more) {
@@ -176,7 +231,7 @@ static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap
 //                coap_opt_add_proxy_uri(pdu, _last_req_path);
 //            }
 
-        int len = coap_opt_finish(pdu, COAP_OPT_FINISH_NONE);
+        size_t len = coap_opt_finish(pdu, COAP_OPT_FINISH_NONE);
         //====
 //        puts("@@ !!!! having only `_resp_handler` here is NG; need adapting to async req subsystem !!!!");
 //        gcoap_req_send((uint8_t *)pdu->hdr, len, remote, _resp_handler, memo->context);
@@ -187,9 +242,14 @@ static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap
 //                   xbd_kludge_get_context(), xbd_kludge_get_handler())) { // !!! via 'server.rs'
 //            printf("@@ _resp_handler_blockwise_async(): `_send()` failed for block: %u\n", block->blknum);
 //        }
-        //====
-        (void)memo;  (void)remote;  (void)len;
-        xbd_kludge_async_gcoap_get_blockwise();
+        //==== !!!!
+        // @@ update blockwise pdu hdr cache
+        assert(len < _LAST_BLOCKWISE_HDR_MAX);
+        memset(_last_blockwise_hdr, 0, _LAST_BLOCKWISE_HDR_MAX);
+        memcpy(_last_blockwise_hdr, pdu->hdr, len);
+        _last_blockwise_len = len;
+
+        xbd_kludge_async_gcoap_get_blockwise(memo, pdu, remote, len); // !!!!
         //====
     }
     else {

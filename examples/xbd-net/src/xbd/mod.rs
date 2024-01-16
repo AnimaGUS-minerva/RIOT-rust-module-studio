@@ -13,7 +13,7 @@ mod timeout;
 use timeout::Timeout;
 
 mod gcoap;
-use gcoap::GcoapMemoState;
+pub use gcoap::GcoapMemoState;
 
 use core::future::Future;
 use conquer_once::spin::OnceCell;
@@ -122,6 +122,30 @@ impl Xbd {
                 Self::gcoap_req_resp_handler as *const c_void);
         }
     }
+    //---- !!!! !!!!
+    pub fn gcoap_get_blockwise<F>(addr: &str, uri: &str, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
+        crate::println!("gcoap_get_blockwise(): ^^ WIP need hdr info");
+        Self::gcoap_req_blockwise(addr, uri, gcoap::COAP_METHOD_GET, None, cb);
+    }
+
+    fn gcoap_req_blockwise<F>(addr: &str, uri: &str, method: gcoap::CoapMethod,
+                              payload: Option<&[u8]>, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
+        crate::println!("gcoap_req_blockwise(): ^^ WIP need hdr info");
+        let payload_ptr = payload.map_or(core::ptr::null(), |payload| payload.as_ptr());
+        let payload_len = payload.map_or(0, |payload| payload.len());
+
+        type Ty = unsafe extern "C" fn(*const u8, *const u8, u8,
+                                       *const u8, usize, *const c_void, *const c_void);
+        unsafe {
+            (get_xbd_fn!("xbd_gcoap_req_send_blockwise", Ty))(// !!!!
+                null_terminate_str!(addr).as_ptr(),
+                null_terminate_str!(uri).as_ptr(),
+                method, payload_ptr, payload_len,
+                callbacks::into_raw(cb), // context
+                Self::gcoap_req_resp_handler as *const c_void);
+        }
+    }
+    //---- !!!! !!!!
 
     fn gcoap_req_resp_handler(memo: *const c_void, pdu: *const c_void, remote: *const c_void) {
         let mut context: *const c_void = core::ptr::null_mut();

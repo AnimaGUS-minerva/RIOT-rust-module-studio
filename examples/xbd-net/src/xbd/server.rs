@@ -161,10 +161,27 @@ pub extern fn xbd_kludge_get_handler() -> *const c_void {
 }
 //====
 #[no_mangle]
-pub extern fn xbd_kludge_async_gcoap_get_blockwise() {
+pub extern fn xbd_kludge_async_gcoap_get_blockwise(
+    memo: *const c_void, pdu: *const c_void, remote: *const c_void, hdr_len: usize
+) {
     println!("!!!! xbd_kludge_async_gcoap_get_blockwise(): ^^");
 
+    //==== ref
+    // if (!_send((uint8_t *)pdu->hdr, len,
+    //            "[::1]:5683", // !!!
+    //            xbd_kludge_get_context(),
+    //            xbd_kludge_get_handler())) { // !!! via 'server.rs'
+    //     printf("@@ _resp_handler_blockwise_async(): `_send()` failed for block: %u\n", block->blknum);
+    // }
+    //==== !!!!
     use crate::xbd::gcoap::{ReqInner, COAP_METHOD_GET};
-    ReqInner::add_blockwise_raw(COAP_METHOD_GET, "[::1]:5683", "/const/song.txt", None);
+    let hdr = core::ptr::null(); // !!!! !!!! !!!! pdu->hdr
+    println!("    !!!! pdu: {:?}", pdu);
+    println!("    !!!! hdr_len: {}", hdr_len);
+    ReqInner::add_blockwise(hdr, hdr_len,
+        COAP_METHOD_GET, "[::1]:5683", "/const/song.txt", None);
+    //====
+
+    println!("!!!! xbd_kludge_async_gcoap_get_blockwise(): $$");
 }
 //-------- !!!!
