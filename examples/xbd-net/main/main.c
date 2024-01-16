@@ -122,6 +122,12 @@ static void _event_cb(gcoap_fileserver_event_t event, gcoap_fileserver_event_ctx
     }
 }
 
+// NG **** instread
+// !!!! ../../RIOT/sys/shell/cmds/vfs.c
+//static int test_vfs_cmd() {
+//    return _vfs_handler(0, NULL);
+//}
+
 void init_gcoap_fileserver(void) {
     vfs_mount(&const_mount); // <<
     /* todo - dump on start
@@ -187,9 +193,13 @@ static const shell_command_t shell_commands_minerva[] = {
     { NULL, NULL, NULL }
 };
 
-void start_shell(const shell_command_t *shell_commands /* `null`able */) {
+void start_shell(const shell_command_t *shell_commands /* NULL to use only system shell commands */) {
     char line_buf[SHELL_DEFAULT_BUFSIZE];
+    //====
     shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
+    //==== **** echo ls > foo && nn < foo  # ?? how to skip EOF ??
+//    shell_run_once(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE); // e.g. RIOT/tests/shell/main.c
+//    assert(0); // reaches here
 }
 
 //
@@ -199,6 +209,7 @@ static const xbd_fn_t xbd_fns[] = {
     { "xbd_ztimer_msleep", (xbd_fn_ptr_t)xbd_ztimer_msleep },
     { "xbd_ztimer_set", (xbd_fn_ptr_t)xbd_ztimer_set },
     { "xbd_gcoap_req_send", (xbd_fn_ptr_t)xbd_gcoap_req_send },
+    { "xbd_gcoap_req_send_blockwise", (xbd_fn_ptr_t)xbd_gcoap_req_send_blockwise },
 };
 
 static const size_t xbd_fns_sz = sizeof(xbd_fns) / sizeof(xbd_fns[0]);
@@ -259,7 +270,8 @@ gcoap: @@ after _process_coap_pdu() via _on_sock_udp_evt()
     if (0) { KLUDGE_FORCE_NO_ASYNC = true; // !!
         test_gcoap_req("get", "[::1]:5683", "/const/song.txt"); // ok
         //test_gcoap_req("get", "[::1]:5683", "/const/song2.txt"); // ok, 4.04
-        assert(0); // ok
+        //assert(0); // ok
+        start_shell(shell_commands_minerva);
     }
 
     if (1) { KLUDGE_FORCE_NO_ASYNC = false; // !!
@@ -287,7 +299,6 @@ gcoap: @@ after _process_coap_pdu() via _on_sock_udp_evt()
         */
     }
 
-    // TODO - upgrade to use `shell_run()` instread
     start_shell(shell_commands_minerva);
 
     /* should be never reached */
