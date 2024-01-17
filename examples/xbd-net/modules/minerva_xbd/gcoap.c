@@ -70,9 +70,7 @@ void xbd_gcoap_req_send_blockwise(char *addr, char *uri, uint8_t method, uint8_t
     // @@ ^---- add `hdr` info handling (instead of `_last_blockwise_*` stuff)
 
     uint8_t buf[CONFIG_GCOAP_PDU_BUF_SIZE];
-    coap_pkt_t pdu;
     size_t hdr_len;
-
     //==== !!!!
     if (_last_blockwise_len) {
         memcpy(&buf[0], _last_blockwise_hdr, _last_blockwise_len);
@@ -81,17 +79,20 @@ void xbd_gcoap_req_send_blockwise(char *addr, char *uri, uint8_t method, uint8_t
         // @@ clear blockwise pdu hdr cache
         memset(_last_blockwise_hdr, 0, _LAST_BLOCKWISE_HDR_MAX);
         _last_blockwise_len = 0;
+
+        printf("@@ sending non-first blockwise msg\n");
     } else {
+        coap_pkt_t pdu;
         gcoap_req_init(&pdu, &buf[0], CONFIG_GCOAP_PDU_BUF_SIZE, method, uri);
 
         unsigned msg_type = COAP_TYPE_NON;
         coap_hdr_set_type(pdu.hdr, msg_type);
         hdr_len = coap_opt_finish(&pdu, payload_len ? COAP_OPT_FINISH_PAYLOAD : COAP_OPT_FINISH_NONE);
+
+        printf("@@ sending first blockwise msg (ID=%u)\n", coap_get_id(&pdu));
     }
     //====
-
-    printf("@@ xbd_gcoap_req_send(): addr: %s, uri: %s\n", addr, uri);
-    printf("    sending msg ID %u, %u bytes (hdr_len)\n", coap_get_id(&pdu), (unsigned) hdr_len);
+    printf("@@ xbd_gcoap_req_send_blockwise(): addr: %s, uri: %s hdr_len: %u\n", addr, uri, hdr_len);
 
     // for blockwise handling
     memset(_last_req_path, 0, _LAST_REQ_PATH_MAX);
