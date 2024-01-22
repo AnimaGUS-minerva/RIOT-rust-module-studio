@@ -162,7 +162,8 @@ pub extern fn xbd_kludge_get_handler() -> *const c_void {
 //====
 #[no_mangle]
 pub extern fn xbd_kludge_async_gcoap_get_blockwise(
-    memo: *const c_void, pdu: *const c_void, remote: *const c_void, hdr_len: usize
+    //memo: *const c_void, pdu: *const c_void, remote: *const c_void, hdr_len: usize
+    hdr: *const c_void, hdr_len: usize
 ) {
     println!("!!!! xbd_kludge_async_gcoap_get_blockwise(): ^^");
 
@@ -175,13 +176,46 @@ pub extern fn xbd_kludge_async_gcoap_get_blockwise(
     // }
     //==== !!!!
     use crate::xbd::gcoap::{ReqInner, COAP_METHOD_GET};
-    let hdr = core::ptr::null(); // !!!! !!!! !!!! pdu->hdr
-    println!("    !!!! pdu: {:?}", pdu);
-    println!("    !!!! hdr_len: {}", hdr_len);
+    // let hdr = core::ptr::null(); // !!!! !!!! !!!! pdu->hdr
+    // println!("    !!!! pdu: {:?}", pdu);
+    // println!("    !!!! hdr_len: {}", hdr_len);
+    // ReqInner::add_blockwise(hdr, hdr_len,
+    //     COAP_METHOD_GET, "[::1]:5683", "/const/song.txt", None);
+    //====
+    use mcu_if::utils::u8_slice_from;
+    assert!(hdr_len < LAST_BLOCKWISE_HDR_MAX);
+    unsafe {
+        LAST_BLOCKWISE_HDR.fill(0u8);
+        LAST_BLOCKWISE_HDR[..hdr_len].
+            copy_from_slice(u8_slice_from(hdr as *const u8, hdr_len));
+        LAST_BLOCKWISE_LEN = hdr_len;
+    }
+
     ReqInner::add_blockwise(hdr, hdr_len,
         COAP_METHOD_GET, "[::1]:5683", "/const/song.txt", None);
     //====
 
     println!("!!!! xbd_kludge_async_gcoap_get_blockwise(): $$");
 }
+
+#[no_mangle]
+pub extern fn xbd_kludge_update_blockwise_hdr(buf: *mut u8, buf_sz: usize) -> usize {
+    use mcu_if::utils::u8_slice_mut_from;
+
+    unsafe {
+        let len = LAST_BLOCKWISE_LEN;
+        if len > 0 {
+            u8_slice_mut_from(buf, buf_sz)[..len].
+                copy_from_slice(&LAST_BLOCKWISE_HDR[..len]);
+
+            LAST_BLOCKWISE_HDR.fill(0u8);
+            LAST_BLOCKWISE_LEN = 0;
+        }
+
+        len
+    }
+}
+pub const LAST_BLOCKWISE_HDR_MAX: usize = 64;
+pub static mut LAST_BLOCKWISE_HDR: &'static mut [u8] = &mut [0; LAST_BLOCKWISE_HDR_MAX];
+pub static mut LAST_BLOCKWISE_LEN: usize = 0;
 //-------- !!!!
