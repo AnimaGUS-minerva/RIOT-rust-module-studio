@@ -62,30 +62,13 @@ static size_t _send(uint8_t *buf, size_t len, char *addr_str, void *context, gco
 }
 
 //---- !!!!
-//#define _LAST_BLOCKWISE_HDR_MAX (64)
-//static char _last_blockwise_hdr[_LAST_BLOCKWISE_HDR_MAX];
-//static size_t _last_blockwise_len;
-
 extern size_t xbd_kludge_update_blockwise_hdr(const uint8_t *buf, size_t buf_sz); // !!!!
 
 void xbd_gcoap_req_send_blockwise(char *addr, char *uri, uint8_t method, uint8_t *payload, size_t payload_len, void *context, gcoap_resp_handler_t resp_handler) {
-    // @@ ^---- add `hdr` info handling (instead of `_last_blockwise_*` stuff)
-
     uint8_t buf[CONFIG_GCOAP_PDU_BUF_SIZE];
     size_t hdr_len;
-    //==== !!!!
-    //--------
-//    if (_last_blockwise_len) {
-//        memcpy(&buf[0], _last_blockwise_hdr, _last_blockwise_len);
-//        hdr_len = _last_blockwise_len;
-//
-//        // @@ clear blockwise pdu hdr cache
-//        memset(_last_blockwise_hdr, 0, _LAST_BLOCKWISE_HDR_MAX);
-//        _last_blockwise_len = 0;
-    //--------
-    if ((hdr_len = xbd_kludge_update_blockwise_hdr(&buf[0], CONFIG_GCOAP_PDU_BUF_SIZE))) {
-    //--------
 
+    if ((hdr_len = xbd_kludge_update_blockwise_hdr(&buf[0], CONFIG_GCOAP_PDU_BUF_SIZE))) {
         printf("@@ sending non-first blockwise msg\n");
     } else {
         coap_pkt_t pdu;
@@ -205,12 +188,7 @@ static void _resp_handler(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
     }
 }
 
-extern void * xbd_kludge_get_context(void); // !!!!
-extern gcoap_resp_handler_t xbd_kludge_get_handler(void); // !!!!
-//extern void xbd_kludge_async_gcoap_get_blockwise(
-//        const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
-//        const sock_udp_ep_t *remote, size_t len); // !!!!
-extern void xbd_kludge_async_gcoap_get_blockwise(const coap_hdr_t *remote, size_t len); // !!!!
+extern void xbd_kludge_async_gcoap_get_blockwise(const coap_hdr_t *remote, size_t len);
 static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
                                           const sock_udp_ep_t *remote, coap_block1_t *block) {//@@
     if (block->more) {
@@ -239,27 +217,10 @@ static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap
 //                coap_opt_add_proxy_uri(pdu, _last_req_path);
 //            }
 
+        (void)memo;
+        (void)remote;
         size_t len = coap_opt_finish(pdu, COAP_OPT_FINISH_NONE);
-        //====
-//        puts("@@ !!!! having only `_resp_handler` here is NG; need adapting to async req subsystem !!!!");
-//        gcoap_req_send((uint8_t *)pdu->hdr, len, remote, _resp_handler, memo->context);
-        //==== !!!! **** c.f. `xbd_gcoap_req_send()` in 'server.rs'
-        (void)memo;  (void)remote;
-//        if (!_send((uint8_t *)pdu->hdr, len,
-//                   "[::1]:5683", // !!!
-//                   xbd_kludge_get_context(), xbd_kludge_get_handler())) { // !!! via 'server.rs'
-//            printf("@@ _resp_handler_blockwise_async(): `_send()` failed for block: %u\n", block->blknum);
-//        }
-        //==== !!!!
-        // @@ update blockwise pdu hdr cache
-//        assert(len < _LAST_BLOCKWISE_HDR_MAX);
-//        memset(_last_blockwise_hdr, 0, _LAST_BLOCKWISE_HDR_MAX);
-//        memcpy(_last_blockwise_hdr, pdu->hdr, len);
-//        _last_blockwise_len = len;
-
-        //xbd_kludge_async_gcoap_get_blockwise(memo, pdu, remote, len); // !!!!
-        xbd_kludge_async_gcoap_get_blockwise(pdu->hdr, len); // !!!!
-        //====
+        xbd_kludge_async_gcoap_get_blockwise(pdu->hdr, len);
     }
     else {
         puts("--- blockwise complete ---");

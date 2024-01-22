@@ -129,59 +129,9 @@ pub extern fn xbd_riot_fileserver_handler(
 }
 
 //-------- !!!!
-//==== ****
 #[no_mangle]
-pub extern fn xbd_kludge_get_context() -> *const c_void {
-    use crate::xbd::GcoapMemoState;
-    let cb = |out: Option<GcoapMemoState>| {
-        //---- c.f. 'gcoap.rs'
-        // outc.borrow_mut().replace(out);
-        // _waker.wake();
-
-        match out {
-            Some(GcoapMemoState::Resp(Some(v))) => {
-                println!("!!!! [server.rs] payload [len={}]: {:?}", v.len(), v);
-            },
-            _ => panic!(),
-        }
-/* last 23 bytes
->>> a =[107, 101, 114, 115, 44, 32, 121, 111, 117, 39, 108, 108, 32, 98, 101, 32, 102, 114, 101, 101,
-46, 10, 0]
->>> bytes(a).hex()
-'6b6572732c20796f75276c6c20626520667265652e0a00'
- */
-    };
-
-    crate::xbd::callbacks::into_raw(cb)
-}
-
-#[no_mangle]
-pub extern fn xbd_kludge_get_handler() -> *const c_void {
-    crate::xbd::Xbd::gcoap_req_resp_handler as _
-}
-//====
-#[no_mangle]
-pub extern fn xbd_kludge_async_gcoap_get_blockwise(
-    //memo: *const c_void, pdu: *const c_void, remote: *const c_void, hdr_len: usize
-    hdr: *const c_void, hdr_len: usize
-) {
-    println!("!!!! xbd_kludge_async_gcoap_get_blockwise(): ^^");
-
-    //==== ref
-    // if (!_send((uint8_t *)pdu->hdr, len,
-    //            "[::1]:5683", // !!!
-    //            xbd_kludge_get_context(),
-    //            xbd_kludge_get_handler())) { // !!! via 'server.rs'
-    //     printf("@@ _resp_handler_blockwise_async(): `_send()` failed for block: %u\n", block->blknum);
-    // }
-    //==== !!!!
+pub extern fn xbd_kludge_async_gcoap_get_blockwise(hdr: *const c_void, hdr_len: usize) {
     use crate::xbd::gcoap::{ReqInner, COAP_METHOD_GET};
-    // let hdr = core::ptr::null(); // !!!! !!!! !!!! pdu->hdr
-    // println!("    !!!! pdu: {:?}", pdu);
-    // println!("    !!!! hdr_len: {}", hdr_len);
-    // ReqInner::add_blockwise(hdr, hdr_len,
-    //     COAP_METHOD_GET, "[::1]:5683", "/const/song.txt", None);
-    //====
     use mcu_if::utils::u8_slice_from;
     assert!(hdr_len < LAST_BLOCKWISE_HDR_MAX);
     unsafe {
@@ -191,11 +141,8 @@ pub extern fn xbd_kludge_async_gcoap_get_blockwise(
         LAST_BLOCKWISE_LEN = hdr_len;
     }
 
-    ReqInner::add_blockwise(hdr, hdr_len,
-        COAP_METHOD_GET, "[::1]:5683", "/const/song.txt", None);
-    //====
-
-    println!("!!!! xbd_kludge_async_gcoap_get_blockwise(): $$");
+    ReqInner::add_blockwise(
+        COAP_METHOD_GET, "[::1]:5683", "/const/song.txt", None); // !!!
 }
 
 #[no_mangle]

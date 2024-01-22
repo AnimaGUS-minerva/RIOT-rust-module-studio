@@ -128,21 +128,16 @@ impl ReqInner {
         assert_eq!(payload, None);
 
         let bs = BlockwiseStream::new();
-        Self::add_blockwise(
-            core::ptr::null(), 0,
-            method, addr, uri, payload);
+        Self::add_blockwise(method, addr, uri, payload);
 
         bs
     }
 
-    pub fn add_blockwise(hdr: *const mcu_if::c_types::c_void, hdr_len: usize,
-        method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>) {
+    pub fn add_blockwise(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>) {
         crate::println!("!!!! [gcoap.rs] ReqInner::add_blockwise(): ^^");
 
         assert_eq!(method, COAP_METHOD_GET); // !!
         assert_eq!(payload, None);
-
-        // WIP handle `hdr` stuff
 
         add_blockwise_req(ReqInner {// !! cleanup####
             method,
