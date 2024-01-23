@@ -71,7 +71,7 @@ pub enum Req {
 
 impl Req {
     pub fn new(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>) -> Self {
-        let inner = ReqInner::new(method, addr, uri, payload);
+        let inner = ReqInner::new(method, addr, uri, payload, false);
 
         match method {
             COAP_METHOD_GET => Self::Get(inner),
@@ -109,10 +109,10 @@ pub struct ReqInner {
 }
 
 impl ReqInner {
-    pub fn new(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>) -> Self {
+    pub fn new(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>, blockwise: bool) -> Self {
         ReqInner {
             method,
-            blockwise: false,
+            blockwise,
             addr: addr.to_string(),
             uri: uri.to_string(),
             payload,
@@ -122,11 +122,6 @@ impl ReqInner {
     }
 
     pub fn new_blockwise(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>) -> BlockwiseStream {
-        crate::println!("!!!! [gcoap.rs] ReqInner::new_blockwise(): ^^");
-
-        assert_eq!(method, COAP_METHOD_GET); // !!
-        assert_eq!(payload, None);
-
         let bs = BlockwiseStream::new();
         Self::add_blockwise(method, addr, uri, payload);
 
@@ -134,20 +129,10 @@ impl ReqInner {
     }
 
     pub fn add_blockwise(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>) {
-        crate::println!("!!!! [gcoap.rs] ReqInner::add_blockwise(): ^^");
-
-        assert_eq!(method, COAP_METHOD_GET); // !!
+        assert_eq!(method, COAP_METHOD_GET);
         assert_eq!(payload, None);
 
-        add_blockwise_req(ReqInner {// !! cleanup####
-            method,
-            blockwise: true,
-            addr: addr.to_string(),
-            uri: uri.to_string(),
-            payload,
-            out: Rc::new(RefCell::new(None)),
-            _waker: Some(AtomicWaker::new()),
-        });
+        add_blockwise_req(ReqInner::new(method, addr, uri, payload, true));
     }
 }
 
