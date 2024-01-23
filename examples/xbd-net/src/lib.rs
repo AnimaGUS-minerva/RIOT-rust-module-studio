@@ -134,6 +134,11 @@ async fn xbd_main() {
             //panic!("ok");
         }
         if 1 == 1 { // fileserver, blockwise, stream
+            // first, make sure non-blockwise get works
+            println!("@@ out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
+
+            //
+
             use futures_util::stream::StreamExt;
 
             let mut bs = Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt");

@@ -64,11 +64,14 @@ static size_t _send(uint8_t *buf, size_t len, char *addr_str, void *context, gco
 //---- !!!!
 extern size_t xbd_kludge_update_blockwise_hdr(const uint8_t *buf, size_t buf_sz); // !!!!
 
-void xbd_gcoap_req_send_blockwise(char *addr, char *uri, uint8_t method, uint8_t *payload, size_t payload_len, void *context, gcoap_resp_handler_t resp_handler) {
+void xbd_gcoap_req_send(
+        char *addr, char *uri,
+        uint8_t method, uint8_t *payload, size_t payload_len, bool blockwise,
+        void *context, gcoap_resp_handler_t resp_handler) {
     uint8_t buf[CONFIG_GCOAP_PDU_BUF_SIZE];
     size_t hdr_len;
 
-    if ((hdr_len = xbd_kludge_update_blockwise_hdr(&buf[0], CONFIG_GCOAP_PDU_BUF_SIZE))) {
+    if (blockwise && (hdr_len = xbd_kludge_update_blockwise_hdr(&buf[0], CONFIG_GCOAP_PDU_BUF_SIZE))) {
         printf("@@ sending non-first blockwise msg\n");
     } else {
         coap_pkt_t pdu;
@@ -78,50 +81,16 @@ void xbd_gcoap_req_send_blockwise(char *addr, char *uri, uint8_t method, uint8_t
         coap_hdr_set_type(pdu.hdr, msg_type);
         hdr_len = coap_opt_finish(&pdu, payload_len ? COAP_OPT_FINISH_PAYLOAD : COAP_OPT_FINISH_NONE);
 
-        printf("@@ sending first blockwise msg (ID=%u)\n", coap_get_id(&pdu));
+        printf("@@ sending msg (ID=%u)\n", coap_get_id(&pdu));
     }
-    //====
-    printf("@@ xbd_gcoap_req_send_blockwise(): addr: %s, uri: %s hdr_len: %u\n", addr, uri, hdr_len);
+    printf("@@ xbd_gcoap_req_send(): addr: %s, uri: %s hdr_len: %u\n", addr, uri, hdr_len);
 
-    // for blockwise handling
-    memset(_last_req_path, 0, _LAST_REQ_PATH_MAX);
-    int uri_len = strlen(uri);
-    if (uri_len < _LAST_REQ_PATH_MAX) {
-        memcpy(_last_req_path, uri, uri_len);
-    }
-
-    printf("@@ payload: %p payload_len: %d\n", payload, payload_len);
-    if (payload_len) {
-        memcpy(buf + hdr_len /* (== `pdu.payload`) */, payload, payload_len);
-    }
-
-    if (!_send(&buf[0], hdr_len + payload_len, addr, context, resp_handler)) {
-        puts("gcoap_cli: msg send failed");
-    } else {
-        /* send Observe notification for /cli/stats */
-        notify_observers();
-    }
-    //--------
-}
-//---- !!!!
-void xbd_gcoap_req_send(char *addr, char *uri, uint8_t method, uint8_t *payload, size_t payload_len, void *context, gcoap_resp_handler_t resp_handler) {
-    uint8_t buf[CONFIG_GCOAP_PDU_BUF_SIZE];
-    coap_pkt_t pdu;
-    size_t hdr_len;
-
-    gcoap_req_init(&pdu, &buf[0], CONFIG_GCOAP_PDU_BUF_SIZE, method, uri);
-
-    unsigned msg_type = COAP_TYPE_NON;
-    coap_hdr_set_type(pdu.hdr, msg_type);
-    hdr_len = coap_opt_finish(&pdu, payload_len ? COAP_OPT_FINISH_PAYLOAD : COAP_OPT_FINISH_NONE);
-    printf("@@ xbd_gcoap_req_send(): addr: %s, uri: %s\n", addr, uri);
-    printf("    sending msg ID %u, %u bytes (hdr_len)\n", coap_get_id(&pdu), (unsigned) hdr_len);
-
-    // for blockwise handling
-    memset(_last_req_path, 0, _LAST_REQ_PATH_MAX);
-    int uri_len = strlen(uri);
-    if (uri_len < _LAST_REQ_PATH_MAX) {
-        memcpy(_last_req_path, uri, uri_len);
+    if (blockwise) { // TODO refactor into rust
+        memset(_last_req_path, 0, _LAST_REQ_PATH_MAX);
+        int uri_len = strlen(uri);
+        if (uri_len < _LAST_REQ_PATH_MAX) {
+            memcpy(_last_req_path, uri, uri_len);
+        }
     }
 
     printf("@@ payload: %p payload_len: %d\n", payload, payload_len);

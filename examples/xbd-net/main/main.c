@@ -209,7 +209,6 @@ static const xbd_fn_t xbd_fns[] = {
     { "xbd_ztimer_msleep", (xbd_fn_ptr_t)xbd_ztimer_msleep },
     { "xbd_ztimer_set", (xbd_fn_ptr_t)xbd_ztimer_set },
     { "xbd_gcoap_req_send", (xbd_fn_ptr_t)xbd_gcoap_req_send },
-    { "xbd_gcoap_req_send_blockwise", (xbd_fn_ptr_t)xbd_gcoap_req_send_blockwise },
 };
 
 static const size_t xbd_fns_sz = sizeof(xbd_fns) / sizeof(xbd_fns[0]);

@@ -151,8 +151,7 @@ impl Future for ReqInner {
             match self.method {
                 COAP_METHOD_GET => {
                     if self.blockwise {
-                        crate::println!("!!!! [todo pass `hdr`] calling `super::Xbd::gcoap_get_blockwise()`");
-                        super::Xbd::gcoap_get_blockwise(&self.addr, &self.uri, cb); // !!!
+                        super::Xbd::gcoap_get_blockwise(&self.addr, &self.uri, cb);
                     } else {
                         super::Xbd::gcoap_get(&self.addr, &self.uri, cb);
                     }
