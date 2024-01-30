@@ -27,6 +27,12 @@
 #include "net/sock/util.h"
 #include "minerva_xbd.h"
 
+/* Retain request path to re-request if response includes block. User must not
+ * start a new request (with a new path) until any blockwise transfer
+ * completes or times out. */
+#define _LAST_REQ_PATH_MAX (64)
+static char _last_req_path[_LAST_REQ_PATH_MAX];
+
 static size_t _send(uint8_t *buf, size_t len, char *addr_str, void *context, gcoap_resp_handler_t resp_handler) //@@
 {
     size_t bytes_sent;
@@ -85,12 +91,13 @@ void xbd_gcoap_req_send(
     }
     printf("@@ xbd_gcoap_req_send(): addr: %s, uri: %s hdr_len: %u\n", addr, uri, hdr_len);
 
-    if (blockwise) { // TODO refactor into rust
+    if (blockwise) { // TODO refactor into rust 1111 11
         memset(_last_req_path, 0, _LAST_REQ_PATH_MAX);
         int uri_len = strlen(uri);
         if (uri_len < _LAST_REQ_PATH_MAX) {
             memcpy(_last_req_path, uri, uri_len);
         }
+        printf("@@!!!!!!!! xbd_gcoap_req_send(): (updated) _last_req_path: %s\n", _last_req_path);
     }
 
     printf("@@ payload: %p payload_len: %d\n", payload, payload_len);
