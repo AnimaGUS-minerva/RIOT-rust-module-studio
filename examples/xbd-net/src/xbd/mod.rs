@@ -7,6 +7,7 @@ use callbacks::{
 mod server;
 pub use server::{start_gcoap_server, process_gcoap_server_stream};
 
+mod blockwise;
 mod stream;
 
 mod timeout;
