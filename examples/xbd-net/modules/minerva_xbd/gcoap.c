@@ -27,12 +27,6 @@
 #include "net/sock/util.h"
 #include "minerva_xbd.h"
 
-/* Retain request path to re-request if response includes block. User must not
- * start a new request (with a new path) until any blockwise transfer
- * completes or times out. */
-#define _LAST_REQ_PATH_MAX (64)
-static char _last_req_path[_LAST_REQ_PATH_MAX];
-
 static size_t _send(uint8_t *buf, size_t len, char *addr_str, void *context, gcoap_resp_handler_t resp_handler) //@@
 {
     size_t bytes_sent;
@@ -69,6 +63,7 @@ static size_t _send(uint8_t *buf, size_t len, char *addr_str, void *context, gco
 
 //---- !!!!
 extern size_t xbd_kludge_update_blockwise_hdr(const uint8_t *buf, size_t buf_sz); // !!!!
+extern void xbd_kludge_save_blockwise_uri(const char *uri, size_t uri_len); // !!!!
 
 void xbd_gcoap_req_send(
         char *addr, char *uri,
@@ -91,13 +86,8 @@ void xbd_gcoap_req_send(
     }
     printf("@@ xbd_gcoap_req_send(): addr: %s, uri: %s hdr_len: %u\n", addr, uri, hdr_len);
 
-    if (blockwise) { // TODO refactor into rust 1111 11
-        memset(_last_req_path, 0, _LAST_REQ_PATH_MAX);
-        int uri_len = strlen(uri);
-        if (uri_len < _LAST_REQ_PATH_MAX) {
-            memcpy(_last_req_path, uri, uri_len);
-        }
-        printf("@@!!!!!!!! xbd_gcoap_req_send(): (updated) _last_req_path: %s\n", _last_req_path);
+    if (blockwise) {
+        xbd_kludge_save_blockwise_uri(uri, strlen(uri));
     }
 
     printf("@@ payload: %p payload_len: %d\n", payload, payload_len);
@@ -164,12 +154,18 @@ static void _resp_handler(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
     }
 }
 
-extern void xbd_kludge_async_gcoap_get_blockwise(const coap_hdr_t *remote, size_t len);
+extern void xbd_kludge_async_gcoap_get_blockwise(
+        const coap_hdr_t *remote, size_t len, const char *last_uri, size_t last_uri_len);
+extern char * xbd_kludge_get_blockwise_uri(void);
 static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
                                           const sock_udp_ep_t *remote, coap_block1_t *block) {//@@
     if (block->more) {
+        char *last_uri = xbd_kludge_get_blockwise_uri();
+        size_t last_uri_len = strlen(last_uri);
+
         unsigned msg_type = coap_get_type(pdu);
-        if (block->blknum == 0 && !strlen(_last_req_path)) {
+
+        if (block->blknum == 0 && !last_uri_len) {
             puts("Path too long; can't complete blockwise");
             return;
         }
@@ -180,7 +176,7 @@ static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap
 //            }
 //            else {
             gcoap_req_init(pdu, (uint8_t *)pdu->hdr, CONFIG_GCOAP_PDU_BUF_SIZE,
-                           COAP_METHOD_GET, _last_req_path);
+                           COAP_METHOD_GET, last_uri);
 //            }
 
         if (msg_type == COAP_TYPE_ACK) {
@@ -190,13 +186,13 @@ static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap
         coap_opt_add_block2_control(pdu, block);
 
 //            if (_proxied) {
-//                coap_opt_add_proxy_uri(pdu, _last_req_path);
+//                coap_opt_add_proxy_uri(pdu, last_uri);
 //            }
 
         (void)memo;
         (void)remote;
         size_t len = coap_opt_finish(pdu, COAP_OPT_FINISH_NONE);
-        xbd_kludge_async_gcoap_get_blockwise(pdu->hdr, len);
+        xbd_kludge_async_gcoap_get_blockwise(pdu->hdr, len, last_uri, last_uri_len);
     }
     else {
         puts("--- blockwise complete ---");
