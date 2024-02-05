@@ -21,13 +21,18 @@ pub extern fn xbd_kludge_async_gcoap_get_blockwise(
     blockwise_hdr_update(u8_slice_from(hdr as *const u8, hdr_len));
 
     ReqInner::add_blockwise(
-        COAP_METHOD_GET, "[::1]:5683",
-        "/const/song.txt",// !!!! fixme
+        COAP_METHOD_GET,
+        "[::1]:5683", // 2222
+        "/const/song.txt",// !!!! fixme 1111
 //fixme        u8_slice_from(last_uri as *const u8, last_uri_len),
         None); // !!! 1111
 }
 
 //
+
+// !!!!
+// [ ] last_addr
+// [v] last_uri
 
 #[no_mangle]
 pub extern fn xbd_kludge_save_blockwise_uri(uri: *const c_void, uri_len: usize) {
@@ -45,13 +50,21 @@ pub extern fn xbd_kludge_get_blockwise_uri() -> *const c_void {
 const LAST_BLOCKWISE_URI_MAX: usize = 64;
 static mut LAST_BLOCKWISE_URI: &'static mut [u8] = &mut [0; LAST_BLOCKWISE_URI_MAX];
 
-fn blockwise_uri_update(uri_slice: &[u8]) {// !!!! refactor
-    let uri_len = uri_slice.len();
-    assert!(uri_len < LAST_BLOCKWISE_URI_MAX);
 
+fn blockwise_metadata_update(data_in: &[u8], data: &'static mut [u8], data_max: usize) -> usize {
+    let data_len = data_in.len();
+    assert!(data_len < data_max);
+
+    data.fill(0u8);
+    data[..data_len].copy_from_slice(data_in);
+
+    data_len
+}
+
+
+fn blockwise_uri_update(uri_slice: &[u8]) {
     unsafe {
-        LAST_BLOCKWISE_URI.fill(0u8);
-        LAST_BLOCKWISE_URI[..uri_len].copy_from_slice(uri_slice);
+        blockwise_metadata_update(uri_slice, LAST_BLOCKWISE_URI, LAST_BLOCKWISE_URI_MAX);
     }
 }
 
@@ -62,14 +75,10 @@ const LAST_BLOCKWISE_HDR_MAX: usize = 64;
 static mut LAST_BLOCKWISE_HDR: &'static mut [u8] = &mut [0; LAST_BLOCKWISE_HDR_MAX];
 static mut LAST_BLOCKWISE_LEN: usize = 0;
 
-fn blockwise_hdr_update(hdr_slice: &[u8]) {// !!!! refactor
-    let hdr_len = hdr_slice.len();
-    assert!(hdr_len < LAST_BLOCKWISE_HDR_MAX);
-
+fn blockwise_hdr_update(hdr_slice: &[u8]) {
     unsafe {
-        LAST_BLOCKWISE_HDR.fill(0u8);
-        LAST_BLOCKWISE_HDR[..hdr_len].copy_from_slice(hdr_slice);
-        LAST_BLOCKWISE_LEN = hdr_len;
+        LAST_BLOCKWISE_LEN = blockwise_metadata_update(
+            hdr_slice, LAST_BLOCKWISE_HDR, LAST_BLOCKWISE_HDR_MAX);
     }
 }
 
