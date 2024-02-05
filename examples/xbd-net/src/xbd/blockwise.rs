@@ -30,6 +30,16 @@ pub extern fn xbd_kludge_async_gcoap_get_blockwise(
 
 //
 
+fn blockwise_metadata_update(data_in: &[u8], data: &'static mut [u8], data_max: usize) -> usize {
+    let data_len = data_in.len();
+    assert!(data_len < data_max);
+
+    data.fill(0u8);
+    data[..data_len].copy_from_slice(data_in);
+
+    data_len
+}
+
 // !!!!
 // [ ] last_addr
 // [v] last_uri
@@ -50,21 +60,9 @@ pub extern fn xbd_kludge_get_blockwise_uri() -> *const c_void {
 const LAST_BLOCKWISE_URI_MAX: usize = 64;
 static mut LAST_BLOCKWISE_URI: &'static mut [u8] = &mut [0; LAST_BLOCKWISE_URI_MAX];
 
-
-fn blockwise_metadata_update(data_in: &[u8], data: &'static mut [u8], data_max: usize) -> usize {
-    let data_len = data_in.len();
-    assert!(data_len < data_max);
-
-    data.fill(0u8);
-    data[..data_len].copy_from_slice(data_in);
-
-    data_len
-}
-
-
-fn blockwise_uri_update(uri_slice: &[u8]) {
+fn blockwise_uri_update(uri: &[u8]) {
     unsafe {
-        blockwise_metadata_update(uri_slice, LAST_BLOCKWISE_URI, LAST_BLOCKWISE_URI_MAX);
+        blockwise_metadata_update(uri, LAST_BLOCKWISE_URI, LAST_BLOCKWISE_URI_MAX);
     }
 }
 
@@ -75,10 +73,10 @@ const LAST_BLOCKWISE_HDR_MAX: usize = 64;
 static mut LAST_BLOCKWISE_HDR: &'static mut [u8] = &mut [0; LAST_BLOCKWISE_HDR_MAX];
 static mut LAST_BLOCKWISE_LEN: usize = 0;
 
-fn blockwise_hdr_update(hdr_slice: &[u8]) {
+fn blockwise_hdr_update(hdr: &[u8]) {
     unsafe {
         LAST_BLOCKWISE_LEN = blockwise_metadata_update(
-            hdr_slice, LAST_BLOCKWISE_HDR, LAST_BLOCKWISE_HDR_MAX);
+            hdr, LAST_BLOCKWISE_HDR, LAST_BLOCKWISE_HDR_MAX);
     }
 }
 
@@ -86,10 +84,10 @@ fn blockwise_hdr_len() -> usize {
     unsafe { LAST_BLOCKWISE_LEN }
 }
 
-fn blockwise_hdr_copy(buf_slice: &mut [u8]) {
+fn blockwise_hdr_copy(buf: &mut [u8]) {
     unsafe {
         let len = LAST_BLOCKWISE_LEN;
-        buf_slice[..len].
+        buf[..len].
             copy_from_slice(&LAST_BLOCKWISE_HDR[..len]);
     }
 }
