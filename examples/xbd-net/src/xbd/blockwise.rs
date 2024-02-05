@@ -22,12 +22,13 @@ pub extern fn xbd_blockwise_hdr_copy(buf: *mut u8, buf_sz: usize) -> usize {
 }
 
 #[no_mangle]
-pub extern fn xbd_blockwise_async_gcoap_get(
-    hdr: *const c_void, hdr_len: usize,
-    last_uri: *const c_void, last_uri_len: usize) {
-    use crate::xbd::gcoap::{ReqInner, COAP_METHOD_GET};
-
+pub extern fn xbd_blockwise_hdr_update(hdr: *const c_void, hdr_len: usize) {
     blockwise_hdr_update(u8_slice_from(hdr as *const u8, hdr_len));
+}
+
+#[no_mangle]
+pub extern fn xbd_blockwise_async_gcoap_get(last_uri: *const c_void, last_uri_len: usize) {
+    use crate::xbd::gcoap::{ReqInner, COAP_METHOD_GET};
 
     ReqInner::add_blockwise(
         COAP_METHOD_GET,

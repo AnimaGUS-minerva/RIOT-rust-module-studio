@@ -66,7 +66,8 @@ extern char * xbd_blockwise_uri_ptr(void);
 extern void xbd_blockwise_uri_update(const char *uri, size_t uri_len);
 
 extern size_t xbd_blockwise_hdr_copy(const uint8_t *buf, size_t buf_sz);
-extern void xbd_blockwise_async_gcoap_get(const coap_hdr_t *remote, size_t len, const char *last_uri, size_t last_uri_len);
+extern void xbd_blockwise_hdr_update(const coap_hdr_t *hdr, size_t hdr_len);
+extern void xbd_blockwise_async_gcoap_get(const char *last_uri, size_t last_uri_len);
 //---- !!!!
 
 void xbd_gcoap_req_send(
@@ -193,7 +194,8 @@ static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap
         (void)memo;
         (void)remote;
         size_t len = coap_opt_finish(pdu, COAP_OPT_FINISH_NONE);
-        xbd_blockwise_async_gcoap_get(pdu->hdr, len, last_uri, last_uri_len);
+        xbd_blockwise_hdr_update(pdu->hdr, len);
+        xbd_blockwise_async_gcoap_get(last_uri, last_uri_len);
     }
     else {
         puts("--- blockwise complete ---");
