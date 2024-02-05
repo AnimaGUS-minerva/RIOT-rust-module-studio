@@ -2,7 +2,17 @@ use mcu_if::c_types::c_void;
 use mcu_if::utils::{u8_slice_from, u8_slice_mut_from};
 
 #[no_mangle]
-pub extern fn xbd_kludge_update_blockwise_hdr(buf: *mut u8, buf_sz: usize) -> usize {
+pub extern fn xbd_blockwise_uri_ptr() -> *const c_void {
+    blockwise_uri_ptr()
+}
+
+#[no_mangle]
+pub extern fn xbd_blockwise_uri_update(uri: *const c_void, uri_len: usize) {
+    blockwise_uri_update(u8_slice_from(uri as *const u8, uri_len));
+}
+
+#[no_mangle]
+pub extern fn xbd_blockwise_hdr_copy(buf: *mut u8, buf_sz: usize) -> usize {
     let len = blockwise_hdr_len();
     if len > 0 {
         blockwise_hdr_copy(u8_slice_mut_from(buf, buf_sz));
@@ -13,7 +23,7 @@ pub extern fn xbd_kludge_update_blockwise_hdr(buf: *mut u8, buf_sz: usize) -> us
 }
 
 #[no_mangle]
-pub extern fn xbd_kludge_async_gcoap_get_blockwise(
+pub extern fn xbd_blockwise_async_gcoap_get(
     hdr: *const c_void, hdr_len: usize,
     last_uri: *const c_void, last_uri_len: usize) {
     use crate::xbd::gcoap::{ReqInner, COAP_METHOD_GET};
@@ -44,16 +54,6 @@ fn blockwise_metadata_update(data_in: &[u8], data: &'static mut [u8], data_max: 
 // [ ] last_addr
 // [v] last_uri
 
-#[no_mangle]
-pub extern fn xbd_kludge_save_blockwise_uri(uri: *const c_void, uri_len: usize) {
-    blockwise_uri_update(u8_slice_from(uri as *const u8, uri_len));
-}
-
-#[no_mangle]
-pub extern fn xbd_kludge_get_blockwise_uri() -> *const c_void {
-    unsafe { LAST_BLOCKWISE_URI.as_ptr() as _ }
-}
-
 /* Retain request path to re-request if response includes block. User must not
  * start a new request (with a new path) until any blockwise transfer
  * completes or times out. */
@@ -64,6 +64,10 @@ fn blockwise_uri_update(uri: &[u8]) {
     unsafe {
         blockwise_metadata_update(uri, LAST_BLOCKWISE_URI, LAST_BLOCKWISE_URI_MAX);
     }
+}
+
+fn blockwise_uri_ptr() -> *const c_void {
+    unsafe { LAST_BLOCKWISE_URI.as_ptr() as _ }
 }
 
 //

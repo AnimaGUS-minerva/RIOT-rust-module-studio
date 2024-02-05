@@ -62,8 +62,12 @@ static size_t _send(uint8_t *buf, size_t len, char *addr_str, void *context, gco
 }
 
 //---- !!!!
-extern size_t xbd_kludge_update_blockwise_hdr(const uint8_t *buf, size_t buf_sz); // !!!!
-extern void xbd_kludge_save_blockwise_uri(const char *uri, size_t uri_len); // !!!!
+extern char * xbd_blockwise_uri_ptr(void);
+extern void xbd_blockwise_uri_update(const char *uri, size_t uri_len);
+
+extern size_t xbd_blockwise_hdr_copy(const uint8_t *buf, size_t buf_sz);
+extern void xbd_blockwise_async_gcoap_get(const coap_hdr_t *remote, size_t len, const char *last_uri, size_t last_uri_len);
+//---- !!!!
 
 void xbd_gcoap_req_send(
         char *addr, char *uri,
@@ -72,7 +76,7 @@ void xbd_gcoap_req_send(
     uint8_t buf[CONFIG_GCOAP_PDU_BUF_SIZE];
     size_t hdr_len;
 
-    if (blockwise && (hdr_len = xbd_kludge_update_blockwise_hdr(&buf[0], CONFIG_GCOAP_PDU_BUF_SIZE))) {
+    if (blockwise && (hdr_len = xbd_blockwise_hdr_copy(&buf[0], CONFIG_GCOAP_PDU_BUF_SIZE))) {
         printf("@@ sending non-first blockwise msg\n");
     } else {
         coap_pkt_t pdu;
@@ -87,7 +91,7 @@ void xbd_gcoap_req_send(
     printf("@@ xbd_gcoap_req_send(): addr: %s, uri: %s hdr_len: %u\n", addr, uri, hdr_len);
 
     if (blockwise) {
-        xbd_kludge_save_blockwise_uri(uri, strlen(uri));
+        xbd_blockwise_uri_update(uri, strlen(uri));
     }
 
     printf("@@ payload: %p payload_len: %d\n", payload, payload_len);
@@ -154,13 +158,10 @@ static void _resp_handler(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
     }
 }
 
-extern void xbd_kludge_async_gcoap_get_blockwise(
-        const coap_hdr_t *remote, size_t len, const char *last_uri, size_t last_uri_len);
-extern char * xbd_kludge_get_blockwise_uri(void);
 static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
                                           const sock_udp_ep_t *remote, coap_block1_t *block) {//@@
     if (block->more) {
-        char *last_uri = xbd_kludge_get_blockwise_uri();
+        char *last_uri = xbd_blockwise_uri_ptr();
         size_t last_uri_len = strlen(last_uri);
 
         unsigned msg_type = coap_get_type(pdu);
@@ -192,7 +193,7 @@ static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap
         (void)memo;
         (void)remote;
         size_t len = coap_opt_finish(pdu, COAP_OPT_FINISH_NONE);
-        xbd_kludge_async_gcoap_get_blockwise(pdu->hdr, len, last_uri, last_uri_len);
+        xbd_blockwise_async_gcoap_get(pdu->hdr, len, last_uri, last_uri_len);
     }
     else {
         puts("--- blockwise complete ---");
