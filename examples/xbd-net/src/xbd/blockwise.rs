@@ -16,7 +16,6 @@ pub extern fn xbd_blockwise_hdr_copy(buf: *mut u8, buf_sz: usize) -> usize {
     let len = blockwise_hdr_len();
     if len > 0 {
         blockwise_hdr_copy(u8_slice_mut_from(buf, buf_sz));
-        blockwise_hdr_clear();
     }
 
     len
@@ -93,12 +92,5 @@ fn blockwise_hdr_copy(buf: &mut [u8]) {
         let len = LAST_BLOCKWISE_LEN;
         buf[..len].
             copy_from_slice(&LAST_BLOCKWISE_HDR[..len]);
-    }
-}
-
-fn blockwise_hdr_clear() {
-    unsafe {
-        LAST_BLOCKWISE_HDR.fill(0u8);
-        LAST_BLOCKWISE_LEN = 0;
     }
 }
