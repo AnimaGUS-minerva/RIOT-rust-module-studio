@@ -1,6 +1,14 @@
 use mcu_if::c_types::c_void;
 use mcu_if::utils::{u8_slice_from, u8_slice_mut_from};
 
+use core::{str::from_utf8, pin::Pin, task::{Context, Poll}};
+use futures_util::{task::AtomicWaker, Stream};
+use conquer_once::spin::OnceCell;
+use crossbeam_queue::ArrayQueue;
+
+use super::stream::XbdStream;
+use super::gcoap::{ReqInner, COAP_METHOD_GET};
+
 #[no_mangle]
 pub extern fn xbd_blockwise_addr_ptr() -> *const c_void {
     unsafe { LAST_BLOCKWISE_ADDR.as_ptr() as _ }
@@ -43,24 +51,9 @@ pub extern fn xbd_blockwise_async_gcoap_get(
     last_addr: *const c_void, last_addr_len: usize,
     last_uri: *const c_void, last_uri_len: usize)
 {
-    use core::str::from_utf8;
-    use crate::xbd::gcoap::{ReqInner, COAP_METHOD_GET};
-
     let addr = from_utf8(u8_slice_from(last_addr as *const u8, last_addr_len)).unwrap();
     let uri = from_utf8(u8_slice_from(last_uri as *const u8, last_uri_len)).unwrap();
     ReqInner::add_blockwise(COAP_METHOD_GET, addr, uri, None);
-}
-
-//
-
-fn blockwise_metadata_update(data_in: &[u8], data: &'static mut [u8], data_max: usize) -> usize {
-    let data_len = data_in.len();
-    assert!(data_len < data_max);
-
-    data.fill(0u8);
-    data[..data_len].copy_from_slice(data_in);
-
-    data_len
 }
 
 //
@@ -79,6 +72,16 @@ const LAST_BLOCKWISE_HDR_MAX: usize = 64;
 static mut LAST_BLOCKWISE_HDR: &'static mut [u8] = &mut [0; LAST_BLOCKWISE_HDR_MAX];
 static mut LAST_BLOCKWISE_LEN: usize = 0;
 
+fn blockwise_metadata_update(data_in: &[u8], data: &'static mut [u8], data_max: usize) -> usize {
+    let data_len = data_in.len();
+    assert!(data_len < data_max);
+
+    data.fill(0u8);
+    data[..data_len].copy_from_slice(data_in);
+
+    data_len
+}
+
 fn blockwise_hdr_update(hdr: &[u8]) {
     unsafe {
         LAST_BLOCKWISE_LEN = blockwise_metadata_update(
@@ -95,5 +98,34 @@ fn blockwise_hdr_copy(buf: &mut [u8]) {
         let len = LAST_BLOCKWISE_LEN;
         buf[..len].
             copy_from_slice(&LAST_BLOCKWISE_HDR[..len]);
+    }
+}
+
+//
+
+pub static BLOCKWISE_QUEUE: OnceCell<ArrayQueue<ReqInner>> = OnceCell::uninit();
+pub static BLOCKWISE_WAKER: AtomicWaker = AtomicWaker::new();
+
+pub fn add_blockwise_req(req: ReqInner) {
+    XbdStream::add(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER, req);
+}
+
+pub struct BlockwiseStream(XbdStream<ReqInner>);
+
+impl BlockwiseStream {
+    pub fn new() -> Self {
+        Self(XbdStream::new(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER))
+    }
+}
+
+impl Stream for BlockwiseStream {
+    type Item = ReqInner;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
+        unsafe {
+            match Pin::get_unchecked_mut(self) {
+                Self(inner) => Pin::new_unchecked(inner).poll_next(cx),
+            }
+        }
     }
 }

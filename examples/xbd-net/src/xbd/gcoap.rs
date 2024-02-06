@@ -1,6 +1,7 @@
 use core::{future::Future, pin::Pin, task::{Context, Poll}, cell::RefCell};
 use futures_util::task::AtomicWaker;
 use mcu_if::{alloc::{vec::Vec, string::{String, ToString}, rc::Rc}};
+use super::blockwise::{BlockwiseStream, add_blockwise_req};
 
 //
 // gcoap client
@@ -173,37 +174,3 @@ impl Future for ReqInner {
 unsafe impl Send for ReqInner {
     // !!!! !!!!
 }
-
-//
-
-use conquer_once::spin::OnceCell;
-use crossbeam_queue::ArrayQueue;
-use super::stream::XbdStream;
-pub static BLOCKWISE_QUEUE: OnceCell<ArrayQueue<ReqInner>> = OnceCell::uninit();
-pub static BLOCKWISE_WAKER: AtomicWaker = AtomicWaker::new();
-
-pub fn add_blockwise_req(req: ReqInner) {
-    XbdStream::add(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER, req);
-}
-//----
-use futures_util::Stream;
-pub struct BlockwiseStream(XbdStream<ReqInner>);
-impl BlockwiseStream {
-    pub fn new() -> Self {
-        Self(XbdStream::new(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER))
-    }
-}
-impl Stream for BlockwiseStream {
-    type Item = ReqInner;
-
-    fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
-        unsafe {
-            match Pin::get_unchecked_mut(self) {
-                Self(inner) => Pin::new_unchecked(inner).poll_next(cx),
-            }
-        }
-    }
-}
-//----
-
-//

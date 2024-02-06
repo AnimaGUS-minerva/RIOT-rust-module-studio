@@ -7,8 +7,10 @@ use callbacks::{
 mod server;
 pub use server::{start_gcoap_server, process_gcoap_server_stream};
 
-mod blockwise;
 mod stream;
+
+mod blockwise;
+use blockwise::BlockwiseStream;
 
 mod timeout;
 use timeout::Timeout;
@@ -164,7 +166,7 @@ impl Xbd {
         gcoap::Req::new(gcoap::COAP_METHOD_GET, addr, uri, None)
     }
 
-    pub fn async_gcoap_get_blockwise(addr: &str, uri: &str) -> gcoap::BlockwiseStream {
+    pub fn async_gcoap_get_blockwise(addr: &str, uri: &str) -> BlockwiseStream {
         gcoap::ReqInner::new_blockwise(gcoap::COAP_METHOD_GET, addr, uri, None)
     }
 
