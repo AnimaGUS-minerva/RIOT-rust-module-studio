@@ -33,8 +33,7 @@ pub extern fn xbd_blockwise_async_gcoap_get(last_uri: *const c_void, last_uri_le
     ReqInner::add_blockwise(
         COAP_METHOD_GET,
         "[::1]:5683", // 2222
-        "/const/song.txt",// !!!! fixme 1111
-//fixme        u8_slice_from(last_uri as *const u8, last_uri_len),
+        core::str::from_utf8(u8_slice_from(last_uri as *const u8, last_uri_len)).unwrap(),
         None); // !!! 1111
 }
 
@@ -50,9 +49,7 @@ fn blockwise_metadata_update(data_in: &[u8], data: &'static mut [u8], data_max: 
     data_len
 }
 
-// !!!!
-// [ ] last_addr
-// [v] last_uri
+//
 
 /* Retain request path to re-request if response includes block. User must not
  * start a new request (with a new path) until any blockwise transfer
