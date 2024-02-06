@@ -27,6 +27,18 @@
 #include "net/sock/util.h"
 #include "minerva_xbd.h"
 
+extern char * xbd_blockwise_addr_ptr(void);
+extern void xbd_blockwise_addr_update(const char *addr, size_t addr_len);
+
+extern char * xbd_blockwise_uri_ptr(void);
+extern void xbd_blockwise_uri_update(const char *uri, size_t uri_len);
+
+extern size_t xbd_blockwise_hdr_copy(const uint8_t *buf, size_t buf_sz);
+extern void xbd_blockwise_hdr_update(const coap_hdr_t *hdr, size_t hdr_len);
+extern void xbd_blockwise_async_gcoap_get(
+        const char *last_addr, size_t last_addr_len,
+        const char *last_uri, size_t last_uri_len);
+
 static size_t _send(uint8_t *buf, size_t len, char *addr_str, void *context, gcoap_resp_handler_t resp_handler) //@@
 {
     size_t bytes_sent;
@@ -61,15 +73,6 @@ static size_t _send(uint8_t *buf, size_t len, char *addr_str, void *context, gco
     return bytes_sent;
 }
 
-//---- !!!!
-extern char * xbd_blockwise_uri_ptr(void);
-extern void xbd_blockwise_uri_update(const char *uri, size_t uri_len);
-
-extern size_t xbd_blockwise_hdr_copy(const uint8_t *buf, size_t buf_sz);
-extern void xbd_blockwise_hdr_update(const coap_hdr_t *hdr, size_t hdr_len);
-extern void xbd_blockwise_async_gcoap_get(const char *last_uri, size_t last_uri_len);
-//---- !!!!
-
 void xbd_gcoap_req_send(
         char *addr, char *uri,
         uint8_t method, uint8_t *payload, size_t payload_len, bool blockwise,
@@ -92,6 +95,7 @@ void xbd_gcoap_req_send(
     printf("@@ xbd_gcoap_req_send(): addr: %s, uri: %s hdr_len: %u\n", addr, uri, hdr_len);
 
     if (blockwise) {
+        xbd_blockwise_addr_update(addr, strlen(addr));
         xbd_blockwise_uri_update(uri, strlen(uri));
     }
 
@@ -162,6 +166,7 @@ static void _resp_handler(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
 static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
                                           const sock_udp_ep_t *remote, coap_block1_t *block) {//@@
     if (block->more) {
+        char *last_addr = xbd_blockwise_addr_ptr();
         char *last_uri = xbd_blockwise_uri_ptr();
         size_t last_uri_len = strlen(last_uri);
 
@@ -195,7 +200,7 @@ static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap
         (void)remote;
         size_t len = coap_opt_finish(pdu, COAP_OPT_FINISH_NONE);
         xbd_blockwise_hdr_update(pdu->hdr, len);
-        xbd_blockwise_async_gcoap_get(last_uri, last_uri_len);
+        xbd_blockwise_async_gcoap_get(last_addr, strlen(last_addr), last_uri, last_uri_len);
     }
     else {
         puts("--- blockwise complete ---");
