@@ -113,8 +113,10 @@ pub fn add_blockwise_req(req: ReqInner) {
 pub struct BlockwiseStream(XbdStream<ReqInner>);
 
 impl BlockwiseStream {
-    pub fn new() -> Self {
-        Self(XbdStream::new(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER))
+    pub fn get() -> Self {
+        XbdStream::get(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER)
+            .map_or_else(|| Self(XbdStream::new(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER)),
+                         |xs| Self(xs))
     }
 }
 

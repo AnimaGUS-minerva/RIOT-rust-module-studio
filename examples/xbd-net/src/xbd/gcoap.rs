@@ -123,7 +123,7 @@ impl ReqInner {
     }
 
     pub fn new_blockwise(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>) -> BlockwiseStream {
-        let bs = BlockwiseStream::new();
+        let bs = BlockwiseStream::get();
         Self::add_blockwise(method, addr, uri, payload);
 
         bs

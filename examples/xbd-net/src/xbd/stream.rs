@@ -18,6 +18,14 @@ impl<T> XbdStream<T> {
         XbdStream { queue, waker }
     }
 
+    pub fn get(queue: &'static OnceCell<ArrayQueue<T>>, waker: &'static AtomicWaker) -> Option<Self> {
+        if queue.get().is_some() { // already init_once
+            Some(XbdStream { queue, waker })
+        } else {
+            None
+        }
+    }
+
     // must not block/alloc/dealloc
     pub fn add(queue: &'static OnceCell<ArrayQueue<T>>, waker: &'static AtomicWaker, item: T) {
         if let Ok(queue) = queue.try_get() {

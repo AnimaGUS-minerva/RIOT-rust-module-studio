@@ -163,9 +163,11 @@ async fn xbd_main() {
             //panic!("ok"); // !!!!
 
             // WIP multiple-static blockwise streams !!
-            let mut bs = Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt"); // FIXME AlreadyInit
+            let mut bs = Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt");
             while let Some(req) = bs.next().await {
-                panic!("{:?}", req);
+                let out = req.await;
+                println!("@@ out: {:?}", out);
+                panic!("!!");
             }
         }
     }
