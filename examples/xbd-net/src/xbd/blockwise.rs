@@ -47,13 +47,18 @@ pub extern fn xbd_blockwise_hdr_update(hdr: *const c_void, hdr_len: usize) {
 }
 
 #[no_mangle]
-pub extern fn xbd_blockwise_async_gcoap_get(
+pub extern fn xbd_blockwise_async_gcoap_req(
     last_addr: *const c_void, last_addr_len: usize,
     last_uri: *const c_void, last_uri_len: usize)
 {
     let addr = from_utf8(u8_slice_from(last_addr as *const u8, last_addr_len)).unwrap();
     let uri = from_utf8(u8_slice_from(last_uri as *const u8, last_uri_len)).unwrap();
     ReqInner::add_blockwise(COAP_METHOD_GET, addr, uri, None);
+}
+
+#[no_mangle]
+pub extern fn xbd_blockwise_async_gcoap_complete() {
+    add_blockwise_req(None);
 }
 
 //
@@ -103,14 +108,14 @@ fn blockwise_hdr_copy(buf: &mut [u8]) {
 
 //
 
-pub static BLOCKWISE_QUEUE: OnceCell<ArrayQueue<ReqInner>> = OnceCell::uninit();
+pub static BLOCKWISE_QUEUE: OnceCell<ArrayQueue<Option<ReqInner>>> = OnceCell::uninit();
 pub static BLOCKWISE_WAKER: AtomicWaker = AtomicWaker::new();
 
-pub fn add_blockwise_req(req: ReqInner) {
+pub fn add_blockwise_req(req: Option<ReqInner>) {
     XbdStream::add(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER, req);
 }
 
-pub struct BlockwiseStream(XbdStream<ReqInner>);
+pub struct BlockwiseStream(XbdStream<Option<ReqInner>>);
 
 impl BlockwiseStream {
     pub fn get() -> Self {
@@ -121,7 +126,7 @@ impl BlockwiseStream {
 }
 
 impl Stream for BlockwiseStream {
-    type Item = ReqInner;
+    type Item = Option<ReqInner>;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
         unsafe {

@@ -133,7 +133,7 @@ impl ReqInner {
         assert_eq!(method, COAP_METHOD_GET);
         assert_eq!(payload, None);
 
-        add_blockwise_req(ReqInner::new(method, addr, uri, payload, true));
+        add_blockwise_req(Some(ReqInner::new(method, addr, uri, payload, true)));
     }
 }
 
