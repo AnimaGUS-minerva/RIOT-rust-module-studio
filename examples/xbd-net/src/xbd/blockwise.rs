@@ -53,7 +53,9 @@ pub extern fn xbd_blockwise_async_gcoap_req(
 {
     let addr = from_utf8(u8_slice_from(last_addr as *const u8, last_addr_len)).unwrap();
     let uri = from_utf8(u8_slice_from(last_uri as *const u8, last_uri_len)).unwrap();
-    ReqInner::add_blockwise(COAP_METHOD_GET, addr, uri, None);
+    let req = ReqInner::new(COAP_METHOD_GET, addr, uri, None, true);
+
+    add_blockwise_req(Some(req));
 }
 
 #[no_mangle]

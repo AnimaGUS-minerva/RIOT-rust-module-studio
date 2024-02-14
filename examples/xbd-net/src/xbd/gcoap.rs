@@ -1,7 +1,6 @@
 use core::{future::Future, pin::Pin, task::{Context, Poll}, cell::RefCell};
 use futures_util::task::AtomicWaker;
 use mcu_if::{alloc::{vec::Vec, string::{String, ToString}, rc::Rc}};
-use super::blockwise::{BlockwiseStream, add_blockwise_req};
 
 //
 // gcoap client
@@ -120,20 +119,6 @@ impl ReqInner {
             out: Rc::new(RefCell::new(None)),
             _waker: Some(AtomicWaker::new()),
         }
-    }
-
-    pub fn new_blockwise(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>) -> BlockwiseStream {
-        let bs = BlockwiseStream::get();
-        Self::add_blockwise(method, addr, uri, payload);
-
-        bs
-    }
-
-    pub fn add_blockwise(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>) {
-        assert_eq!(method, COAP_METHOD_GET);
-        assert_eq!(payload, None);
-
-        add_blockwise_req(Some(ReqInner::new(method, addr, uri, payload, true)));
     }
 }
 
