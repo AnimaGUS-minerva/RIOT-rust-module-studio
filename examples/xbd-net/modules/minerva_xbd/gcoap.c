@@ -201,11 +201,16 @@ static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap
         (void)remote;
         size_t len = coap_opt_finish(pdu, COAP_OPT_FINISH_NONE);
         xbd_blockwise_hdr_update(pdu->hdr, len);
+
         xbd_blockwise_async_gcoap_req(last_addr, strlen(last_addr), last_uri, last_uri_len);
     }
     else {
         puts("--- blockwise complete ---");
+
         xbd_blockwise_hdr_update(NULL, 0);
+
+        xbd_blockwise_addr_update(NULL, 0);
+        xbd_blockwise_uri_update(NULL, 0);
         xbd_blockwise_async_gcoap_complete();
     }
 }
