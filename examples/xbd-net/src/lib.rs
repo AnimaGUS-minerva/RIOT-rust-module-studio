@@ -135,30 +135,37 @@ async fn xbd_main() {
         }
         if 1 == 1 { // fileserver, blockwise, stream
             // first, make sure non-blockwise get works
+            println!("!! sending NEW [non-blockwise-1]");
+            println!("@@ out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
+            println!("!! sending NEW [non-blockwise-2]");
             println!("@@ out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
 
             //
 
             use futures_util::stream::StreamExt;
+            let mut debug_count = 0;
 
-            println!("!! sending ... [blockwise-1]");
+            println!("!! sending NEW [blockwise-1]");
             let mut bs = Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt");
             while let Some(Some(req)) = bs.next().await {
                 println!("req: {:?}", req);
 
                 let out = req.await;
                 println!("@@ out: {:?}", out);
-            }
-            panic!("ok"); // !!!!
 
-            println!("!! sending ... [blockwise-2]");
-            // WIP multiple-static blockwise streams !!
-            let mut bs = Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt");
-            while let Some(Some(req)) = bs.next().await {
-                let out = req.await;
-                println!("@@ out: {:?}", out);
-                panic!("!!");
+                if debug_count == 2 { // !!!!
+                    println!("!! sending NEW [blockwise-2]");
+                    let mut bs = Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt");
+                    while let Some(Some(req)) = bs.next().await {
+                        let out = req.await;
+                        println!("@@ out: {:?}", out);
+                        panic!("!!");
+                    }
+                }
+
+                debug_count += 1;
             }
+            //panic!("ok"); // !!!!
         }
     }
 
