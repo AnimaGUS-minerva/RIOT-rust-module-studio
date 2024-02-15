@@ -135,11 +135,12 @@ async fn xbd_main() {
         }
         if 1 == 1 { // fileserver, blockwise, stream
             // first, make sure non-blockwise get works
+/*
             println!("!! sending NEW [non-blockwise-1]");
             println!("@@ out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
             println!("!! sending NEW [non-blockwise-2]");
             println!("@@ out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
-
+*/
             //
 
             use futures_util::stream::StreamExt;
@@ -151,21 +152,22 @@ async fn xbd_main() {
                 println!("req: {:?}", req);
 
                 let out = req.await;
-                println!("@@ out: {:?}", out);
+                println!("@@ out_1: {:?}", out);
+                debug_count += 1;
 
-                if debug_count == 2 { // !!!!
+                if debug_count == 3 { // !!!!
+                //if debug_count == 9 { // !!!! right after [blockwise-1] done
                     println!("!! sending NEW [blockwise-2]");
-                    let mut bs = Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt");
+                    let mut bs = Xbd::async_gcoap_get_blockwise_2(addr_self, "/const/song.txt");
                     while let Some(Some(req)) = bs.next().await {
                         let out = req.await;
-                        println!("@@ out: {:?}", out);
-                        panic!("!!");
+                        println!("@@ out_2: {:?}", out);
+                        //panic!("!!");
                     }
+                    //panic!("$$");
                 }
-
-                debug_count += 1;
             }
-            //panic!("ok"); // !!!!
+            panic!("ok"); // !!!!
         }
     }
 

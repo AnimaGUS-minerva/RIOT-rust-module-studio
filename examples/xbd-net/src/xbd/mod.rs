@@ -99,33 +99,43 @@ impl Xbd {
     }
 
     pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
-        Self::gcoap_req(addr, uri, COAP_METHOD_GET, None, false, cb);
+        //Self::gcoap_req(addr, uri, COAP_METHOD_GET, None, false, cb);
+        Self::gcoap_req(addr, uri, COAP_METHOD_GET, None, false, 0, cb);
     }
 
     pub fn gcoap_get_blockwise<F>(addr: &str, uri: &str, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
-        Self::gcoap_req(addr, uri, COAP_METHOD_GET, None, true, cb);
+        //Self::gcoap_req(addr, uri, COAP_METHOD_GET, None, true, cb);
+        Self::gcoap_req(addr, uri, COAP_METHOD_GET, None, true, 1, cb);
+    }
+    pub fn gcoap_get_blockwise_2<F>(addr: &str, uri: &str, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
+        Self::gcoap_req(addr, uri, COAP_METHOD_GET, None, true, 2, cb);
     }
 
     pub fn gcoap_post<F>(addr: &str, uri: &str, payload: &[u8], cb: F) where F: FnOnce(GcoapMemoState) + 'static {
-        Self::gcoap_req(addr, uri, gcoap::COAP_METHOD_POST, Some(payload), false, cb);
+        //Self::gcoap_req(addr, uri, gcoap::COAP_METHOD_POST, Some(payload), false, cb);
+        Self::gcoap_req(addr, uri, gcoap::COAP_METHOD_POST, Some(payload), false, 0, cb);
     }
 
     pub fn gcoap_put<F>(addr: &str, uri: &str, payload: &[u8], cb: F) where F: FnOnce(GcoapMemoState) + 'static {
-        Self::gcoap_req(addr, uri, gcoap::COAP_METHOD_PUT, Some(payload), false, cb);
+        //Self::gcoap_req(addr, uri, gcoap::COAP_METHOD_PUT, Some(payload), false, cb);
+        Self::gcoap_req(addr, uri, gcoap::COAP_METHOD_PUT, Some(payload), false, 0, cb);
     }
 
     fn gcoap_req<F>(addr: &str, uri: &str, method: gcoap::CoapMethod,
-                    payload: Option<&[u8]>, blockwise: bool, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
+                    //payload: Option<&[u8]>, blockwise: bool, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
+                    payload: Option<&[u8]>, blockwise: bool, blockwise_nested_id: u8, cb: F) where F: FnOnce(GcoapMemoState) + 'static {// !!!! POC hardcoded
         let payload_ptr = payload.map_or(core::ptr::null(), |payload| payload.as_ptr());
         let payload_len = payload.map_or(0, |payload| payload.len());
 
         type Ty = unsafe extern "C" fn(*const u8, *const u8, u8,
-                                       *const u8, usize, bool, *const c_void, *const c_void);
+                                       //*const u8, usize, bool, *const c_void, *const c_void);
+                                       *const u8, usize, bool, u8, *const c_void, *const c_void);// !!!! POC hardcoded
         unsafe {
             (get_xbd_fn!("xbd_gcoap_req_send", Ty))(
                 null_terminate_str!(addr).as_ptr(),
                 null_terminate_str!(uri).as_ptr(),
-                method, payload_ptr, payload_len, blockwise,
+                //method, payload_ptr, payload_len, blockwise,
+                method, payload_ptr, payload_len, blockwise, blockwise_nested_id,// !!!! POC hardcoded
                 callbacks::into_raw(cb), // context
                 Self::gcoap_req_resp_handler as *const c_void);
         }
@@ -173,6 +183,14 @@ impl Xbd {
 
         bs
     }
+    //---- !!!! POC hardcoded
+    pub fn async_gcoap_get_blockwise_2(addr: &str, uri: &str) -> BlockwiseStream {
+        let bs = BlockwiseStream::get_2();
+        blockwise::add_blockwise_2_req(Some(ReqInner::new_2(COAP_METHOD_GET, addr, uri, None, true)));
+
+        bs
+    }
+    //----
 
     pub fn async_gcoap_post(addr: &str, uri: &str, payload: &[u8]) -> impl Future<Output = GcoapMemoState> + 'static {
         gcoap::Req::new(gcoap::COAP_METHOD_POST, addr, uri, Some(payload.to_vec()))

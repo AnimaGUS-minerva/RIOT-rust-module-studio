@@ -39,6 +39,22 @@ extern void xbd_blockwise_async_gcoap_req(
         const char *last_addr, size_t last_addr_len,
         const char *last_uri, size_t last_uri_len);
 extern void xbd_blockwise_async_gcoap_complete(void);
+//---- !!!! POC hardcoded ^^
+extern char * xbd_blockwise_2_addr_ptr(void);
+extern void xbd_blockwise_2_addr_update(const char *addr, size_t addr_len);
+
+extern char * xbd_blockwise_2_uri_ptr(void);
+extern void xbd_blockwise_2_uri_update(const char *uri, size_t uri_len);
+
+extern size_t xbd_blockwise_2_hdr_copy(const uint8_t *buf, size_t buf_sz);
+extern void xbd_blockwise_2_hdr_update(const coap_hdr_t *hdr, size_t hdr_len);
+extern void xbd_blockwise_2_async_gcoap_req(
+        const char *last_addr, size_t last_addr_len,
+        const char *last_uri, size_t last_uri_len);
+extern void xbd_blockwise_2_async_gcoap_complete(void);
+
+static uint8_t blockwise_nested_id_kludge = 0;
+//---- !!!! POC hardcoded $$
 
 static size_t _send(uint8_t *buf, size_t len, char *addr_str, void *context, gcoap_resp_handler_t resp_handler) //@@
 {
@@ -76,13 +92,23 @@ static size_t _send(uint8_t *buf, size_t len, char *addr_str, void *context, gco
 
 void xbd_gcoap_req_send(
         char *addr, char *uri,
-        uint8_t method, uint8_t *payload, size_t payload_len, bool blockwise,
+        //uint8_t method, uint8_t *payload, size_t payload_len, bool blockwise,
+        uint8_t method, uint8_t *payload, size_t payload_len, bool blockwise, uint8_t blockwise_nested_id,// !!!! POC hardcoded
         void *context, gcoap_resp_handler_t resp_handler) {
     uint8_t buf[CONFIG_GCOAP_PDU_BUF_SIZE];
     size_t hdr_len;
 
-    if (blockwise && (hdr_len = xbd_blockwise_hdr_copy(&buf[0], CONFIG_GCOAP_PDU_BUF_SIZE))) {
-        printf("@@ sending non-first blockwise msg\n");
+    printf("@@ sending (blockwise_nested_id: %u)\n", blockwise_nested_id);
+    blockwise_nested_id_kludge = blockwise_nested_id;
+
+    //if (blockwise && (hdr_len = xbd_blockwise_hdr_copy(&buf[0], CONFIG_GCOAP_PDU_BUF_SIZE))) {
+    //    printf("@@ sending non-first blockwise msg\n");
+    //==== !!!! POC hardcoded
+    if (blockwise && blockwise_nested_id == 1 && (hdr_len = xbd_blockwise_hdr_copy(&buf[0], CONFIG_GCOAP_PDU_BUF_SIZE))) {
+        printf("@@ sending non-first blockwise_1 msg\n");
+    } else if (blockwise && blockwise_nested_id == 2 && (hdr_len = xbd_blockwise_2_hdr_copy(&buf[0], CONFIG_GCOAP_PDU_BUF_SIZE))) {
+        printf("@@ sending non-first blockwise_2 msg\n");
+    //====
     } else {
         coap_pkt_t pdu;
         gcoap_req_init(&pdu, &buf[0], CONFIG_GCOAP_PDU_BUF_SIZE, method, uri);
@@ -95,9 +121,17 @@ void xbd_gcoap_req_send(
     }
     printf("@@ xbd_gcoap_req_send(): addr: %s, uri: %s hdr_len: %u\n", addr, uri, hdr_len);
 
-    if (blockwise) {
+//    if (blockwise) {
+//        xbd_blockwise_addr_update(addr, strlen(addr));
+//        xbd_blockwise_uri_update(uri, strlen(uri));
+//    }
+    //==== !!!! POC hardcoded
+    if (blockwise && blockwise_nested_id == 1) {
         xbd_blockwise_addr_update(addr, strlen(addr));
         xbd_blockwise_uri_update(uri, strlen(uri));
+    } else if (blockwise && blockwise_nested_id == 2) {
+        xbd_blockwise_2_addr_update(addr, strlen(addr));
+        xbd_blockwise_2_uri_update(uri, strlen(uri));
     }
 
     printf("@@ payload: %p payload_len: %d\n", payload, payload_len);
@@ -167,8 +201,12 @@ static void _resp_handler(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
 static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
                                           const sock_udp_ep_t *remote, coap_block1_t *block) {//@@
     if (block->more) {
-        char *last_addr = xbd_blockwise_addr_ptr();
-        char *last_uri = xbd_blockwise_uri_ptr();
+//        char *last_addr = xbd_blockwise_addr_ptr();
+//        char *last_uri = xbd_blockwise_uri_ptr();
+        //==== !!!!
+        char *last_addr = blockwise_nested_id_kludge == 2 ? xbd_blockwise_2_addr_ptr(): xbd_blockwise_addr_ptr();
+        char *last_uri = blockwise_nested_id_kludge == 2 ? xbd_blockwise_2_uri_ptr() : xbd_blockwise_uri_ptr();
+
         size_t last_uri_len = strlen(last_uri);
 
         unsigned msg_type = coap_get_type(pdu);
@@ -200,18 +238,39 @@ static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap
         (void)memo;
         (void)remote;
         size_t len = coap_opt_finish(pdu, COAP_OPT_FINISH_NONE);
-        xbd_blockwise_hdr_update(pdu->hdr, len);
-
-        xbd_blockwise_async_gcoap_req(last_addr, strlen(last_addr), last_uri, last_uri_len);
+//        xbd_blockwise_hdr_update(pdu->hdr, len);
+//
+//        xbd_blockwise_async_gcoap_req(last_addr, strlen(last_addr), last_uri, last_uri_len);
+        //==== !!!!
+        blockwise_nested_id_kludge == 2 ?
+            xbd_blockwise_2_hdr_update(pdu->hdr, len) :
+            xbd_blockwise_hdr_update(pdu->hdr, len);
+        blockwise_nested_id_kludge == 2 ?
+            xbd_blockwise_2_async_gcoap_req(last_addr, strlen(last_addr), last_uri, last_uri_len) :
+            xbd_blockwise_async_gcoap_req(last_addr, strlen(last_addr), last_uri, last_uri_len);
     }
-    else {
+    else { // @@ TODO similar cleanup logic on blockwise timeout
         puts("--- blockwise complete ---");
 
-        xbd_blockwise_hdr_update(NULL, 0);
+//        xbd_blockwise_hdr_update(NULL, 0);
+//
+//        xbd_blockwise_addr_update(NULL, 0);
+//        xbd_blockwise_uri_update(NULL, 0);
+//        xbd_blockwise_async_gcoap_complete();
+        //==== !!!!
+        if (blockwise_nested_id_kludge == 2) {
+            xbd_blockwise_2_hdr_update(NULL, 0);
 
-        xbd_blockwise_addr_update(NULL, 0);
-        xbd_blockwise_uri_update(NULL, 0);
-        xbd_blockwise_async_gcoap_complete();
+            xbd_blockwise_2_addr_update(NULL, 0);
+            xbd_blockwise_2_uri_update(NULL, 0);
+            xbd_blockwise_2_async_gcoap_complete();
+        } else {
+            xbd_blockwise_hdr_update(NULL, 0);
+
+            xbd_blockwise_addr_update(NULL, 0);
+            xbd_blockwise_uri_update(NULL, 0);
+            xbd_blockwise_async_gcoap_complete();
+        }
     }
 }
 

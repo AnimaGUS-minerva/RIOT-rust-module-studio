@@ -65,16 +65,11 @@ pub extern fn xbd_blockwise_async_gcoap_complete() {
 
 //
 
-// FIXME
-/* Retain request path to re-request if response includes block. User must not
- * start a new request (with a new path) until any blockwise transfer
- * completes or times out. */
 const LAST_BLOCKWISE_ADDR_MAX: usize = 64;
 const LAST_BLOCKWISE_URI_MAX: usize = 64;
 static mut LAST_BLOCKWISE_ADDR: &'static mut [u8] = &mut [0; LAST_BLOCKWISE_ADDR_MAX];
 static mut LAST_BLOCKWISE_URI: &'static mut [u8] = &mut [0; LAST_BLOCKWISE_URI_MAX];
 
-// TODO extension for multiple blockwise msg (ID) contexts
 const LAST_BLOCKWISE_HDR_MAX: usize = 64;
 static mut LAST_BLOCKWISE_HDR: &'static mut [u8] = &mut [0; LAST_BLOCKWISE_HDR_MAX];
 static mut LAST_BLOCKWISE_LEN: usize = 0;
@@ -108,6 +103,90 @@ fn blockwise_hdr_copy(buf: &mut [u8]) {
     }
 }
 
+//---- !!!! POC hardcoded ^^
+#[no_mangle]
+pub extern fn xbd_blockwise_2_addr_ptr() -> *const c_void {
+    unsafe { LAST_BLOCKWISE_2_ADDR.as_ptr() as _ }
+}
+
+#[no_mangle]
+pub extern fn xbd_blockwise_2_uri_ptr() -> *const c_void {
+    unsafe { LAST_BLOCKWISE_2_URI.as_ptr() as _ }
+}
+
+#[no_mangle]
+pub extern fn xbd_blockwise_2_addr_update(addr: *const c_void, addr_len: usize) {
+    let addr = u8_slice_from(addr as *const u8, addr_len);
+    unsafe { blockwise_metadata_update(addr, LAST_BLOCKWISE_2_ADDR, LAST_BLOCKWISE_2_ADDR_MAX); }
+}
+
+#[no_mangle]
+pub extern fn xbd_blockwise_2_uri_update(uri: *const c_void, uri_len: usize) {
+    let uri = u8_slice_from(uri as *const u8, uri_len);
+    unsafe { blockwise_metadata_update(uri, LAST_BLOCKWISE_2_URI, LAST_BLOCKWISE_2_URI_MAX); }
+}
+
+#[no_mangle]
+pub extern fn xbd_blockwise_2_hdr_copy(buf: *mut u8, buf_sz: usize) -> usize {
+    let len = blockwise_2_hdr_len();
+    if len > 0 {
+        blockwise_2_hdr_copy(u8_slice_mut_from(buf, buf_sz));
+    }
+
+    len
+}
+
+#[no_mangle]
+pub extern fn xbd_blockwise_2_hdr_update(hdr: *const c_void, hdr_len: usize) {
+    blockwise_2_hdr_update(u8_slice_from(hdr as *const u8, hdr_len));
+}
+
+#[no_mangle]
+pub extern fn xbd_blockwise_2_async_gcoap_req(
+    last_addr: *const c_void, last_addr_len: usize,
+    last_uri: *const c_void, last_uri_len: usize)
+{
+    let addr = from_utf8(u8_slice_from(last_addr as *const u8, last_addr_len)).unwrap();
+    let uri = from_utf8(u8_slice_from(last_uri as *const u8, last_uri_len)).unwrap();
+    let req = ReqInner::new_2(COAP_METHOD_GET, addr, uri, None, true);
+
+    add_blockwise_2_req(Some(req));
+}
+
+#[no_mangle]
+pub extern fn xbd_blockwise_2_async_gcoap_complete() {
+    add_blockwise_2_req(None);
+}
+
+const LAST_BLOCKWISE_2_ADDR_MAX: usize = 64;
+const LAST_BLOCKWISE_2_URI_MAX: usize = 64;
+static mut LAST_BLOCKWISE_2_ADDR: &'static mut [u8] = &mut [0; LAST_BLOCKWISE_2_ADDR_MAX];
+static mut LAST_BLOCKWISE_2_URI: &'static mut [u8] = &mut [0; LAST_BLOCKWISE_2_URI_MAX];
+
+const LAST_BLOCKWISE_2_HDR_MAX: usize = 64;
+static mut LAST_BLOCKWISE_2_HDR: &'static mut [u8] = &mut [0; LAST_BLOCKWISE_2_HDR_MAX];
+static mut LAST_BLOCKWISE_2_LEN: usize = 0;
+
+fn blockwise_2_hdr_update(hdr: &[u8]) {
+    unsafe {
+        LAST_BLOCKWISE_2_LEN = blockwise_metadata_update(
+            hdr, LAST_BLOCKWISE_2_HDR, LAST_BLOCKWISE_2_HDR_MAX);
+    }
+}
+
+fn blockwise_2_hdr_len() -> usize {
+    unsafe { LAST_BLOCKWISE_2_LEN }
+}
+
+fn blockwise_2_hdr_copy(buf: &mut [u8]) {
+    unsafe {
+        let len = LAST_BLOCKWISE_2_LEN;
+        buf[..len].
+            copy_from_slice(&LAST_BLOCKWISE_2_HDR[..len]);
+    }
+}
+//---- !!!! POC hardcoded $$
+
 //
 
 pub static BLOCKWISE_QUEUE: OnceCell<ArrayQueue<Option<ReqInner>>> = OnceCell::uninit();
@@ -116,6 +195,14 @@ pub static BLOCKWISE_WAKER: AtomicWaker = AtomicWaker::new();
 pub fn add_blockwise_req(req: Option<ReqInner>) {
     XbdStream::add(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER, req);
 }
+//---- !!!! POC hardcoded ^^
+pub static BLOCKWISE_2_QUEUE: OnceCell<ArrayQueue<Option<ReqInner>>> = OnceCell::uninit();
+pub static BLOCKWISE_2_WAKER: AtomicWaker = AtomicWaker::new();
+
+pub fn add_blockwise_2_req(req: Option<ReqInner>) {
+    XbdStream::add(&BLOCKWISE_2_QUEUE, &BLOCKWISE_2_WAKER, req);
+}
+//---- !!!! POC hardcoded $$
 
 pub struct BlockwiseStream(XbdStream<Option<ReqInner>>);
 
@@ -123,6 +210,11 @@ impl BlockwiseStream {
     pub fn get() -> Self {
         XbdStream::get(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER)
             .map_or_else(|| Self(XbdStream::new(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER)),
+                         |xs| Self(xs))
+    }
+    pub fn get_2() -> Self { // !!!! POC hardcoded
+        XbdStream::get(&BLOCKWISE_2_QUEUE, &BLOCKWISE_2_WAKER)
+            .map_or_else(|| Self(XbdStream::new(&BLOCKWISE_2_QUEUE, &BLOCKWISE_2_WAKER)),
                          |xs| Self(xs))
     }
 }

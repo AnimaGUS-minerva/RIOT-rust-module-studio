@@ -101,6 +101,7 @@ impl Future for Req {
 pub struct ReqInner {
     method: CoapMethod,
     blockwise: bool,
+    blockwise_nested_id: u8,// !!!! POC hardcoded
     addr: String,
     uri: String,
     payload: Option<Vec<u8>>,
@@ -113,6 +114,19 @@ impl ReqInner {
         ReqInner {
             method,
             blockwise,
+            blockwise_nested_id: 1u8,// !!!! POC hardcoded
+            addr: addr.to_string(),
+            uri: uri.to_string(),
+            payload,
+            out: Rc::new(RefCell::new(None)),
+            _waker: Some(AtomicWaker::new()),
+        }
+    }
+    pub fn new_2(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>, blockwise: bool) -> Self {
+        ReqInner {
+            method,
+            blockwise,
+            blockwise_nested_id: 2u8,// !!!! POC hardcoded
             addr: addr.to_string(),
             uri: uri.to_string(),
             payload,
@@ -137,7 +151,13 @@ impl Future for ReqInner {
             match self.method {
                 COAP_METHOD_GET => {
                     if self.blockwise {
-                        super::Xbd::gcoap_get_blockwise(&self.addr, &self.uri, cb);
+                        //super::Xbd::gcoap_get_blockwise(&self.addr, &self.uri, cb);
+                        //==== !!!! POC hardcoded
+                        match self.blockwise_nested_id {
+                            1 => super::Xbd::gcoap_get_blockwise(&self.addr, &self.uri, cb),
+                            2 => super::Xbd::gcoap_get_blockwise_2(&self.addr, &self.uri, cb),
+                            _ => unreachable!(),
+                        };
                     } else {
                         super::Xbd::gcoap_get(&self.addr, &self.uri, cb);
                     }
