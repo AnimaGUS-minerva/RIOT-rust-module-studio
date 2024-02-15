@@ -205,6 +205,7 @@ static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap
     }
     else {
         puts("--- blockwise complete ---");
+        xbd_blockwise_hdr_update(NULL, 0);
         xbd_blockwise_async_gcoap_complete();
     }
 }
