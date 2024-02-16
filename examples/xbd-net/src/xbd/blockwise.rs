@@ -209,12 +209,12 @@ pub struct BlockwiseStream(XbdStream<Option<ReqInner>>);
 impl BlockwiseStream {
     pub fn get() -> Self {
         XbdStream::get(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER)
-            .map_or_else(|| Self(XbdStream::new(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER)),
+            .map_or_else(|| Self(XbdStream::new_with_cap(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER, 1)),
                          |xs| Self(xs))
     }
     pub fn get_2() -> Self { // !!!! POC hardcoded
         XbdStream::get(&BLOCKWISE_2_QUEUE, &BLOCKWISE_2_WAKER)
-            .map_or_else(|| Self(XbdStream::new(&BLOCKWISE_2_QUEUE, &BLOCKWISE_2_WAKER)),
+            .map_or_else(|| Self(XbdStream::new_with_cap(&BLOCKWISE_2_QUEUE, &BLOCKWISE_2_WAKER, 1)),
                          |xs| Self(xs))
     }
 }

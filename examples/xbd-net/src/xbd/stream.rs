@@ -12,7 +12,11 @@ const QUEUE_CAP_DEFAULT: usize = 100;
 
 impl<T> XbdStream<T> {
     pub fn new(queue: &'static OnceCell<ArrayQueue<T>>, waker: &'static AtomicWaker) -> Self {
-        queue.try_init_once(|| ArrayQueue::new(QUEUE_CAP_DEFAULT))
+        Self::new_with_cap(queue, waker, QUEUE_CAP_DEFAULT)
+    }
+
+    pub fn new_with_cap(queue: &'static OnceCell<ArrayQueue<T>>, waker: &'static AtomicWaker, cap: usize) -> Self {
+        queue.try_init_once(|| ArrayQueue::new(cap))
             .expect("XbdStream::new should only be called once");
 
         XbdStream { queue, waker }
