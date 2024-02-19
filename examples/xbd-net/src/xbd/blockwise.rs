@@ -204,58 +204,49 @@ pub fn add_blockwise_2_req(req: Option<ReqInner>) {
 }
 //---- !!!! POC hardcoded $$
 const BLOCKWISE_STATES_MAX: usize = 4;
-pub static BLOCKWISE_STATES: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
-// !!!! (idx: u8) -> (idx: isize, used: bool, metadata: _)
+//pub static BLOCKWISE_STATES: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
+// !!!! (idx: u8) -> (blockwise_nested_id: Option<isize>, metadata: _)
 
-/* !! WIP
-//pub static BLOCKWISE_STATES00: OnceCell<&'static mut [(isize, bool)]> = OnceCell::uninit();
-static mut STATES00: &'static mut [(isize, bool)] = &mut [(-1, false); BLOCKWISE_STATES_MAX];
-*/
+static mut STATES00: &'static mut [(Option<usize>, u8)] = &mut [(None, 42); BLOCKWISE_STATES_MAX];
 
-pub fn add_blockwise_req_generic(req: Option<ReqInner>) -> Option<BlockwiseStream> {
+pub fn add_blockwise_req_generic(addr: &str, uri: &str) -> Option<BlockwiseStream> {
+/*
     if BLOCKWISE_STATES.get().is_none() {
         BLOCKWISE_STATES
             .try_init_once(|| ArrayQueue::new(BLOCKWISE_STATES_MAX))
             .unwrap();
     }
     let stats = BLOCKWISE_STATES.get().unwrap();
+*/
 
-    /* !! WIP
-    // if BLOCKWISE_STATES00.get().is_none() {
-    //     BLOCKWISE_STATES00
-    //         .try_init_once(|| unsafe { STATES00 })
-    //         .unwrap();
-    // }
-    // let stats00 = BLOCKWISE_STATES00.get().unwrap();
-    // if 1 == 1 { panic!("!! {:?}", stats00); }
-    */
+    (unsafe { &mut STATES00 })[0] = (Some(0), 99); // !!!! KLUDGE placeholder
 
-    // //if let Some(_stat) = stats00.get_unused() { // !!!!  todo - stream backend switching
-    //if let Some(_stat) = STATES00.get_unused() { // !!!!  todo - stream backend switching
-    if 1 == 1 { // !!!!
-        match stats.len() { // !!!! TEMP
-            0 => {
-                stats.push(0).unwrap(); // push bs index 0
+    if let Some((idx, stat)) = unsafe { &mut STATES00 }.iter_mut().enumerate().find(|x| x.1.0.is_none()) {
+        *stat = (Some(idx), 43);
+        crate::println!("sending, where STATES00: {:?}", unsafe { &STATES00 });
+        //panic!("!!");
 
+        match idx { // !!!! KLUDGE hardcoded
+            0 => todo!(),
+            1 => {
                 let bs = BlockwiseStream::get(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER);
-                XbdStream::add(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER, req);
+                XbdStream::add(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER,
+                               Some(ReqInner::new(COAP_METHOD_GET, addr, uri, None, true)));
 
                 Some(bs)
             },
-            1 => {
-                stats.push(1).unwrap(); // push bs index 1
-
+            2 => {
                 let bs = BlockwiseStream::get(&BLOCKWISE_2_QUEUE, &BLOCKWISE_2_WAKER);
-                XbdStream::add(&BLOCKWISE_2_QUEUE, &BLOCKWISE_2_WAKER, req);
+                XbdStream::add(&BLOCKWISE_2_QUEUE, &BLOCKWISE_2_WAKER,
+                               Some(ReqInner::new_2(COAP_METHOD_GET, addr, uri, None, true)));
 
                 Some(bs)
             },
             _ => unreachable!(),
         }
     } else {
-        None
+        return None;
     }
-
 }
 //---- !!!! POC generic $$
 

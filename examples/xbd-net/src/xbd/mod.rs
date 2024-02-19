@@ -16,7 +16,7 @@ mod timeout;
 use timeout::Timeout;
 
 mod gcoap;
-use gcoap::{ReqInner, COAP_METHOD_GET};
+use gcoap::COAP_METHOD_GET;
 pub use gcoap::GcoapMemoState;
 
 use core::future::Future;
@@ -178,15 +178,8 @@ impl Xbd {
     }
 
     pub fn async_gcoap_get_blockwise(addr: &str, uri: &str) -> Option<BlockwiseStream> {
-        blockwise::add_blockwise_req_generic(
-            Some(ReqInner::new(COAP_METHOD_GET, addr, uri, None, true)))
+        blockwise::add_blockwise_req_generic(addr, uri)
     }
-    //---- !!!! POC hardcoded
-    pub fn async_gcoap_get_blockwise_2(addr: &str, uri: &str) -> Option<BlockwiseStream> {
-        blockwise::add_blockwise_req_generic(
-            Some(ReqInner::new_2(COAP_METHOD_GET, addr, uri, None, true)))
-    }
-    //----
 
     pub fn async_gcoap_post(addr: &str, uri: &str, payload: &[u8]) -> impl Future<Output = GcoapMemoState> + 'static {
         gcoap::Req::new(gcoap::COAP_METHOD_POST, addr, uri, Some(payload.to_vec()))

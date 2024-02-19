@@ -158,7 +158,7 @@ async fn xbd_main() {
                 if debug_count == 3 { // !!!!
                 //if debug_count == 9 { // !!!! right after [blockwise-1] done
                     println!("!! sending NEW [blockwise-2]");
-                    let mut bs = Xbd::async_gcoap_get_blockwise_2(addr_self, "/const/song.txt").unwrap();
+                    let mut bs = Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt").unwrap();
                     while let Some(Some(req)) = bs.next().await {
                         let out = req.await;
                         println!("@@ out_2: {:?}", out);
