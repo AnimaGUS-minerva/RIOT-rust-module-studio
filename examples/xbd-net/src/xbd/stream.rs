@@ -3,6 +3,7 @@ use core::{pin::Pin, task::{Context, Poll}};
 use crossbeam_queue::ArrayQueue;
 use futures_util::{stream::Stream, task::AtomicWaker};
 
+#[derive(Debug)]
 pub struct XbdStream<T: 'static> {
     queue: &'static OnceCell<ArrayQueue<T>>,
     waker: &'static AtomicWaker,

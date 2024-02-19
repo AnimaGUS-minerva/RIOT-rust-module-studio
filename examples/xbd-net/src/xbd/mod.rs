@@ -10,7 +10,7 @@ pub use server::{start_gcoap_server, process_gcoap_server_stream};
 mod stream;
 
 mod blockwise;
-use blockwise::{BlockwiseStream, add_blockwise_req};
+use blockwise::BlockwiseStream;
 
 mod timeout;
 use timeout::Timeout;
@@ -177,18 +177,14 @@ impl Xbd {
         gcoap::Req::new(COAP_METHOD_GET, addr, uri, None)
     }
 
-    pub fn async_gcoap_get_blockwise(addr: &str, uri: &str) -> BlockwiseStream {
-        let bs = BlockwiseStream::get();
-        add_blockwise_req(Some(ReqInner::new(COAP_METHOD_GET, addr, uri, None, true)));
-
-        bs
+    pub fn async_gcoap_get_blockwise(addr: &str, uri: &str) -> Option<BlockwiseStream> {
+        blockwise::add_blockwise_req_generic(
+            Some(ReqInner::new(COAP_METHOD_GET, addr, uri, None, true)))
     }
     //---- !!!! POC hardcoded
-    pub fn async_gcoap_get_blockwise_2(addr: &str, uri: &str) -> BlockwiseStream {
-        let bs = BlockwiseStream::get_2();
-        blockwise::add_blockwise_2_req(Some(ReqInner::new_2(COAP_METHOD_GET, addr, uri, None, true)));
-
-        bs
+    pub fn async_gcoap_get_blockwise_2(addr: &str, uri: &str) -> Option<BlockwiseStream> {
+        blockwise::add_blockwise_req_generic(
+            Some(ReqInner::new_2(COAP_METHOD_GET, addr, uri, None, true)))
     }
     //----
 

@@ -55,12 +55,12 @@ pub extern fn xbd_blockwise_async_gcoap_req(
     let uri = from_utf8(u8_slice_from(last_uri as *const u8, last_uri_len)).unwrap();
     let req = ReqInner::new(COAP_METHOD_GET, addr, uri, None, true);
 
-    add_blockwise_req(Some(req));
+    add_blockwise_req(Some(req)); // !! todo use add_blockwise_req_generic
 }
 
 #[no_mangle]
 pub extern fn xbd_blockwise_async_gcoap_complete() {
-    add_blockwise_req(None);
+    add_blockwise_req(None); // !! todo use add_blockwise_req_generic
 }
 
 //
@@ -150,12 +150,12 @@ pub extern fn xbd_blockwise_2_async_gcoap_req(
     let uri = from_utf8(u8_slice_from(last_uri as *const u8, last_uri_len)).unwrap();
     let req = ReqInner::new_2(COAP_METHOD_GET, addr, uri, None, true);
 
-    add_blockwise_2_req(Some(req));
+    add_blockwise_2_req(Some(req)); // !! todo use add_blockwise_req_generic
 }
 
 #[no_mangle]
 pub extern fn xbd_blockwise_2_async_gcoap_complete() {
-    add_blockwise_2_req(None);
+    add_blockwise_2_req(None); // !! todo use add_blockwise_req_generic
 }
 
 const LAST_BLOCKWISE_2_ADDR_MAX: usize = 64;
@@ -192,7 +192,7 @@ fn blockwise_2_hdr_copy(buf: &mut [u8]) {
 pub static BLOCKWISE_QUEUE: OnceCell<ArrayQueue<Option<ReqInner>>> = OnceCell::uninit();
 pub static BLOCKWISE_WAKER: AtomicWaker = AtomicWaker::new();
 
-pub fn add_blockwise_req(req: Option<ReqInner>) {
+pub fn add_blockwise_req(req: Option<ReqInner>) { // !! todo use add_blockwise_req_generic
     XbdStream::add(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER, req);
 }
 //---- !!!! POC hardcoded ^^
@@ -203,19 +203,69 @@ pub fn add_blockwise_2_req(req: Option<ReqInner>) {
     XbdStream::add(&BLOCKWISE_2_QUEUE, &BLOCKWISE_2_WAKER, req);
 }
 //---- !!!! POC hardcoded $$
+const BLOCKWISE_STATES_MAX: usize = 4;
+pub static BLOCKWISE_STATES: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
+// !!!! (idx: u8) -> (idx: isize, used: bool, metadata: _)
 
+/* !! WIP
+//pub static BLOCKWISE_STATES00: OnceCell<&'static mut [(isize, bool)]> = OnceCell::uninit();
+static mut STATES00: &'static mut [(isize, bool)] = &mut [(-1, false); BLOCKWISE_STATES_MAX];
+*/
+
+pub fn add_blockwise_req_generic(req: Option<ReqInner>) -> Option<BlockwiseStream> {
+    if BLOCKWISE_STATES.get().is_none() {
+        BLOCKWISE_STATES
+            .try_init_once(|| ArrayQueue::new(BLOCKWISE_STATES_MAX))
+            .unwrap();
+    }
+    let stats = BLOCKWISE_STATES.get().unwrap();
+
+    /* !! WIP
+    // if BLOCKWISE_STATES00.get().is_none() {
+    //     BLOCKWISE_STATES00
+    //         .try_init_once(|| unsafe { STATES00 })
+    //         .unwrap();
+    // }
+    // let stats00 = BLOCKWISE_STATES00.get().unwrap();
+    // if 1 == 1 { panic!("!! {:?}", stats00); }
+    */
+
+    // //if let Some(_stat) = stats00.get_unused() { // !!!!  todo - stream backend switching
+    //if let Some(_stat) = STATES00.get_unused() { // !!!!  todo - stream backend switching
+    if 1 == 1 { // !!!!
+        match stats.len() { // !!!! TEMP
+            0 => {
+                stats.push(0).unwrap(); // push bs index 0
+
+                let bs = BlockwiseStream::get(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER);
+                XbdStream::add(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER, req);
+
+                Some(bs)
+            },
+            1 => {
+                stats.push(1).unwrap(); // push bs index 1
+
+                let bs = BlockwiseStream::get(&BLOCKWISE_2_QUEUE, &BLOCKWISE_2_WAKER);
+                XbdStream::add(&BLOCKWISE_2_QUEUE, &BLOCKWISE_2_WAKER, req);
+
+                Some(bs)
+            },
+            _ => unreachable!(),
+        }
+    } else {
+        None
+    }
+
+}
+//---- !!!! POC generic $$
+
+#[derive(Debug)]
 pub struct BlockwiseStream(XbdStream<Option<ReqInner>>);
 
 impl BlockwiseStream {
-    pub fn get() -> Self {
-        XbdStream::get(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER)
-            .map_or_else(|| Self(XbdStream::new_with_cap(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER, 1)),
-                         |xs| Self(xs))
-    }
-    pub fn get_2() -> Self { // !!!! POC hardcoded
-        XbdStream::get(&BLOCKWISE_2_QUEUE, &BLOCKWISE_2_WAKER)
-            .map_or_else(|| Self(XbdStream::new_with_cap(&BLOCKWISE_2_QUEUE, &BLOCKWISE_2_WAKER, 1)),
-                         |xs| Self(xs))
+    pub fn get(queue: &'static OnceCell<ArrayQueue<Option<ReqInner>>>, waker: &'static AtomicWaker) -> Self {
+        XbdStream::get(&queue, &waker).map_or_else(
+            || Self(XbdStream::new_with_cap(&queue, &waker, 1)), |xs| Self(xs))
     }
 }
 
