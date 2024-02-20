@@ -55,12 +55,12 @@ pub extern fn xbd_blockwise_async_gcoap_req(
     let uri = from_utf8(u8_slice_from(last_uri as *const u8, last_uri_len)).unwrap();
     let req = ReqInner::new(COAP_METHOD_GET, addr, uri, None, true);
 
-    add_blockwise_req(Some(req)); // !! todo use add_blockwise_req_generic
+    add_blockwise_req_1(Some(req)); // !! todo use add_blockwise_req_generic
 }
 
 #[no_mangle]
 pub extern fn xbd_blockwise_async_gcoap_complete() {
-    add_blockwise_req(None); // !! todo use add_blockwise_req_generic
+    add_blockwise_req_1(None); // !! todo use add_blockwise_req_generic
 }
 
 //
@@ -150,12 +150,12 @@ pub extern fn xbd_blockwise_2_async_gcoap_req(
     let uri = from_utf8(u8_slice_from(last_uri as *const u8, last_uri_len)).unwrap();
     let req = ReqInner::new_2(COAP_METHOD_GET, addr, uri, None, true);
 
-    add_blockwise_2_req(Some(req)); // !! todo use add_blockwise_req_generic
+    add_blockwise_req_2(Some(req)); // !! todo use add_blockwise_req_generic
 }
 
 #[no_mangle]
 pub extern fn xbd_blockwise_2_async_gcoap_complete() {
-    add_blockwise_2_req(None); // !! todo use add_blockwise_req_generic
+    add_blockwise_req_2(None); // !! todo use add_blockwise_req_generic
 }
 
 const LAST_BLOCKWISE_2_ADDR_MAX: usize = 64;
@@ -192,22 +192,22 @@ fn blockwise_2_hdr_copy(buf: &mut [u8]) {
 pub static BLOCKWISE_QUEUE: OnceCell<ArrayQueue<Option<ReqInner>>> = OnceCell::uninit();
 pub static BLOCKWISE_WAKER: AtomicWaker = AtomicWaker::new();
 
-pub fn add_blockwise_req(req: Option<ReqInner>) { // !! todo use add_blockwise_req_generic
+pub fn add_blockwise_req_1(req: Option<ReqInner>) { // !! todo use add_blockwise_req_generic
     XbdStream::add(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER, req);
 }
 //---- !!!! POC hardcoded ^^
 pub static BLOCKWISE_2_QUEUE: OnceCell<ArrayQueue<Option<ReqInner>>> = OnceCell::uninit();
 pub static BLOCKWISE_2_WAKER: AtomicWaker = AtomicWaker::new();
 
-pub fn add_blockwise_2_req(req: Option<ReqInner>) {
+pub fn add_blockwise_req_2(req: Option<ReqInner>) {
     XbdStream::add(&BLOCKWISE_2_QUEUE, &BLOCKWISE_2_WAKER, req);
 }
 //---- !!!! POC hardcoded $$
 const BLOCKWISE_STATES_MAX: usize = 4;
 //pub static BLOCKWISE_STATES: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
-// !!!! (idx: u8) -> (blockwise_nested_id: Option<isize>, metadata: _)
 
-static mut STATES00: &'static mut [(Option<usize>, u8)] = &mut [(None, 42); BLOCKWISE_STATES_MAX];
+type Stat = u8; // !! todo
+static mut STATES00: &'static mut [Option<Stat>] = &mut [None; BLOCKWISE_STATES_MAX];
 
 pub fn add_blockwise_req_generic(addr: &str, uri: &str) -> Option<BlockwiseStream> {
 /*
@@ -219,10 +219,10 @@ pub fn add_blockwise_req_generic(addr: &str, uri: &str) -> Option<BlockwiseStrea
     let stats = BLOCKWISE_STATES.get().unwrap();
 */
 
-    (unsafe { &mut STATES00 })[0] = (Some(0), 99); // !!!! KLUDGE placeholder
+    (unsafe { &mut STATES00 })[0] = Some(99); // !!!! KLUDGE placeholder
 
-    if let Some((idx, stat)) = unsafe { &mut STATES00 }.iter_mut().enumerate().find(|x| x.1.0.is_none()) {
-        *stat = (Some(idx), 43);
+    if let Some((idx, stat)) = unsafe { &mut STATES00 }.iter_mut().enumerate().find(|x| x.1.is_none()) {
+        *stat = Some(99);
         crate::println!("sending, where STATES00: {:?}", unsafe { &STATES00 });
         //panic!("!!");
 
