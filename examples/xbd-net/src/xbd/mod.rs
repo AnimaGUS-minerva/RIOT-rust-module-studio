@@ -123,12 +123,14 @@ impl Xbd {
         type Ty = unsafe extern "C" fn(
             *const u8, *const u8, u8,
             *const u8, usize, bool, usize, *const c_void, *const c_void);
+        assert!(blockwise || blockwise_state_index.is_none());
+
         unsafe {
             (get_xbd_fn!("xbd_gcoap_req_send", Ty))(
                 null_terminate_str!(addr).as_ptr(),
                 null_terminate_str!(uri).as_ptr(),
                 method, payload_ptr, payload_len,
-                blockwise, blockwise_state_index.unwrap_or(0),
+                blockwise, blockwise_state_index.unwrap_or(0 /* to be ignored */),
                 callbacks::into_raw(cb), // context
                 Self::gcoap_req_resp_handler as *const c_void);
         }
