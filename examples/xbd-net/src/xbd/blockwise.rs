@@ -186,13 +186,15 @@ static mut STATES00: &'static mut [Option<Stat>] = &mut [None; BLOCKWISE_STATES_
 pub fn add_blockwise_req_generic(
     addr_uri: Option<(&str, &str)>, blockwise_state_index: Option<usize>) -> Option<BlockwiseStream> {
 
+    let resolve_qw = |idx| match idx { // KLUDGE !! to be rectified
+        0 => todo!(),
+        1 => (&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER),
+        2 => (&BLOCKWISE_2_QUEUE, &BLOCKWISE_2_WAKER),
+        _ => unreachable!(),
+    };
+
     if let Some(idx) = blockwise_state_index {
-        let (queue, waker) = match idx { // KLUDGE !! todo
-            0 => todo!(),
-            1 => (&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER),
-            2 => (&BLOCKWISE_2_QUEUE, &BLOCKWISE_2_WAKER),
-            _ => unreachable!(),
-        };
+        let (queue, waker) = resolve_qw(idx);
 
         if let Some((addr, uri)) = addr_uri { // blockwise NEXT
             let req = ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx));
@@ -220,31 +222,19 @@ pub fn add_blockwise_req_generic(
     (unsafe { &mut STATES00 })[0] = Some(99); // !!!! KLUDGE placeholder
 
     if let Some((idx, stat)) = unsafe { &mut STATES00 }.iter_mut().enumerate().find(|x| x.1.is_none()) {
-        *stat = Some(99);
+        *stat = Some(99); // todo - metadata stuff
         crate::println!("sending, where STATES00: {:?}", unsafe { &STATES00 });
-        //panic!("!!");
 
         let (addr, uri) = addr_uri.unwrap();
-        match idx { // !!!! KLUDGE hardcoded
-            0 => todo!(),
-            1 => {
-                let bs = BlockwiseStream::get(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER);
-                XbdStream::add(&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER,
-                               Some(ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx))));
+        let (queue, waker) = resolve_qw(idx);
 
-                Some(bs)
-            },
-            2 => {
-                let bs = BlockwiseStream::get(&BLOCKWISE_2_QUEUE, &BLOCKWISE_2_WAKER);
-                XbdStream::add(&BLOCKWISE_2_QUEUE, &BLOCKWISE_2_WAKER,
-                               Some(ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx))));
+        let bs = BlockwiseStream::get(queue, waker);
+        let req = ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx));
+        XbdStream::add(queue, waker, Some(req));
 
-                Some(bs)
-            },
-            _ => unreachable!(),
-        }
-    } else {
-        return None;
+        Some(bs)
+    } else { // STATES00 is full
+        None
     }
 }
 //---- !!!! POC generic $$
