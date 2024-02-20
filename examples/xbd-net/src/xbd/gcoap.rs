@@ -71,7 +71,7 @@ pub enum Req {
 
 impl Req {
     pub fn new(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>) -> Self {
-        let inner = ReqInner::new(method, addr, uri, payload, false);
+        let inner = ReqInner::new(method, addr, uri, payload, false, None);
 
         match method {
             COAP_METHOD_GET => Self::Get(inner),
@@ -101,7 +101,7 @@ impl Future for Req {
 pub struct ReqInner {
     method: CoapMethod,
     blockwise: bool,
-    blockwise_nested_id: u8,// !!!! POC hardcoded
+    blockwise_state_index: Option<usize>,
     addr: String,
     uri: String,
     payload: Option<Vec<u8>>,
@@ -110,23 +110,11 @@ pub struct ReqInner {
 }
 
 impl ReqInner {
-    pub fn new(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>, blockwise: bool) -> Self {
+    pub fn new(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>, blockwise: bool, blockwise_state_index: Option<usize>) -> Self {
         ReqInner {
             method,
             blockwise,
-            blockwise_nested_id: 1u8,// !!!! POC hardcoded
-            addr: addr.to_string(),
-            uri: uri.to_string(),
-            payload,
-            out: Rc::new(RefCell::new(None)),
-            _waker: Some(AtomicWaker::new()),
-        }
-    }
-    pub fn new_2(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>, blockwise: bool) -> Self {
-        ReqInner {
-            method,
-            blockwise,
-            blockwise_nested_id: 2u8,// !!!! POC hardcoded
+            blockwise_state_index,
             addr: addr.to_string(),
             uri: uri.to_string(),
             payload,
@@ -153,7 +141,7 @@ impl Future for ReqInner {
                     if self.blockwise {
                         //super::Xbd::gcoap_get_blockwise(&self.addr, &self.uri, cb);
                         //==== !!!! POC hardcoded
-                        match self.blockwise_nested_id {
+                        match self.blockwise_state_index.unwrap() {
                             1 => super::Xbd::gcoap_get_blockwise(&self.addr, &self.uri, cb),
                             2 => super::Xbd::gcoap_get_blockwise_2(&self.addr, &self.uri, cb),
                             _ => unreachable!(),
