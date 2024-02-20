@@ -135,12 +135,12 @@ async fn xbd_main() {
         }
         if 1 == 1 { // fileserver, blockwise, stream
             // first, make sure non-blockwise get works
-/*
+
             println!("!! sending NEW [non-blockwise-1]");
             println!("@@ out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
             println!("!! sending NEW [non-blockwise-2]");
             println!("@@ out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
-*/
+
             //
 
             use futures_util::stream::StreamExt;

@@ -89,17 +89,15 @@ static size_t _send(uint8_t *buf, size_t len, char *addr_str, void *context, gco
 
 void xbd_gcoap_req_send(
         char *addr, char *uri,
-        uint8_t method, uint8_t *payload, size_t payload_len, bool blockwise, uint8_t blockwise_state_index,// !!!! POC hardcoded
+        uint8_t method, uint8_t *payload, size_t payload_len,
+        bool blockwise, size_t blockwise_state_index,
         void *context, gcoap_resp_handler_t resp_handler) {
     uint8_t buf[CONFIG_GCOAP_PDU_BUF_SIZE];
     size_t hdr_len;
 
-    printf("@@ sending (blockwise_state_index: %u)\n", blockwise_state_index);
-    blockwise_state_index_last = blockwise_state_index;
-
     //if (blockwise && (hdr_len = xbd_blockwise_hdr_copy(&buf[0], CONFIG_GCOAP_PDU_BUF_SIZE))) {
     //    printf("@@ sending non-first blockwise msg\n");
-    //==== !!!! POC hardcoded
+    //==== !!!! POC hardcoded -- todo
     if (blockwise && blockwise_state_index == 1 && (hdr_len = xbd_blockwise_hdr_copy(&buf[0], CONFIG_GCOAP_PDU_BUF_SIZE))) {
         printf("@@ sending non-first blockwise_1 msg\n");
     } else if (blockwise && blockwise_state_index == 2 && (hdr_len = xbd_blockwise_2_hdr_copy(&buf[0], CONFIG_GCOAP_PDU_BUF_SIZE))) {
@@ -121,14 +119,20 @@ void xbd_gcoap_req_send(
 //        xbd_blockwise_addr_update(addr, strlen(addr));
 //        xbd_blockwise_uri_update(uri, strlen(uri));
 //    }
-    //==== !!!! POC hardcoded
-    if (blockwise && blockwise_state_index == 1) {
-        xbd_blockwise_addr_update(addr, strlen(addr));
-        xbd_blockwise_uri_update(uri, strlen(uri));
-    } else if (blockwise && blockwise_state_index == 2) {
-        xbd_blockwise_2_addr_update(addr, strlen(addr));
-        xbd_blockwise_2_uri_update(uri, strlen(uri));
+    //==== !!!! POC hardcoded -- todo
+    if (blockwise) {
+        printf("@@ sending (blockwise_state_index: %u)\n", blockwise_state_index);
+        blockwise_state_index_last = blockwise_state_index;
+
+        if (blockwise_state_index == 1) {
+            xbd_blockwise_addr_update(addr, strlen(addr));
+            xbd_blockwise_uri_update(uri, strlen(uri));
+        } else if (blockwise_state_index == 2) {
+            xbd_blockwise_2_addr_update(addr, strlen(addr));
+            xbd_blockwise_2_uri_update(uri, strlen(uri));
+        }
     }
+
 
     printf("@@ payload: %p payload_len: %d\n", payload, payload_len);
     if (payload_len) {

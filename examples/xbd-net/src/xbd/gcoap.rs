@@ -139,13 +139,8 @@ impl Future for ReqInner {
             match self.method {
                 COAP_METHOD_GET => {
                     if self.blockwise {
-                        //super::Xbd::gcoap_get_blockwise(&self.addr, &self.uri, cb);
-                        //==== !!!! POC hardcoded
-                        match self.blockwise_state_index.unwrap() {
-                            1 => super::Xbd::gcoap_get_blockwise(&self.addr, &self.uri, cb),
-                            2 => super::Xbd::gcoap_get_blockwise_2(&self.addr, &self.uri, cb),
-                            _ => unreachable!(),
-                        };
+                        super::Xbd::gcoap_get_blockwise(
+                            &self.addr, &self.uri, self.blockwise_state_index.unwrap(), cb);
                     } else {
                         super::Xbd::gcoap_get(&self.addr, &self.uri, cb);
                     }
