@@ -174,9 +174,11 @@ static void _resp_handler(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
 
 static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap_pkt_t* pdu,
                                           const sock_udp_ep_t *remote, coap_block1_t *block) {//@@
+    size_t blockwise_state_index = blockwise_state_index_last; // !!
+
     if (block->more) {
-        char *last_addr = xbd_blockwise_addr_ptr(blockwise_state_index_last);
-        char *last_uri = xbd_blockwise_uri_ptr(blockwise_state_index_last);
+        char *last_addr = xbd_blockwise_addr_ptr(blockwise_state_index);
+        char *last_uri = xbd_blockwise_uri_ptr(blockwise_state_index);
 
         size_t last_uri_len = strlen(last_uri);
 
@@ -209,19 +211,19 @@ static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap
         (void)memo;
         (void)remote;
         size_t len = coap_opt_finish(pdu, COAP_OPT_FINISH_NONE);
-        xbd_blockwise_hdr_update(pdu->hdr, len, blockwise_state_index_last);
+        xbd_blockwise_hdr_update(pdu->hdr, len, blockwise_state_index);
         xbd_blockwise_async_gcoap_req(
-                last_addr, strlen(last_addr), last_uri, last_uri_len, blockwise_state_index_last);
+                last_addr, strlen(last_addr), last_uri, last_uri_len, blockwise_state_index);
     }
     else { // @@ TODO similar cleanup logic on blockwise timeout
         puts("--- blockwise complete ---");
 
-        xbd_blockwise_hdr_update(NULL, 0, blockwise_state_index_last);
+        xbd_blockwise_hdr_update(NULL, 0, blockwise_state_index);
 
-        xbd_blockwise_addr_update(NULL, 0, blockwise_state_index_last);
-        xbd_blockwise_uri_update(NULL, 0, blockwise_state_index_last);
+        xbd_blockwise_addr_update(NULL, 0, blockwise_state_index);
+        xbd_blockwise_uri_update(NULL, 0, blockwise_state_index);
 
-        xbd_blockwise_async_gcoap_complete(blockwise_state_index_last);
+        xbd_blockwise_async_gcoap_complete(blockwise_state_index);
     }
 }
 
