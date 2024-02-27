@@ -174,33 +174,56 @@ fn blockwise_2_hdr_copy(buf: &mut [u8]) {
 pub static BLOCKWISE_QUEUE: OnceCell<ArrayQueue<Option<ReqInner>>> = OnceCell::uninit();
 pub static BLOCKWISE_WAKER: AtomicWaker = AtomicWaker::new();
 //---- !!!! POC hardcoded ^^
+pub static BLOCKWISE_1_QUEUE: OnceCell<ArrayQueue<Option<ReqInner>>> = OnceCell::uninit();
+pub static BLOCKWISE_1_WAKER: AtomicWaker = AtomicWaker::new();
 pub static BLOCKWISE_2_QUEUE: OnceCell<ArrayQueue<Option<ReqInner>>> = OnceCell::uninit();
 pub static BLOCKWISE_2_WAKER: AtomicWaker = AtomicWaker::new();
 //---- !!!! POC hardcoded $$
 const BLOCKWISE_STATES_MAX: usize = 4;
 //pub static BLOCKWISE_STATES: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
 
-type Stat = u8; // !! todo
-static mut STATES00: &'static mut [Option<Stat>] = &mut [None; BLOCKWISE_STATES_MAX];
+static mut STATES00: &'static mut [Option<BlockwiseState>] = &mut [None; BLOCKWISE_STATES_MAX];
+
+#[derive(Copy, Clone, Debug)]
+struct BlockwiseState {
+    queue: &'static OnceCell<ArrayQueue<Option<ReqInner>>>,
+    waker: &'static AtomicWaker,
+    // todo - fuse metadata stuff
+}
+
+impl BlockwiseState {
+    fn resolve(idx: usize) -> Self {
+        let (queue, waker) = match idx { // KLUDGE !! to be rectified
+            0 => (&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER),
+            1 => (&BLOCKWISE_1_QUEUE, &BLOCKWISE_1_WAKER),
+            2 => (&BLOCKWISE_2_QUEUE, &BLOCKWISE_2_WAKER),
+            _ => unreachable!(),
+        };
+
+        Self { queue, waker }
+    }
+
+    fn get_stream(self) -> BlockwiseStream {
+        BlockwiseStream::get(self.queue, self.waker)
+    }
+
+    fn add_to_stream(self, req: Option<ReqInner>) {
+        XbdStream::add(self.queue, self.waker, req);
+    }
+}
 
 pub fn add_blockwise_req_generic(
     addr_uri: Option<(&str, &str)>, blockwise_state_index: Option<usize>) -> Option<BlockwiseStream> {
 
-    let resolve_qw = |idx| match idx { // KLUDGE !! to be rectified
-        0 => todo!(),
-        1 => (&BLOCKWISE_QUEUE, &BLOCKWISE_WAKER),
-        2 => (&BLOCKWISE_2_QUEUE, &BLOCKWISE_2_WAKER),
-        _ => unreachable!(),
-    };
-
     if let Some(idx) = blockwise_state_index {
-        let (queue, waker) = resolve_qw(idx);
+        let stat = unsafe { STATES00[idx] }.unwrap();
 
         if let Some((addr, uri)) = addr_uri { // blockwise NEXT
             let req = ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx));
-            XbdStream::add(queue, waker, Some(req));
+            stat.add_to_stream(Some(req));
+
         } else { // blockwise COMPLETE
-            XbdStream::add(queue, waker, None);
+            stat.add_to_stream(None);
         }
 
         return None;
@@ -219,18 +242,21 @@ pub fn add_blockwise_req_generic(
     let stats = BLOCKWISE_STATES.get().unwrap();
 */
 
-    (unsafe { &mut STATES00 })[0] = Some(99); // !!!! KLUDGE placeholder
+    { // !!!! KLUDGE placeholder
+        (unsafe { &mut STATES00 })[0] = Some(BlockwiseState::resolve(0));
+    }
 
-    if let Some((idx, stat)) = unsafe { &mut STATES00 }.iter_mut().enumerate().find(|x| x.1.is_none()) {
-        *stat = Some(99); // todo - metadata stuff
-        crate::println!("sending, where STATES00: {:?}", unsafe { &STATES00 });
+    if let Some((idx, slot)) = unsafe { &mut STATES00 }.iter_mut().enumerate().find(|x| x.1.is_none()) {
+        let stat = BlockwiseState::resolve(idx);
+        *slot = Some(stat);
 
+        let bs = stat.get_stream(); // makes sure stream is initialized before `.add_to_stream()`
+
+        crate::println!("sending NEW, via idx={}/{}, where STATES00: {:?}",
+                        idx, BLOCKWISE_STATES_MAX, unsafe { &STATES00 });
         let (addr, uri) = addr_uri.unwrap();
-        let (queue, waker) = resolve_qw(idx);
-
-        let bs = BlockwiseStream::get(queue, waker);
         let req = ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx));
-        XbdStream::add(queue, waker, Some(req));
+        stat.add_to_stream(Some(req));
 
         Some(bs)
     } else { // STATES00 is full
@@ -244,8 +270,8 @@ pub struct BlockwiseStream(XbdStream<Option<ReqInner>>);
 
 impl BlockwiseStream {
     pub fn get(queue: &'static OnceCell<ArrayQueue<Option<ReqInner>>>, waker: &'static AtomicWaker) -> Self {
-        XbdStream::get(&queue, &waker).map_or_else(
-            || Self(XbdStream::new_with_cap(&queue, &waker, 1)), |xs| Self(xs))
+        Self(XbdStream::get(&queue, &waker)
+            .unwrap_or(XbdStream::new_with_cap(&queue, &waker, 1)))
     }
 }
 
