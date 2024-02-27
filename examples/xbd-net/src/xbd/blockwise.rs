@@ -10,40 +10,86 @@ use super::stream::XbdStream;
 use super::gcoap::{ReqInner, COAP_METHOD_GET};
 
 #[no_mangle]
-pub extern fn xbd_blockwise_addr_ptr() -> *const c_void {
-    unsafe { LAST_BLOCKWISE_ADDR.as_ptr() as _ }
-}
-
-#[no_mangle]
-pub extern fn xbd_blockwise_uri_ptr() -> *const c_void {
-    unsafe { LAST_BLOCKWISE_URI.as_ptr() as _ }
-}
-
-#[no_mangle]
-pub extern fn xbd_blockwise_addr_update(addr: *const c_void, addr_len: usize) {
-    let addr = u8_slice_from(addr as *const u8, addr_len);
-    unsafe { blockwise_metadata_update(addr, LAST_BLOCKWISE_ADDR, LAST_BLOCKWISE_ADDR_MAX); }
-}
-
-#[no_mangle]
-pub extern fn xbd_blockwise_uri_update(uri: *const c_void, uri_len: usize) {
-    let uri = u8_slice_from(uri as *const u8, uri_len);
-    unsafe { blockwise_metadata_update(uri, LAST_BLOCKWISE_URI, LAST_BLOCKWISE_URI_MAX); }
-}
-
-#[no_mangle]
-pub extern fn xbd_blockwise_hdr_copy(buf: *mut u8, buf_sz: usize) -> usize {
-    let len = blockwise_hdr_len();
-    if len > 0 {
-        blockwise_hdr_copy(u8_slice_mut_from(buf, buf_sz));
+pub extern fn xbd_blockwise_addr_ptr(blockwise_state_index: usize) -> *const c_void {
+    //unsafe { LAST_BLOCKWISE_ADDR.as_ptr() as _ }
+    match blockwise_state_index { // !!!! wip
+        1 => unsafe { LAST_BLOCKWISE_ADDR.as_ptr() as _ },
+        2 => unsafe { LAST_BLOCKWISE_2_ADDR.as_ptr() as _ },
+        _ => unreachable!(),
     }
-
-    len
 }
 
 #[no_mangle]
-pub extern fn xbd_blockwise_hdr_update(hdr: *const c_void, hdr_len: usize) {
-    blockwise_hdr_update(u8_slice_from(hdr as *const u8, hdr_len));
+pub extern fn xbd_blockwise_uri_ptr(blockwise_state_index: usize) -> *const c_void {
+    //unsafe { LAST_BLOCKWISE_URI.as_ptr() as _ }
+    match blockwise_state_index { // !!!! wip
+        1 => unsafe { LAST_BLOCKWISE_URI.as_ptr() as _ },
+        2 => unsafe { LAST_BLOCKWISE_2_URI.as_ptr() as _ },
+        _ => unreachable!(),
+    }
+}
+
+#[no_mangle]
+pub extern fn xbd_blockwise_addr_update(addr: *const c_void, addr_len: usize, blockwise_state_index: usize) {
+    let addr = u8_slice_from(addr as *const u8, addr_len);
+    //unsafe { blockwise_metadata_update(addr, LAST_BLOCKWISE_ADDR, LAST_BLOCKWISE_ADDR_MAX); }
+    match blockwise_state_index { // !!!! wip
+        1 => unsafe { blockwise_metadata_update(addr, LAST_BLOCKWISE_ADDR, LAST_BLOCKWISE_ADDR_MAX); },
+        2 => unsafe { blockwise_metadata_update(addr, LAST_BLOCKWISE_2_ADDR, LAST_BLOCKWISE_2_ADDR_MAX); },
+        _ => unreachable!(),
+    }
+}
+
+#[no_mangle]
+pub extern fn xbd_blockwise_uri_update(uri: *const c_void, uri_len: usize, blockwise_state_index: usize) {
+    let uri = u8_slice_from(uri as *const u8, uri_len);
+    //unsafe { blockwise_metadata_update(uri, LAST_BLOCKWISE_URI, LAST_BLOCKWISE_URI_MAX); }
+    match blockwise_state_index { // !!!! wip
+        1 => unsafe { blockwise_metadata_update(uri, LAST_BLOCKWISE_URI, LAST_BLOCKWISE_URI_MAX); },
+        2 => unsafe { blockwise_metadata_update(uri, LAST_BLOCKWISE_2_URI, LAST_BLOCKWISE_2_URI_MAX); },
+        _ => unreachable!(),
+    }
+}
+
+#[no_mangle]
+pub extern fn xbd_blockwise_hdr_copy(buf: *mut u8, buf_sz: usize, blockwise_state_index: usize) -> usize {
+    // let len = blockwise_hdr_len();
+    // if len > 0 {
+    //     blockwise_hdr_copy(u8_slice_mut_from(buf, buf_sz));
+    // }
+    //
+    // len
+    //====
+    match blockwise_state_index { // !!!! wip
+        1 => {
+            let len = blockwise_hdr_len();
+            if len > 0 {
+                blockwise_hdr_copy(u8_slice_mut_from(buf, buf_sz));
+            }
+
+            len
+        },
+        2 => {
+            let len = blockwise_2_hdr_len();
+            if len > 0 {
+                blockwise_2_hdr_copy(u8_slice_mut_from(buf, buf_sz));
+            }
+
+            len
+        },
+        _ => unreachable!(),
+    }
+}
+
+#[no_mangle]
+pub extern fn xbd_blockwise_hdr_update(hdr: *const c_void, hdr_len: usize, blockwise_state_index: usize) {
+    //blockwise_hdr_update(u8_slice_from(hdr as *const u8, hdr_len));
+    //====
+    match blockwise_state_index { // !!!! wip
+        1 => { blockwise_hdr_update(u8_slice_from(hdr as *const u8, hdr_len)); },
+        2 => { blockwise_2_hdr_update(u8_slice_from(hdr as *const u8, hdr_len)); },
+        _ => unreachable!(),
+    }
 }
 
 #[no_mangle]
@@ -103,42 +149,42 @@ fn blockwise_hdr_copy(buf: &mut [u8]) {
 }
 
 //---- !!!! POC hardcoded ^^
-#[no_mangle]
-pub extern fn xbd_blockwise_2_addr_ptr() -> *const c_void {
-    unsafe { LAST_BLOCKWISE_2_ADDR.as_ptr() as _ }
-}
+// #[no_mangle]
+// pub extern fn xbd_blockwise_2_addr_ptr() -> *const c_void {
+//     unsafe { LAST_BLOCKWISE_2_ADDR.as_ptr() as _ }
+// }
 
-#[no_mangle]
-pub extern fn xbd_blockwise_2_uri_ptr() -> *const c_void {
-    unsafe { LAST_BLOCKWISE_2_URI.as_ptr() as _ }
-}
+// #[no_mangle]
+// pub extern fn xbd_blockwise_2_uri_ptr() -> *const c_void {
+//     unsafe { LAST_BLOCKWISE_2_URI.as_ptr() as _ }
+// }
 
-#[no_mangle]
-pub extern fn xbd_blockwise_2_addr_update(addr: *const c_void, addr_len: usize) {
-    let addr = u8_slice_from(addr as *const u8, addr_len);
-    unsafe { blockwise_metadata_update(addr, LAST_BLOCKWISE_2_ADDR, LAST_BLOCKWISE_2_ADDR_MAX); }
-}
+// #[no_mangle]
+// pub extern fn xbd_blockwise_2_addr_update(addr: *const c_void, addr_len: usize) {
+//     let addr = u8_slice_from(addr as *const u8, addr_len);
+//     unsafe { blockwise_metadata_update(addr, LAST_BLOCKWISE_2_ADDR, LAST_BLOCKWISE_2_ADDR_MAX); }
+// }
 
-#[no_mangle]
-pub extern fn xbd_blockwise_2_uri_update(uri: *const c_void, uri_len: usize) {
-    let uri = u8_slice_from(uri as *const u8, uri_len);
-    unsafe { blockwise_metadata_update(uri, LAST_BLOCKWISE_2_URI, LAST_BLOCKWISE_2_URI_MAX); }
-}
+// #[no_mangle]
+// pub extern fn xbd_blockwise_2_uri_update(uri: *const c_void, uri_len: usize) {
+//     let uri = u8_slice_from(uri as *const u8, uri_len);
+//     unsafe { blockwise_metadata_update(uri, LAST_BLOCKWISE_2_URI, LAST_BLOCKWISE_2_URI_MAX); }
+// }
 
-#[no_mangle]
-pub extern fn xbd_blockwise_2_hdr_copy(buf: *mut u8, buf_sz: usize) -> usize {
-    let len = blockwise_2_hdr_len();
-    if len > 0 {
-        blockwise_2_hdr_copy(u8_slice_mut_from(buf, buf_sz));
-    }
-
-    len
-}
-
-#[no_mangle]
-pub extern fn xbd_blockwise_2_hdr_update(hdr: *const c_void, hdr_len: usize) {
-    blockwise_2_hdr_update(u8_slice_from(hdr as *const u8, hdr_len));
-}
+// #[no_mangle]
+// pub extern fn xbd_blockwise_2_hdr_copy(buf: *mut u8, buf_sz: usize) -> usize {
+//     let len = blockwise_2_hdr_len();
+//     if len > 0 {
+//         blockwise_2_hdr_copy(u8_slice_mut_from(buf, buf_sz));
+//     }
+//
+//     len
+// }
+//
+// #[no_mangle]
+// pub extern fn xbd_blockwise_2_hdr_update(hdr: *const c_void, hdr_len: usize) {
+//     blockwise_2_hdr_update(u8_slice_from(hdr as *const u8, hdr_len));
+// }
 
 const LAST_BLOCKWISE_2_ADDR_MAX: usize = 64;
 const LAST_BLOCKWISE_2_URI_MAX: usize = 64;
@@ -180,15 +226,16 @@ pub static BLOCKWISE_2_QUEUE: OnceCell<ArrayQueue<Option<ReqInner>>> = OnceCell:
 pub static BLOCKWISE_2_WAKER: AtomicWaker = AtomicWaker::new();
 //---- !!!! POC hardcoded $$
 const BLOCKWISE_STATES_MAX: usize = 4;
-//pub static BLOCKWISE_STATES: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
 
+//pub static BLOCKWISE_STATES: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
 static mut STATES00: &'static mut [Option<BlockwiseState>] = &mut [None; BLOCKWISE_STATES_MAX];
 
 #[derive(Copy, Clone, Debug)]
 struct BlockwiseState {
     queue: &'static OnceCell<ArrayQueue<Option<ReqInner>>>,
     waker: &'static AtomicWaker,
-    // todo - fuse metadata stuff
+    // WIP - fuse metadata stuff
+    //
 }
 
 impl BlockwiseState {
@@ -263,7 +310,8 @@ pub fn add_blockwise_req_generic(
         None
     }
 }
-//---- !!!! POC generic $$
+
+//
 
 #[derive(Debug)]
 pub struct BlockwiseStream(XbdStream<Option<ReqInner>>);
