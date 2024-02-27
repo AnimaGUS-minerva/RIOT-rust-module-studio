@@ -149,43 +149,6 @@ fn blockwise_hdr_copy(buf: &mut [u8]) {
 }
 
 //---- !!!! POC hardcoded ^^
-// #[no_mangle]
-// pub extern fn xbd_blockwise_2_addr_ptr() -> *const c_void {
-//     unsafe { LAST_BLOCKWISE_2_ADDR.as_ptr() as _ }
-// }
-
-// #[no_mangle]
-// pub extern fn xbd_blockwise_2_uri_ptr() -> *const c_void {
-//     unsafe { LAST_BLOCKWISE_2_URI.as_ptr() as _ }
-// }
-
-// #[no_mangle]
-// pub extern fn xbd_blockwise_2_addr_update(addr: *const c_void, addr_len: usize) {
-//     let addr = u8_slice_from(addr as *const u8, addr_len);
-//     unsafe { blockwise_metadata_update(addr, LAST_BLOCKWISE_2_ADDR, LAST_BLOCKWISE_2_ADDR_MAX); }
-// }
-
-// #[no_mangle]
-// pub extern fn xbd_blockwise_2_uri_update(uri: *const c_void, uri_len: usize) {
-//     let uri = u8_slice_from(uri as *const u8, uri_len);
-//     unsafe { blockwise_metadata_update(uri, LAST_BLOCKWISE_2_URI, LAST_BLOCKWISE_2_URI_MAX); }
-// }
-
-// #[no_mangle]
-// pub extern fn xbd_blockwise_2_hdr_copy(buf: *mut u8, buf_sz: usize) -> usize {
-//     let len = blockwise_2_hdr_len();
-//     if len > 0 {
-//         blockwise_2_hdr_copy(u8_slice_mut_from(buf, buf_sz));
-//     }
-//
-//     len
-// }
-//
-// #[no_mangle]
-// pub extern fn xbd_blockwise_2_hdr_update(hdr: *const c_void, hdr_len: usize) {
-//     blockwise_2_hdr_update(u8_slice_from(hdr as *const u8, hdr_len));
-// }
-
 const LAST_BLOCKWISE_2_ADDR_MAX: usize = 64;
 const LAST_BLOCKWISE_2_URI_MAX: usize = 64;
 static mut LAST_BLOCKWISE_2_ADDR: &'static mut [u8] = &mut [0; LAST_BLOCKWISE_2_ADDR_MAX];
