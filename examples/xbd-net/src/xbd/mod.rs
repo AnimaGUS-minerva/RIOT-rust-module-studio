@@ -123,8 +123,8 @@ impl Xbd {
         type Ty = unsafe extern "C" fn(
             *const u8, *const u8, u8,
             *const u8, usize, bool, usize, *const c_void, *const c_void);
-        assert!(blockwise || blockwise_state_index.is_none());
 
+        assert_eq!(blockwise, blockwise_state_index.is_some());
         unsafe {
             (get_xbd_fn!("xbd_gcoap_req_send", Ty))(
                 null_terminate_str!(addr).as_ptr(),
