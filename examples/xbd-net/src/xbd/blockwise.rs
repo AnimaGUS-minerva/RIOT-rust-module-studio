@@ -11,12 +11,12 @@ use super::gcoap::{ReqInner, COAP_METHOD_GET};
 
 #[no_mangle]
 pub extern fn xbd_blockwise_addr_ptr(idx: usize) -> *const c_void {
-    BlockwiseData::get_ref(idx).unwrap().addr.as_ptr() as _
+    BlockwiseData::state(idx).unwrap().addr.as_ptr() as _
 }
 
 #[no_mangle]
 pub extern fn xbd_blockwise_addr_update(addr: *const c_void, addr_len: usize, idx: usize) {
-    let buf = &mut BlockwiseData::get_mut(idx).unwrap().addr;
+    let buf = &mut BlockwiseData::state_mut(idx).unwrap().addr;
     blockwise_metadata_update(
         u8_slice_from(addr as *const u8, addr_len), buf, buf.len());
 }
@@ -194,25 +194,18 @@ const BLOCKWISE_STATES_MAX: usize = 4;
 const ARRAY_REPEAT_VALUE: Option<BlockwiseState> = None;
 static mut BLOCKWISE_STATES: &'static mut [Option<BlockwiseState>] = &mut [ARRAY_REPEAT_VALUE; BLOCKWISE_STATES_MAX];
 
-//static BLOCKWISE_DATA: &'static mut BlockwiseData =
-
-struct BlockwiseData {
-    states: &'static mut [Option<BlockwiseState>],
-}
-
+struct BlockwiseData();
 impl BlockwiseData {
-    fn new() -> Self {
-        Self { states: unsafe { BLOCKWISE_STATES } }
-    }
-
-    fn get_ref(idx: usize) -> Option<&'static BlockwiseState> {
+    fn state(idx: usize) -> Option<&'static BlockwiseState> {
         unsafe { BLOCKWISE_STATES[idx].as_ref() }
     }
 
-    fn get_mut(idx: usize) -> Option<&'static mut BlockwiseState> {
+    fn state_mut(idx: usize) -> Option<&'static mut BlockwiseState> {
         unsafe { BLOCKWISE_STATES[idx].as_mut() }
     }
 }
+
+//
 
 #[derive(Debug)]
 struct BlockwiseState {
