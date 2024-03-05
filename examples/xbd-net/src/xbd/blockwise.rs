@@ -10,23 +10,21 @@ use super::stream::XbdStream;
 use super::gcoap::{ReqInner, COAP_METHOD_GET};
 
 #[no_mangle]
-pub extern fn xbd_blockwise_addr_ptr(blockwise_state_index: usize) -> *const c_void {
-    //unsafe { LAST_BLOCKWISE_ADDR.as_ptr() as _ }
-    //====
-    // match blockwise_state_index { // !!!! wip
-    //     1 => unsafe { LAST_BLOCKWISE_ADDR.as_ptr() as _ },
-    //     2 => unsafe { LAST_BLOCKWISE_2_ADDR.as_ptr() as _ },
-    //     _ => unreachable!(),
-    // }
-    //==== !!!! todo - check against BLOCKWISE_STATES[blockwise_state_index]
-    BlockwiseState::get(blockwise_state_index).addr.as_ptr() as _
-    //====
+pub extern fn xbd_blockwise_addr_ptr(idx: usize) -> *const c_void {
+    BlockwiseData::get_ref(idx).unwrap().addr.as_ptr() as _
 }
 
 #[no_mangle]
-pub extern fn xbd_blockwise_uri_ptr(blockwise_state_index: usize) -> *const c_void {
+pub extern fn xbd_blockwise_addr_update(addr: *const c_void, addr_len: usize, idx: usize) {
+    let buf = &mut BlockwiseData::get_mut(idx).unwrap().addr;
+    blockwise_metadata_update(
+        u8_slice_from(addr as *const u8, addr_len), buf, buf.len());
+}
+
+#[no_mangle]
+pub extern fn xbd_blockwise_uri_ptr(idx: usize) -> *const c_void {
     //unsafe { LAST_BLOCKWISE_URI.as_ptr() as _ }
-    match blockwise_state_index { // !!!! wip
+    match idx { // !!!! wip
         1 => unsafe { LAST_BLOCKWISE_URI.as_ptr() as _ },
         2 => unsafe { LAST_BLOCKWISE_2_URI.as_ptr() as _ },
         _ => unreachable!(),
@@ -34,27 +32,10 @@ pub extern fn xbd_blockwise_uri_ptr(blockwise_state_index: usize) -> *const c_vo
 }
 
 #[no_mangle]
-pub extern fn xbd_blockwise_addr_update(addr: *const c_void, addr_len: usize, blockwise_state_index: usize) {
-    let addr = u8_slice_from(addr as *const u8, addr_len);
-
-    //unsafe { blockwise_metadata_update(addr, LAST_BLOCKWISE_ADDR, LAST_BLOCKWISE_ADDR_MAX); }
-    //====
-    // match blockwise_state_index { // !!!! wip
-    //     1 => unsafe { blockwise_metadata_update(addr, LAST_BLOCKWISE_ADDR, LAST_BLOCKWISE_ADDR_MAX); },
-    //     2 => unsafe { blockwise_metadata_update(addr, LAST_BLOCKWISE_2_ADDR, LAST_BLOCKWISE_2_ADDR_MAX); },
-    //     _ => unreachable!(),
-    // }
-    //==== !!!! todo - check against BLOCKWISE_STATES[blockwise_state_index]
-    let buf = BlockwiseState::get(blockwise_state_index).addr;
-    blockwise_metadata_update(addr, buf, buf.len());
-    //====
-}
-
-#[no_mangle]
-pub extern fn xbd_blockwise_uri_update(uri: *const c_void, uri_len: usize, blockwise_state_index: usize) {
+pub extern fn xbd_blockwise_uri_update(uri: *const c_void, uri_len: usize, idx: usize) {
     let uri = u8_slice_from(uri as *const u8, uri_len);
     //unsafe { blockwise_metadata_update(uri, LAST_BLOCKWISE_URI, LAST_BLOCKWISE_URI_MAX); }
-    match blockwise_state_index { // !!!! wip
+    match idx { // !!!! wip
         1 => unsafe { blockwise_metadata_update(uri, LAST_BLOCKWISE_URI, LAST_BLOCKWISE_URI_MAX); },
         2 => unsafe { blockwise_metadata_update(uri, LAST_BLOCKWISE_2_URI, LAST_BLOCKWISE_2_URI_MAX); },
         _ => unreachable!(),
@@ -62,7 +43,7 @@ pub extern fn xbd_blockwise_uri_update(uri: *const c_void, uri_len: usize, block
 }
 
 #[no_mangle]
-pub extern fn xbd_blockwise_hdr_copy(buf: *mut u8, buf_sz: usize, blockwise_state_index: usize) -> usize {
+pub extern fn xbd_blockwise_hdr_copy(buf: *mut u8, buf_sz: usize, idx: usize) -> usize {
     // let len = blockwise_hdr_len();
     // if len > 0 {
     //     blockwise_hdr_copy(u8_slice_mut_from(buf, buf_sz));
@@ -70,7 +51,7 @@ pub extern fn xbd_blockwise_hdr_copy(buf: *mut u8, buf_sz: usize, blockwise_stat
     //
     // len
     //====
-    match blockwise_state_index { // !!!! wip
+    match idx { // !!!! wip
         1 => {
             let len = blockwise_hdr_len();
             if len > 0 {
@@ -92,10 +73,10 @@ pub extern fn xbd_blockwise_hdr_copy(buf: *mut u8, buf_sz: usize, blockwise_stat
 }
 
 #[no_mangle]
-pub extern fn xbd_blockwise_hdr_update(hdr: *const c_void, hdr_len: usize, blockwise_state_index: usize) {
+pub extern fn xbd_blockwise_hdr_update(hdr: *const c_void, hdr_len: usize, idx: usize) {
     //blockwise_hdr_update(u8_slice_from(hdr as *const u8, hdr_len));
     //====
-    match blockwise_state_index { // !!!! wip
+    match idx { // !!!! wip
         1 => { blockwise_hdr_update(u8_slice_from(hdr as *const u8, hdr_len)); },
         2 => { blockwise_2_hdr_update(u8_slice_from(hdr as *const u8, hdr_len)); },
         _ => unreachable!(),
@@ -106,16 +87,16 @@ pub extern fn xbd_blockwise_hdr_update(hdr: *const c_void, hdr_len: usize, block
 pub extern fn xbd_blockwise_async_gcoap_req(
     last_addr: *const c_void, last_addr_len: usize,
     last_uri: *const c_void, last_uri_len: usize,
-    blockwise_state_index: usize)
+    idx: usize)
 {
     let addr = from_utf8(u8_slice_from(last_addr as *const u8, last_addr_len)).unwrap();
     let uri = from_utf8(u8_slice_from(last_uri as *const u8, last_uri_len)).unwrap();
-    add_blockwise_req_generic(Some((addr, uri)), Some(blockwise_state_index));
+    add_blockwise_req_generic(Some((addr, uri)), Some(idx));
 }
 
 #[no_mangle]
-pub extern fn xbd_blockwise_async_gcoap_complete(blockwise_state_index: usize) {
-    add_blockwise_req_generic(None, Some(blockwise_state_index));
+pub extern fn xbd_blockwise_async_gcoap_complete(idx: usize) {
+    add_blockwise_req_generic(None, Some(idx));
 }
 
 //
@@ -208,13 +189,30 @@ pub static BLOCKWISE_1_WAKER: AtomicWaker = AtomicWaker::new();
 pub static BLOCKWISE_2_QUEUE: OnceCell<ArrayQueue<Option<ReqInner>>> = OnceCell::uninit();
 pub static BLOCKWISE_2_WAKER: AtomicWaker = AtomicWaker::new();
 //---- !!!! POC hardcoded $$
+
 const BLOCKWISE_STATES_MAX: usize = 4;
-
-
-//static mut BLOCKWISE_STATES: &'static mut [Option<BlockwiseState>] = &mut [None; BLOCKWISE_STATES_MAX];
-//====
 const ARRAY_REPEAT_VALUE: Option<BlockwiseState> = None;
 static mut BLOCKWISE_STATES: &'static mut [Option<BlockwiseState>] = &mut [ARRAY_REPEAT_VALUE; BLOCKWISE_STATES_MAX];
+
+//static BLOCKWISE_DATA: &'static mut BlockwiseData =
+
+struct BlockwiseData {
+    states: &'static mut [Option<BlockwiseState>],
+}
+
+impl BlockwiseData {
+    fn new() -> Self {
+        Self { states: unsafe { BLOCKWISE_STATES } }
+    }
+
+    fn get_ref(idx: usize) -> Option<&'static BlockwiseState> {
+        unsafe { BLOCKWISE_STATES[idx].as_ref() }
+    }
+
+    fn get_mut(idx: usize) -> Option<&'static mut BlockwiseState> {
+        unsafe { BLOCKWISE_STATES[idx].as_mut() }
+    }
+}
 
 #[derive(Debug)]
 struct BlockwiseState {
@@ -269,7 +267,6 @@ pub fn add_blockwise_req_generic(
         if let Some((addr, uri)) = addr_uri { // blockwise NEXT
             let req = ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx));
             stat.add_to_stream(Some(req));
-
         } else { // blockwise COMPLETE
             stat.add_to_stream(None);
         }
