@@ -11,12 +11,12 @@ use super::gcoap::{ReqInner, COAP_METHOD_GET};
 
 #[no_mangle]
 pub extern fn xbd_blockwise_addr_ptr(idx: usize) -> *const c_void {
-    BlockwiseData::state(idx).unwrap().addr.as_ptr() as _
+    BlockwiseData::state(&idx).unwrap().addr.as_ptr() as _
 }
 
 #[no_mangle]
 pub extern fn xbd_blockwise_addr_update(addr: *const c_void, addr_len: usize, idx: usize) {
-    let buf = &mut BlockwiseData::state_mut(idx).unwrap().addr;
+    let buf = &mut BlockwiseData::state_mut(&idx).unwrap().addr;
     blockwise_metadata_update(
         u8_slice_from(addr as *const u8, addr_len), buf, buf.len());
 }
@@ -117,7 +117,7 @@ const LAST_BLOCKWISE_HDR_MAX: usize = 64;
 static mut LAST_BLOCKWISE_HDR: &'static mut [u8] = &mut [0; LAST_BLOCKWISE_HDR_MAX];
 static mut LAST_BLOCKWISE_LEN: usize = 0;
 
-fn blockwise_metadata_update(data_in: &[u8], data: &'static mut [u8], data_max: usize) -> usize {
+fn blockwise_metadata_update(data_in: &[u8], data: &mut [u8], data_max: usize) -> usize {
     let data_len = data_in.len();
     assert!(data_len < data_max);
 
@@ -200,12 +200,12 @@ impl BlockwiseData {
         unsafe { BLOCKWISE_STATES }
     }
 
-    fn state(idx: usize) -> Option<&'static BlockwiseState> {
-        unsafe { BLOCKWISE_STATES[idx].as_ref() }
+    fn state(idx: &usize) -> Option<&BlockwiseState> {
+        Self::states()[*idx].as_ref()
     }
 
-    fn state_mut(idx: usize) -> Option<&'static mut BlockwiseState> {
-        unsafe { BLOCKWISE_STATES[idx].as_mut() }
+    fn state_mut(idx: &usize) -> Option<&mut BlockwiseState> {
+        Self::states()[*idx].as_mut()
     }
 }
 
@@ -259,11 +259,11 @@ pub fn add_blockwise_req_generic(
     addr_uri: Option<(&str, &str)>, blockwise_state_index: Option<usize>) -> Option<BlockwiseStream> {
 
     if let Some(idx) = blockwise_state_index {
-        let stat = BlockwiseData::state(idx).unwrap();
+        let stat = BlockwiseData::state(&idx).unwrap();
 
         if let Some((addr, uri)) = addr_uri { // blockwise NEXT
-            let req = ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx));
-            stat.add_to_stream(Some(req));
+            stat.add_to_stream(Some(
+                ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx))));
         } else { // blockwise COMPLETE
             stat.add_to_stream(None);
         }
