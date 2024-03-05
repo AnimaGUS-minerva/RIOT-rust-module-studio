@@ -196,6 +196,10 @@ static mut BLOCKWISE_STATES: &'static mut [Option<BlockwiseState>] = &mut [ARRAY
 
 struct BlockwiseData();
 impl BlockwiseData {
+    fn states() -> &'static mut [Option<BlockwiseState>] {
+        unsafe { BLOCKWISE_STATES }
+    }
+
     fn state(idx: usize) -> Option<&'static BlockwiseState> {
         unsafe { BLOCKWISE_STATES[idx].as_ref() }
     }
@@ -255,7 +259,7 @@ pub fn add_blockwise_req_generic(
     addr_uri: Option<(&str, &str)>, blockwise_state_index: Option<usize>) -> Option<BlockwiseStream> {
 
     if let Some(idx) = blockwise_state_index {
-        let stat = unsafe { BLOCKWISE_STATES[idx].clone() }.unwrap();
+        let stat = BlockwiseData::state(idx).unwrap();
 
         if let Some((addr, uri)) = addr_uri { // blockwise NEXT
             let req = ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx));
@@ -271,24 +275,23 @@ pub fn add_blockwise_req_generic(
     // blockwise NEW
     //
 
-    { // !!!! KLUDGE placeholder
-        (unsafe { &mut BLOCKWISE_STATES })[0] = Some(BlockwiseState::get(0));
-    }
+    let states = BlockwiseData::states();
+    states[0] = Some(BlockwiseState::get(0)); // !!!! KLUDGE placeholder
 
-    if let Some((idx, slot)) = unsafe { &mut BLOCKWISE_STATES }.iter_mut().enumerate().find(|x| x.1.is_none()) {
+    if let Some((idx, slot)) = states.iter_mut().enumerate().find(|x| x.1.is_none()) {
         let stat = BlockwiseState::get(idx);
         *slot = Some(stat.clone());
 
         let bs = stat.get_stream(); // makes sure stream is initialized before `.add_to_stream()`
 
-        crate::println!("sending NEW, via idx={}/{}, where BLOCKWISE_STATES: {:?}",
-                        idx, BLOCKWISE_STATES_MAX, unsafe { &BLOCKWISE_STATES });
+        crate::println!("sending NEW, via idx={}/{}, where states: {:?}",
+                        idx, states.len(), states);
         let (addr, uri) = addr_uri.unwrap();
         let req = ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx));
         stat.add_to_stream(Some(req));
 
         Some(bs)
-    } else { // BLOCKWISE_STATES is full
+    } else { // `states` is full
         None
     }
 }
