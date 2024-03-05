@@ -23,23 +23,14 @@ pub extern fn xbd_blockwise_addr_update(addr: *const c_void, addr_len: usize, id
 
 #[no_mangle]
 pub extern fn xbd_blockwise_uri_ptr(idx: usize) -> *const c_void {
-    //unsafe { LAST_BLOCKWISE_URI.as_ptr() as _ }
-    match idx { // !!!! wip
-        1 => unsafe { LAST_BLOCKWISE_URI.as_ptr() as _ },
-        2 => unsafe { LAST_BLOCKWISE_2_URI.as_ptr() as _ },
-        _ => unreachable!(),
-    }
+    BlockwiseData::state(&idx).unwrap().uri.as_ptr() as _
 }
 
 #[no_mangle]
 pub extern fn xbd_blockwise_uri_update(uri: *const c_void, uri_len: usize, idx: usize) {
-    let uri = u8_slice_from(uri as *const u8, uri_len);
-    //unsafe { blockwise_metadata_update(uri, LAST_BLOCKWISE_URI, LAST_BLOCKWISE_URI_MAX); }
-    match idx { // !!!! wip
-        1 => unsafe { blockwise_metadata_update(uri, LAST_BLOCKWISE_URI, LAST_BLOCKWISE_URI_MAX); },
-        2 => unsafe { blockwise_metadata_update(uri, LAST_BLOCKWISE_2_URI, LAST_BLOCKWISE_2_URI_MAX); },
-        _ => unreachable!(),
-    }
+    let buf = &mut BlockwiseData::state_mut(&idx).unwrap().uri;
+    blockwise_metadata_update(
+        u8_slice_from(uri as *const u8, uri_len), buf, buf.len());
 }
 
 #[no_mangle]
@@ -104,14 +95,11 @@ pub extern fn xbd_blockwise_async_gcoap_complete(idx: usize) {
 const LAST_BLOCKWISE_ADDR_MAX: usize = 64;
 const LAST_BLOCKWISE_URI_MAX: usize = 64;
 
-//static mut LAST_BLOCKWISE_ADDR: &'static mut [u8] = &mut [0; LAST_BLOCKWISE_ADDR_MAX];
-//static LAST_BLOCKWISE_ADDR_CELL: OnceCell<&'static mut [u8]> = OnceCell::uninit();
-//==== !!!!
-type Grid = [[u8; LAST_BLOCKWISE_ADDR_MAX]; BLOCKWISE_STATES_MAX];
-static mut GRID: &'static mut Grid = &mut [[0; LAST_BLOCKWISE_ADDR_MAX]; BLOCKWISE_STATES_MAX];
-//==== !!!!
+type GridAddr = [[u8; LAST_BLOCKWISE_ADDR_MAX]; BLOCKWISE_STATES_MAX];
+static mut GRID_ADDR: &'static mut GridAddr = &mut [[0; LAST_BLOCKWISE_ADDR_MAX]; BLOCKWISE_STATES_MAX];
 
-static mut LAST_BLOCKWISE_URI: &'static mut [u8] = &mut [0; LAST_BLOCKWISE_URI_MAX];
+type GridUri = [[u8; LAST_BLOCKWISE_URI_MAX]; BLOCKWISE_STATES_MAX];
+static mut GRID_URI: &'static mut GridUri = &mut [[0; LAST_BLOCKWISE_URI_MAX]; BLOCKWISE_STATES_MAX];
 
 const LAST_BLOCKWISE_HDR_MAX: usize = 64;
 static mut LAST_BLOCKWISE_HDR: &'static mut [u8] = &mut [0; LAST_BLOCKWISE_HDR_MAX];
@@ -147,14 +135,6 @@ fn blockwise_hdr_copy(buf: &mut [u8]) {
 }
 
 //---- !!!! POC hardcoded ^^
-//const LAST_BLOCKWISE_2_ADDR_MAX: usize = 64;
-const LAST_BLOCKWISE_2_URI_MAX: usize = 64;
-
-//static mut LAST_BLOCKWISE_2_ADDR: &'static mut [u8] = &mut [0; LAST_BLOCKWISE_2_ADDR_MAX];
-//static LAST_BLOCKWISE_2_ADDR_CELL: OnceCell<&'static mut [u8]> = OnceCell::uninit();
-
-static mut LAST_BLOCKWISE_2_URI: &'static mut [u8] = &mut [0; LAST_BLOCKWISE_2_URI_MAX];
-
 const LAST_BLOCKWISE_2_HDR_MAX: usize = 64;
 static mut LAST_BLOCKWISE_2_HDR: &'static mut [u8] = &mut [0; LAST_BLOCKWISE_2_HDR_MAX];
 static mut LAST_BLOCKWISE_2_LEN: usize = 0;
@@ -218,7 +198,7 @@ struct BlockwiseState {
     // WIP - fuse metadata stuff
     idx: usize,
     addr: &'static mut [u8],
-    //uri: ........
+    uri: &'static mut [u8],
     //hdr: ........
     // ....
 }
@@ -229,7 +209,8 @@ impl Clone for BlockwiseState {
             queue: self.queue,
             waker: self.waker,
             idx: self.idx,
-            addr: unsafe { &mut GRID[self.idx] },
+            addr: unsafe { &mut GRID_ADDR[self.idx] },
+            uri: unsafe { &mut GRID_URI[self.idx] },
         }
     }
 }
@@ -243,7 +224,10 @@ impl BlockwiseState {
             _ => unreachable!(),
         };
 
-        Self { queue, waker, idx, addr: unsafe { &mut GRID[idx] } }
+        Self { queue, waker, idx,
+            addr: unsafe { &mut GRID_ADDR[idx] },
+            uri: unsafe { &mut GRID_URI[idx] },
+        }
     }
 
     fn get_stream(&self) -> BlockwiseStream {
