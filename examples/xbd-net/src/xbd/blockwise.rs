@@ -35,18 +35,19 @@ pub extern fn xbd_blockwise_uri_update(uri: *const c_void, uri_len: usize, idx: 
 
 #[no_mangle]
 pub extern fn xbd_blockwise_hdr_update(hdr: *const c_void, hdr_len: usize, idx: usize) {
-    let state = BlockwiseData::state_mut(&idx).unwrap();
-    let buf = &mut state.hdr;
-    let buf_len = &mut state.hdr_len;
+    let BlockwiseState { hdr: buf, hdr_len: buf_len, .. } =
+        BlockwiseData::state_mut(&idx).unwrap();
+
     *buf_len = blockwise_metadata_update(
         u8_slice_from(hdr as *const u8, hdr_len), buf, buf.len());
 }
 
 #[no_mangle]
 pub extern fn xbd_blockwise_hdr_copy(buf: *mut u8, buf_sz: usize, idx: usize) -> usize {
-    let state = BlockwiseData::state(&idx).unwrap();
-    let hdr = &state.hdr;
-    let len = state.hdr_len;
+    let BlockwiseState { hdr, hdr_len, .. } =
+        BlockwiseData::state(&idx).unwrap();
+    let len = *hdr_len;
+
     if len > 0 {
         u8_slice_mut_from(buf, buf_sz)[..len]
             .copy_from_slice(&hdr[..len]);
