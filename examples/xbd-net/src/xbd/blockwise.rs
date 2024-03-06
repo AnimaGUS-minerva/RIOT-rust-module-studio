@@ -34,44 +34,25 @@ pub extern fn xbd_blockwise_uri_update(uri: *const c_void, uri_len: usize, idx: 
 }
 
 #[no_mangle]
-pub extern fn xbd_blockwise_hdr_copy(buf: *mut u8, buf_sz: usize, idx: usize) -> usize {
-    // let len = blockwise_hdr_len();
-    // if len > 0 {
-    //     blockwise_hdr_copy(u8_slice_mut_from(buf, buf_sz));
-    // }
-    //
-    // len
-    //====
-    match idx { // !!!! wip
-        1 => {
-            let len = blockwise_hdr_len();
-            if len > 0 {
-                blockwise_hdr_copy(u8_slice_mut_from(buf, buf_sz));
-            }
-
-            len
-        },
-        2 => {
-            let len = blockwise_2_hdr_len();
-            if len > 0 {
-                blockwise_2_hdr_copy(u8_slice_mut_from(buf, buf_sz));
-            }
-
-            len
-        },
-        _ => unreachable!(),
-    }
+pub extern fn xbd_blockwise_hdr_update(hdr: *const c_void, hdr_len: usize, idx: usize) {
+    let state = BlockwiseData::state_mut(&idx).unwrap();
+    let buf = &mut state.hdr;
+    let buf_len = &mut state.hdr_len;
+    *buf_len = blockwise_metadata_update(
+        u8_slice_from(hdr as *const u8, hdr_len), buf, buf.len());
 }
 
 #[no_mangle]
-pub extern fn xbd_blockwise_hdr_update(hdr: *const c_void, hdr_len: usize, idx: usize) {
-    //blockwise_hdr_update(u8_slice_from(hdr as *const u8, hdr_len));
-    //====
-    match idx { // !!!! wip
-        1 => { blockwise_hdr_update(u8_slice_from(hdr as *const u8, hdr_len)); },
-        2 => { blockwise_2_hdr_update(u8_slice_from(hdr as *const u8, hdr_len)); },
-        _ => unreachable!(),
+pub extern fn xbd_blockwise_hdr_copy(buf: *mut u8, buf_sz: usize, idx: usize) -> usize {
+    let state = BlockwiseData::state(&idx).unwrap();
+    let hdr = &state.hdr;
+    let len = state.hdr_len;
+    if len > 0 {
+        u8_slice_mut_from(buf, buf_sz)[..len]
+            .copy_from_slice(&hdr[..len]);
     }
+
+    len
 }
 
 #[no_mangle]
@@ -94,6 +75,7 @@ pub extern fn xbd_blockwise_async_gcoap_complete(idx: usize) {
 
 const LAST_BLOCKWISE_ADDR_MAX: usize = 64;
 const LAST_BLOCKWISE_URI_MAX: usize = 64;
+const LAST_BLOCKWISE_HDR_MAX: usize = 64;
 
 type GridAddr = [[u8; LAST_BLOCKWISE_ADDR_MAX]; BLOCKWISE_STATES_MAX];
 static mut GRID_ADDR: &'static mut GridAddr = &mut [[0; LAST_BLOCKWISE_ADDR_MAX]; BLOCKWISE_STATES_MAX];
@@ -101,9 +83,10 @@ static mut GRID_ADDR: &'static mut GridAddr = &mut [[0; LAST_BLOCKWISE_ADDR_MAX]
 type GridUri = [[u8; LAST_BLOCKWISE_URI_MAX]; BLOCKWISE_STATES_MAX];
 static mut GRID_URI: &'static mut GridUri = &mut [[0; LAST_BLOCKWISE_URI_MAX]; BLOCKWISE_STATES_MAX];
 
-const LAST_BLOCKWISE_HDR_MAX: usize = 64;
-static mut LAST_BLOCKWISE_HDR: &'static mut [u8] = &mut [0; LAST_BLOCKWISE_HDR_MAX];
-static mut LAST_BLOCKWISE_LEN: usize = 0;
+type GridHdr = [[u8; LAST_BLOCKWISE_HDR_MAX]; BLOCKWISE_STATES_MAX];
+static mut GRID_HDR: &'static mut GridHdr = &mut [[0; LAST_BLOCKWISE_HDR_MAX]; BLOCKWISE_STATES_MAX];
+
+static mut ARRAY_HDR_LEN: &'static mut [usize] = &mut [0; BLOCKWISE_STATES_MAX];
 
 fn blockwise_metadata_update(data_in: &[u8], data: &mut [u8], data_max: usize) -> usize {
     let data_len = data_in.len();
@@ -114,50 +97,6 @@ fn blockwise_metadata_update(data_in: &[u8], data: &mut [u8], data_max: usize) -
 
     data_len
 }
-
-fn blockwise_hdr_update(hdr: &[u8]) {
-    unsafe {
-        LAST_BLOCKWISE_LEN = blockwise_metadata_update(
-            hdr, LAST_BLOCKWISE_HDR, LAST_BLOCKWISE_HDR_MAX);
-    }
-}
-
-fn blockwise_hdr_len() -> usize {
-    unsafe { LAST_BLOCKWISE_LEN }
-}
-
-fn blockwise_hdr_copy(buf: &mut [u8]) {
-    unsafe {
-        let len = LAST_BLOCKWISE_LEN;
-        buf[..len].
-            copy_from_slice(&LAST_BLOCKWISE_HDR[..len]);
-    }
-}
-
-//---- !!!! POC hardcoded ^^
-const LAST_BLOCKWISE_2_HDR_MAX: usize = 64;
-static mut LAST_BLOCKWISE_2_HDR: &'static mut [u8] = &mut [0; LAST_BLOCKWISE_2_HDR_MAX];
-static mut LAST_BLOCKWISE_2_LEN: usize = 0;
-
-fn blockwise_2_hdr_update(hdr: &[u8]) {
-    unsafe {
-        LAST_BLOCKWISE_2_LEN = blockwise_metadata_update(
-            hdr, LAST_BLOCKWISE_2_HDR, LAST_BLOCKWISE_2_HDR_MAX);
-    }
-}
-
-fn blockwise_2_hdr_len() -> usize {
-    unsafe { LAST_BLOCKWISE_2_LEN }
-}
-
-fn blockwise_2_hdr_copy(buf: &mut [u8]) {
-    unsafe {
-        let len = LAST_BLOCKWISE_2_LEN;
-        buf[..len].
-            copy_from_slice(&LAST_BLOCKWISE_2_HDR[..len]);
-    }
-}
-//---- !!!! POC hardcoded $$
 
 //
 
@@ -195,12 +134,11 @@ impl BlockwiseData {
 struct BlockwiseState {
     queue: &'static OnceCell<ArrayQueue<Option<ReqInner>>>,
     waker: &'static AtomicWaker,
-    // WIP - fuse metadata stuff
     idx: usize,
     addr: &'static mut [u8],
     uri: &'static mut [u8],
-    //hdr: ........
-    // ....
+    hdr: &'static mut [u8],
+    hdr_len: usize,
 }
 
 impl Clone for BlockwiseState {
@@ -211,6 +149,8 @@ impl Clone for BlockwiseState {
             idx: self.idx,
             addr: unsafe { &mut GRID_ADDR[self.idx] },
             uri: unsafe { &mut GRID_URI[self.idx] },
+            hdr: unsafe { &mut GRID_HDR[self.idx] },
+            hdr_len: self.hdr_len,
         }
     }
 }
@@ -227,6 +167,8 @@ impl BlockwiseState {
         Self { queue, waker, idx,
             addr: unsafe { &mut GRID_ADDR[idx] },
             uri: unsafe { &mut GRID_URI[idx] },
+            hdr: unsafe { &mut GRID_HDR[idx] },
+            hdr_len: unsafe { ARRAY_HDR_LEN[idx] },
         }
     }
 
