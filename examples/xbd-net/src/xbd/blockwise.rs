@@ -188,10 +188,10 @@ pub fn add_blockwise_req_generic(
     if let Some(idx) = blockwise_state_index {
         let stat = BlockwiseData::state(&idx).unwrap();
 
-        if let Some((addr, uri)) = addr_uri { // blockwise NEXT
+        if let Some((addr, uri)) = addr_uri { // <blockwise NEXT>
             stat.add_to_stream(Some(
                 ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx))));
-        } else { // blockwise COMPLETE
+        } else { // <blockwise COMPLETE>
             stat.add_to_stream(None);
         }
 
@@ -199,26 +199,24 @@ pub fn add_blockwise_req_generic(
     }
 
     //
-    // blockwise NEW
+    // <blockwise NEW>
     //
 
     let states = BlockwiseData::states();
-    states[0] = Some(BlockwiseState::get(0)); // !!!! KLUDGE placeholder
-
     if let Some((idx, slot)) = states.iter_mut().enumerate().find(|x| x.1.is_none()) {
         let stat = BlockwiseState::get(idx);
         *slot = Some(stat.clone());
 
         let bs = stat.get_stream(); // makes sure stream is initialized before `.add_to_stream()`
 
-        crate::println!("sending NEW, via idx={}/{}, where states: {:?}",
+        crate::println!("sending <blockwise NEW>, via idx={}/{}, where states: {:?}",
                         idx, states.len(), states);
         let (addr, uri) = addr_uri.unwrap();
         let req = ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx));
         stat.add_to_stream(Some(req));
 
         Some(bs)
-    } else { // `states` is full
+    } else { // no available BlockwiseState
         None
     }
 }
