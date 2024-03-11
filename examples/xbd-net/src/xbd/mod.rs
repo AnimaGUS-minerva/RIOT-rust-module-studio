@@ -10,7 +10,7 @@ pub use server::{start_gcoap_server, process_gcoap_server_stream};
 mod stream;
 
 mod blockwise;
-use blockwise::BlockwiseStream;
+use blockwise::{BlockwiseStream, BlockwiseData};
 
 mod timeout;
 use timeout::Timeout;
@@ -173,7 +173,7 @@ impl Xbd {
     }
 
     pub fn async_gcoap_get_blockwise(addr: &str, uri: &str) -> Option<BlockwiseStream> {
-        blockwise::add_blockwise_req_generic(Some((addr, uri)), None)
+        BlockwiseData::send_blockwise_req(None, Some((addr, uri)))
     }
 
     pub fn async_gcoap_post(addr: &str, uri: &str, payload: &[u8]) -> impl Future<Output = GcoapMemoState> + 'static {
