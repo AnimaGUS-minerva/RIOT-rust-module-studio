@@ -14,11 +14,11 @@ pub struct Executor {
 }
 
 #[derive(Debug)]
-struct Signaler(u8); // TODO
+struct Signaler(()); // TODO
 
 impl Executor {
     pub fn new() -> Self {
-        let signaler = Box::leak(Box::new(Signaler(42)));
+        let signaler = Box::leak(Box::new(Signaler(())));
 
         Self {
             executor: RawExecutor::new(signaler as *mut _ as *mut ()),
