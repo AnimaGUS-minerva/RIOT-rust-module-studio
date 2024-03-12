@@ -2,7 +2,6 @@
 #![feature(alloc_error_handler)]
 #![feature(stmt_expr_attributes)]
 #![feature(type_alias_impl_trait)]
-#![cfg_attr(target_arch = "xtensa", feature(arbitrary_enum_discriminant))]
 
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! { mcu_if::panic(info) }
@@ -26,6 +25,21 @@ pub extern fn rustmod_start(
     xbd_fns_sz: usize
 ) {
     println!("[src/lib.rs] rustmod_start(): ^^ ================");
+
+    if 10 == 1 {
+        //use mcu_if::{alloc::vec::Vec};
+        let _ = [0u8].to_vec();
+        panic!("ok");
+    }
+    if 10 == 1 { // https://docs.rs/heapless/latest/heapless/struct.Vec.html
+        use heapless::Vec;
+        let mut x = Vec::<_, 2>::new();
+        x.push(1).unwrap();
+        x.push(2).unwrap();
+        //x.push(3).unwrap();
+        println!("x: {:?}", x);
+        panic!("ok");
+    }
 
     xbd::init_once(xbd_fns_ptr, xbd_fns_sz);
 
