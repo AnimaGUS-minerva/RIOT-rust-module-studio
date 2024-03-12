@@ -11,7 +11,7 @@ CLANG_ESP := $(HOME)/.espressif/tools/xtensa-esp32-elf-clang/esp-13.0.0-20211203
 
 export CARGO_HOME := $(STUDIO)/target/cargo
 export LIBCLANG_PATH := $(CLANG_ESP)/lib
-export XARGO_RUST_SRC := $(TOOLCHAIN_XTENSA)/rust-build/rust-src-1.57.0.2/rust-src/lib/rustlib/src/rust/library
+export XARGO_RUST_SRC := $(TOOLCHAIN_XTENSA)/rust-build/rust-src-1.74.0.1/rust-src/lib/rustlib/src/rust/library
 export PATH := $(CLANG_ESP)/bin:$(PATH)
 
 esp32-build-module:
