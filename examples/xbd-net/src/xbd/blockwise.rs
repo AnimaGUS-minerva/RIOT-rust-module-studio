@@ -10,15 +10,13 @@ use super::stream::XbdStream;
 use super::gcoap::{ReqInner, COAP_METHOD_GET};
 
 #[no_mangle]
-#[allow(static_mut_refs)]
 pub extern fn xbd_blockwise_state_index() -> usize {
-    (unsafe { &BLOCKWISE_STATE_INDEX }).unwrap()
+    BlockwiseData::get_state_last()
 }
 
 #[no_mangle]
-#[allow(static_mut_refs)]
 pub extern fn xbd_blockwise_state_index_update(idx: usize) {
-    *(unsafe { &mut BLOCKWISE_STATE_INDEX }) = Some(idx);
+    BlockwiseData::set_state_last(Some(idx));
 }
 
 #[no_mangle]
@@ -118,6 +116,16 @@ impl BlockwiseData {
         unsafe { BLOCKWISE_STATES }
     }
 
+    #[cfg_attr(not(target_arch = "xtensa"), allow(static_mut_refs))]
+    fn get_state_last() -> usize {
+        (unsafe { &BLOCKWISE_STATE_INDEX }).unwrap()
+    }
+
+    #[cfg_attr(not(target_arch = "xtensa"), allow(static_mut_refs))]
+    fn set_state_last(idx: Option<usize>) {
+        *(unsafe { &mut BLOCKWISE_STATE_INDEX }) = idx;
+    }
+
     fn state(idx: &usize) -> Option<&BlockwiseState> {
         Self::states()[*idx].as_ref()
     }
@@ -139,6 +147,7 @@ impl BlockwiseData {
                     ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx))));
             } else { // <blockwise COMPLETE>
                 stat.add_to_stream(None);
+                BlockwiseData::set_state_last(None);
             }
 
             return None;
