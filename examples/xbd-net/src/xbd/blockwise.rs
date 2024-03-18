@@ -10,6 +10,18 @@ use super::stream::XbdStream;
 use super::gcoap::{ReqInner, COAP_METHOD_GET};
 
 #[no_mangle]
+#[allow(static_mut_refs)]
+pub extern fn xbd_blockwise_state_index() -> usize {
+    (unsafe { &BLOCKWISE_STATE_INDEX }).unwrap()
+}
+
+#[no_mangle]
+#[allow(static_mut_refs)]
+pub extern fn xbd_blockwise_state_index_update(idx: usize) {
+    *(unsafe { &mut BLOCKWISE_STATE_INDEX }) = Some(idx);
+}
+
+#[no_mangle]
 pub extern fn xbd_blockwise_addr_ptr(idx: usize) -> *const c_void {
     BlockwiseData::state(&idx).unwrap().addr.as_ptr() as _
 }
@@ -78,6 +90,8 @@ const BLOCKWISE_ADDR_MAX: usize = 64;
 const BLOCKWISE_URI_MAX: usize = 64;
 const BLOCKWISE_HDR_MAX: usize = 64;
 const BLOCKWISE_STATES_MAX: usize = 4;
+
+static mut BLOCKWISE_STATE_INDEX: Option<usize> = None;
 
 type GridAddr = [[u8; BLOCKWISE_ADDR_MAX]; BLOCKWISE_STATES_MAX];
 static mut GRID_ADDR: &'static mut GridAddr = &mut [[0; BLOCKWISE_ADDR_MAX]; BLOCKWISE_STATES_MAX];
@@ -169,9 +183,9 @@ struct BlockwiseState {
 impl Clone for BlockwiseState {
     fn clone(&self) -> BlockwiseState {
         Self {
+            idx: self.idx,
             queue: self.queue,
             waker: self.waker,
-            idx: self.idx,
             addr: unsafe { &mut GRID_ADDR[self.idx] },
             uri: unsafe { &mut GRID_URI[self.idx] },
             hdr: unsafe { &mut GRID_HDR[self.idx].1 },
