@@ -140,9 +140,9 @@ impl Future for ReqInner {
             match self.method {
                 COAP_METHOD_GET => {
                     if self.blockwise {
-                        BlockwiseData::set_state_last(self.blockwise_state_index);
-                        super::Xbd::gcoap_get_blockwise(
-                            &self.addr, &self.uri, self.blockwise_state_index.unwrap(), cb);
+                        let idx = self.blockwise_state_index.unwrap();
+                        BlockwiseData::update_state_last(idx, &self.addr, &self.uri);
+                        super::Xbd::gcoap_get_blockwise(&self.addr, &self.uri, idx, cb);
                     } else {
                         super::Xbd::gcoap_get(&self.addr, &self.uri, cb);
                     }

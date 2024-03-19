@@ -20,22 +20,8 @@ pub extern fn xbd_blockwise_addr_ptr(idx: usize) -> *const c_void {
 }
 
 #[no_mangle]
-pub extern fn xbd_blockwise_addr_update(addr: *const c_void, addr_len: usize, idx: usize) {
-    let buf = &mut BlockwiseData::state_mut(&idx).unwrap().addr;
-    BlockwiseState::update_metadata(
-        u8_slice_from(addr as *const u8, addr_len), buf, buf.len());
-}
-
-#[no_mangle]
 pub extern fn xbd_blockwise_uri_ptr(idx: usize) -> *const c_void {
     BlockwiseData::state(&idx).unwrap().uri.as_ptr() as _
-}
-
-#[no_mangle]
-pub extern fn xbd_blockwise_uri_update(uri: *const c_void, uri_len: usize, idx: usize) {
-    let buf = &mut BlockwiseData::state_mut(&idx).unwrap().uri;
-    BlockwiseState::update_metadata(
-        u8_slice_from(uri as *const u8, uri_len), buf, buf.len());
 }
 
 #[no_mangle]
@@ -119,6 +105,18 @@ impl BlockwiseData {
     #[cfg_attr(not(target_arch = "xtensa"), allow(static_mut_refs))]
     pub fn set_state_last(idx: Option<usize>) {
         *(unsafe { &mut BLOCKWISE_STATE_INDEX }) = idx;
+    }
+
+    pub fn update_state_last(idx: usize, addr: &str, uri: &str) {
+        Self::set_state_last(Some(idx));
+
+        let state = Self::state_mut(&idx).unwrap();
+
+        let buf = &mut state.addr;
+        BlockwiseState::update_metadata(addr.as_bytes(), buf, buf.len());
+
+        let buf = &mut state.uri;
+        BlockwiseState::update_metadata(uri.as_bytes(), buf, buf.len());
     }
 
     fn state(idx: &usize) -> Option<&BlockwiseState> {

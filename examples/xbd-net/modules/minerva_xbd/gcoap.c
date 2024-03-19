@@ -30,10 +30,7 @@
 extern size_t xbd_blockwise_state_index(void);
 
 extern char * xbd_blockwise_addr_ptr(size_t idx);
-extern void xbd_blockwise_addr_update(const char *addr, size_t addr_len, size_t idx);
-
 extern char * xbd_blockwise_uri_ptr(size_t idx);
-extern void xbd_blockwise_uri_update(const char *uri, size_t uri_len, size_t idx);
 
 extern size_t xbd_blockwise_hdr_copy(const uint8_t *buf, size_t buf_sz, size_t idx);
 extern void xbd_blockwise_hdr_update(const coap_hdr_t *hdr, size_t hdr_len, size_t idx);
@@ -102,8 +99,6 @@ void xbd_gcoap_req_send(
 
     if (blockwise) {
         printf("@@ sending (blockwise_state_index: %u)\n", idx);
-        xbd_blockwise_addr_update(addr, strlen(addr), idx);
-        xbd_blockwise_uri_update(uri, strlen(uri), idx);
     }
 
     printf("@@ payload: %p payload_len: %d\n", payload, payload_len);
@@ -217,8 +212,8 @@ static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap
         puts("--- blockwise complete ---");
 
         xbd_blockwise_hdr_update(NULL, 0, idx);
-        xbd_blockwise_addr_update(NULL, 0, idx);
-        xbd_blockwise_uri_update(NULL, 0, idx);
+// !!       xbd_blockwise_addr_update(NULL, 0, idx);
+// !!       xbd_blockwise_uri_update(NULL, 0, idx);
         xbd_blockwise_async_gcoap_complete(idx);
     }
 }
