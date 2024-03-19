@@ -15,11 +15,6 @@ pub extern fn xbd_blockwise_state_index() -> usize {
 }
 
 #[no_mangle]
-pub extern fn xbd_blockwise_state_index_update(idx: usize) {
-    BlockwiseData::set_state_last(Some(idx));
-}
-
-#[no_mangle]
 pub extern fn xbd_blockwise_addr_ptr(idx: usize) -> *const c_void {
     BlockwiseData::state(&idx).unwrap().addr.as_ptr() as _
 }
@@ -122,7 +117,7 @@ impl BlockwiseData {
     }
 
     #[cfg_attr(not(target_arch = "xtensa"), allow(static_mut_refs))]
-    fn set_state_last(idx: Option<usize>) {
+    pub fn set_state_last(idx: Option<usize>) {
         *(unsafe { &mut BLOCKWISE_STATE_INDEX }) = idx;
     }
 

@@ -1,6 +1,7 @@
 use core::{future::Future, pin::Pin, task::{Context, Poll}, cell::RefCell};
 use futures_util::task::AtomicWaker;
 use mcu_if::{alloc::{vec::Vec, string::{String, ToString}, rc::Rc}};
+use super::BlockwiseData;
 
 //
 // gcoap client
@@ -139,6 +140,7 @@ impl Future for ReqInner {
             match self.method {
                 COAP_METHOD_GET => {
                     if self.blockwise {
+                        BlockwiseData::set_state_last(self.blockwise_state_index);
                         super::Xbd::gcoap_get_blockwise(
                             &self.addr, &self.uri, self.blockwise_state_index.unwrap(), cb);
                     } else {

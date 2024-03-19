@@ -28,7 +28,6 @@
 #include "minerva_xbd.h"
 
 extern size_t xbd_blockwise_state_index(void);
-extern void xbd_blockwise_state_index_update(size_t idx);
 
 extern char * xbd_blockwise_addr_ptr(size_t idx);
 extern void xbd_blockwise_addr_update(const char *addr, size_t addr_len, size_t idx);
@@ -103,8 +102,6 @@ void xbd_gcoap_req_send(
 
     if (blockwise) {
         printf("@@ sending (blockwise_state_index: %u)\n", idx);
-        xbd_blockwise_state_index_update(idx);
-
         xbd_blockwise_addr_update(addr, strlen(addr), idx);
         xbd_blockwise_uri_update(uri, strlen(uri), idx);
     }
