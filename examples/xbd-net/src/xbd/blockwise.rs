@@ -60,6 +60,7 @@ pub extern fn xbd_blockwise_async_gcoap_req(
 
 #[no_mangle]
 pub extern fn xbd_blockwise_async_gcoap_complete(idx: usize) {
+    BlockwiseData::clear_state(idx);
     BlockwiseData::send_blockwise_req(Some(idx), None);
 }
 
@@ -107,16 +108,18 @@ impl BlockwiseData {
         *(unsafe { &mut BLOCKWISE_STATE_INDEX }) = idx;
     }
 
-    pub fn update_state_last(idx: usize, addr: &str, uri: &str) {
-        Self::set_state_last(Some(idx));
-
+    pub fn update_state(idx: usize, addr: &[u8], uri: &[u8]) {
         let state = Self::state_mut(&idx).unwrap();
 
         let buf = &mut state.addr;
-        BlockwiseState::update_metadata(addr.as_bytes(), buf, buf.len());
+        BlockwiseState::update_metadata(addr, buf, buf.len());
 
         let buf = &mut state.uri;
-        BlockwiseState::update_metadata(uri.as_bytes(), buf, buf.len());
+        BlockwiseState::update_metadata(uri, buf, buf.len());
+    }
+
+    pub fn clear_state(idx: usize) {
+        Self::update_state(idx, &[], &[]);
     }
 
     fn state(idx: &usize) -> Option<&BlockwiseState> {

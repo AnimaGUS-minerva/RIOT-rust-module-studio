@@ -28,7 +28,6 @@
 #include "minerva_xbd.h"
 
 extern size_t xbd_blockwise_state_index(void);
-
 extern char * xbd_blockwise_addr_ptr(size_t idx);
 extern char * xbd_blockwise_uri_ptr(size_t idx);
 
@@ -210,10 +209,7 @@ static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap
     }
     else { // @@ TODO similar cleanup logic on blockwise timeout
         puts("--- blockwise complete ---");
-
         xbd_blockwise_hdr_update(NULL, 0, idx);
-// !!       xbd_blockwise_addr_update(NULL, 0, idx);
-// !!       xbd_blockwise_uri_update(NULL, 0, idx);
         xbd_blockwise_async_gcoap_complete(idx);
     }
 }
