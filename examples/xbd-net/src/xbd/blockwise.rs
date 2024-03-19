@@ -25,15 +25,6 @@ pub extern fn xbd_blockwise_uri_ptr(idx: usize) -> *const c_void {
 }
 
 #[no_mangle]
-pub extern fn xbd_blockwise_hdr_update(hdr: *const c_void, hdr_len: usize, idx: usize) {
-    let BlockwiseState { hdr: buf, hdr_len: buf_len, .. } =
-        BlockwiseData::state_mut(&idx).unwrap();
-
-    *buf_len = BlockwiseState::update_metadata(
-        u8_slice_from(hdr as *const u8, hdr_len), buf, buf.len());
-}
-
-#[no_mangle]
 pub extern fn xbd_blockwise_hdr_copy(buf: *mut u8, buf_sz: usize, idx: usize) -> usize {
     let BlockwiseState { hdr, hdr_len, .. } =
         BlockwiseData::state(&idx).unwrap();
