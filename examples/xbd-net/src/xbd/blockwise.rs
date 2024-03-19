@@ -49,10 +49,15 @@ pub extern fn xbd_blockwise_hdr_copy(buf: *mut u8, buf_sz: usize, idx: usize) ->
 
 #[no_mangle]
 pub extern fn xbd_blockwise_async_gcoap_req(
+    idx: usize,
     addr: *const c_void, addr_len: usize,
     uri: *const c_void, uri_len: usize,
-    idx: usize)
+    hdr: *const c_void, hdr_len: usize,
+    )
 {
+    let hdr = u8_slice_from(hdr as *const u8, hdr_len);
+    BlockwiseData::update_state(idx, None, None, Some(hdr));
+
     let addr = from_utf8(u8_slice_from(addr as *const u8, addr_len)).unwrap();
     let uri = from_utf8(u8_slice_from(uri as *const u8, uri_len)).unwrap();
     BlockwiseData::send_blockwise_req(Some(idx), Some((addr, uri)));
@@ -61,6 +66,7 @@ pub extern fn xbd_blockwise_async_gcoap_req(
 #[no_mangle]
 pub extern fn xbd_blockwise_async_gcoap_complete(idx: usize) {
     BlockwiseData::clear_state(idx);
+
     BlockwiseData::send_blockwise_req(Some(idx), None);
 }
 
@@ -108,18 +114,27 @@ impl BlockwiseData {
         *(unsafe { &mut BLOCKWISE_STATE_INDEX }) = idx;
     }
 
-    pub fn update_state(idx: usize, addr: &[u8], uri: &[u8]) {
+    pub fn update_state(idx: usize, addr: Option<&[u8]>, uri: Option<&[u8]>, hdr: Option<&[u8]>) {
         let state = Self::state_mut(&idx).unwrap();
 
-        let buf = &mut state.addr;
-        BlockwiseState::update_metadata(addr, buf, buf.len());
+        if let Some(addr) = addr {
+            let buf = &mut state.addr;
+            BlockwiseState::update_metadata(addr, buf, buf.len());
+        }
 
-        let buf = &mut state.uri;
-        BlockwiseState::update_metadata(uri, buf, buf.len());
+        if let Some(uri) = uri {
+            let buf = &mut state.uri;
+            BlockwiseState::update_metadata(uri, buf, buf.len());
+        }
+
+        if let Some(hdr) = hdr {
+            let BlockwiseState { hdr: buf, hdr_len: buf_len, .. } = state;
+            *buf_len = BlockwiseState::update_metadata(hdr, buf, buf.len());
+        }
     }
 
     pub fn clear_state(idx: usize) {
-        Self::update_state(idx, &[], &[]);
+        Self::update_state(idx, Some(&[]), Some(&[]), Some(&[]));
     }
 
     fn state(idx: &usize) -> Option<&BlockwiseState> {

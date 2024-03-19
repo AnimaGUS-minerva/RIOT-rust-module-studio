@@ -143,7 +143,8 @@ impl Future for ReqInner {
                         let idx = self.blockwise_state_index.unwrap();
 
                         BlockwiseData::set_state_last(Some(idx));
-                        BlockwiseData::update_state(idx, self.addr.as_bytes(), self.uri.as_bytes());
+                        BlockwiseData::update_state(idx,
+                            Some(self.addr.as_bytes()), Some(self.uri.as_bytes()), None);
 
                         super::Xbd::gcoap_get_blockwise(&self.addr, &self.uri, idx, cb);
                     } else {

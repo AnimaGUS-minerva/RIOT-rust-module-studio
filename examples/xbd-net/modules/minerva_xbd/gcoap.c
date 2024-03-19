@@ -32,12 +32,12 @@ extern char * xbd_blockwise_addr_ptr(size_t idx);
 extern char * xbd_blockwise_uri_ptr(size_t idx);
 
 extern size_t xbd_blockwise_hdr_copy(const uint8_t *buf, size_t buf_sz, size_t idx);
-extern void xbd_blockwise_hdr_update(const coap_hdr_t *hdr, size_t hdr_len, size_t idx);
 
 extern void xbd_blockwise_async_gcoap_req(
-        const char *last_addr, size_t last_addr_len,
-        const char *last_uri, size_t last_uri_len,
-        size_t idx);
+        size_t idx,
+        const char *addr, size_t addr_len,
+        const char *uri, size_t uri_len,
+        const char *hdr, size_t hdr_len);
 extern void xbd_blockwise_async_gcoap_complete(size_t idx);
 
 static size_t _send(uint8_t *buf, size_t len, char *addr_str, void *context, gcoap_resp_handler_t resp_handler) //@@
@@ -203,13 +203,13 @@ static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap
         (void)memo;
         (void)remote;
         size_t len = coap_opt_finish(pdu, COAP_OPT_FINISH_NONE);
-        xbd_blockwise_hdr_update(pdu->hdr, len, idx);
-        xbd_blockwise_async_gcoap_req(
-                last_addr, strlen(last_addr), last_uri, last_uri_len, idx);
+        xbd_blockwise_async_gcoap_req(idx,
+                last_addr, strlen(last_addr),
+                last_uri, last_uri_len,
+                (char *)pdu->hdr, len);
     }
-    else { // @@ TODO similar cleanup logic on blockwise timeout
+    else { // @@ WIP similar cleanup logic on blockwise timeout
         puts("--- blockwise complete ---");
-        xbd_blockwise_hdr_update(NULL, 0, idx);
         xbd_blockwise_async_gcoap_complete(idx);
     }
 }
