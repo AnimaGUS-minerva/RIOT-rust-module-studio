@@ -57,7 +57,6 @@ pub extern fn xbd_blockwise_async_gcoap_req(
 #[no_mangle]
 pub extern fn xbd_blockwise_async_gcoap_complete(idx: usize) {
     BlockwiseData::clear_state(idx);
-    crate::println!("!!!! debug - complete, after clear state[{}]", idx);
 
     BlockwiseData::send_blockwise_req(Some(idx), None);
 }
@@ -162,8 +161,6 @@ impl BlockwiseData {
             } else { // <blockwise COMPLETE>
                 stat.add_to_stream(None);
                 BlockwiseData::set_state_last(None);
-
-                crate::println!("!!!! debug - complete, set None to state[{}]", idx);
                 *(&mut Self::states()[idx]) = None;
             }
 
