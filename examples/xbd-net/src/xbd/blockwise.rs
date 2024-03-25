@@ -43,22 +43,18 @@ pub extern fn xbd_blockwise_async_gcoap_req(
     idx: usize,
     addr: *const c_void, addr_len: usize,
     uri: *const c_void, uri_len: usize,
-    hdr: *const c_void, hdr_len: usize,
-    )
+    hdr: *const c_void, hdr_len: usize)
 {
-    let hdr = u8_slice_from(hdr as *const u8, hdr_len);
-    BlockwiseData::update_state(idx, None, None, Some(hdr));
-
-    let addr = from_utf8(u8_slice_from(addr as *const u8, addr_len)).unwrap();
-    let uri = from_utf8(u8_slice_from(uri as *const u8, uri_len)).unwrap();
-    BlockwiseData::send_blockwise_req(Some(idx), Some((addr, uri)));
+    BlockwiseData::send_blockwise_req(
+        Some(idx),
+        Some((from_utf8(u8_slice_from(addr as *const u8, addr_len)).unwrap(),
+              from_utf8(u8_slice_from(uri as *const u8, uri_len)).unwrap())),
+        Some(u8_slice_from(hdr as *const u8, hdr_len)));
 }
 
 #[no_mangle]
 pub extern fn xbd_blockwise_async_gcoap_complete(idx: usize) {
-    BlockwiseData::clear_state(idx);
-
-    BlockwiseData::send_blockwise_req(Some(idx), None);
+    BlockwiseData::send_blockwise_req(Some(idx), None, None);
 }
 
 //
@@ -139,6 +135,10 @@ impl BlockwiseData {
         Self::update_state(idx, Some(&[]), Some(&[]), Some(&[]));
     }
 
+    fn invalidate_state(idx: usize) {
+        *(&mut Self::states()[idx]) = None;
+    }
+
     fn state(idx: &usize) -> Option<&BlockwiseState> {
         Self::states()[*idx].as_ref()
     }
@@ -151,17 +151,23 @@ impl BlockwiseData {
         Self::states().iter_mut().enumerate().find(|x| x.1.is_none())
     }
 
-    pub fn send_blockwise_req(idx: Option<usize>, addr_uri: Option<(&str, &str)>) -> Option<BlockwiseStream> {
+    pub fn send_blockwise_req(idx: Option<usize>, addr_uri: Option<(&str, &str)>, hdr: Option<&[u8]>) -> Option<BlockwiseStream> {
         if let Some(idx) = idx {
             let stat = Self::state(&idx).unwrap();
 
             if let Some((addr, uri)) = addr_uri { // <blockwise NEXT>
+                assert!(hdr.is_some());
+                BlockwiseData::update_state(idx, None, None, hdr);
+                // idx/addr/uri is updated much later via `ReqInner::poll()`
+
                 stat.add_to_stream(Some(
                     ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx))));
             } else { // <blockwise COMPLETE>
-                stat.add_to_stream(None);
                 BlockwiseData::set_state_last(None);
-                *(&mut Self::states()[idx]) = None;
+                BlockwiseData::clear_state(idx);
+
+                stat.add_to_stream(None);
+                BlockwiseData::invalidate_state(idx);
             }
 
             return None;

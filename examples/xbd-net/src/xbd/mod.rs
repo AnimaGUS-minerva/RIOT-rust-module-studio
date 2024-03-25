@@ -174,7 +174,7 @@ impl Xbd {
     }
 
     pub fn async_gcoap_get_blockwise(addr: &str, uri: &str) -> Option<BlockwiseStream> {
-        BlockwiseData::send_blockwise_req(None, Some((addr, uri)))
+        BlockwiseData::send_blockwise_req(None, Some((addr, uri)), None)
     }
 
     pub fn async_gcoap_post(addr: &str, uri: &str, payload: &[u8]) -> impl Future<Output = GcoapMemoState> + 'static {
