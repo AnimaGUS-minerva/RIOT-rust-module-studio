@@ -88,6 +88,17 @@ static mut BLOCKWISE_STATES: &'static mut [Option<BlockwiseState>] = &mut [ARRAY
 
 //
 
+pub fn blockwise_states_print() {
+    crate::println!("blockwise_states_print(): states: {:?}", BlockwiseData::states());
+}
+
+pub fn blockwise_states_debug() -> heapless::Vec<bool, BLOCKWISE_STATES_MAX> {
+    BlockwiseData::states()
+        .iter()
+        .map(|x| x.is_some())
+        .collect::<_>()
+}
+
 pub struct BlockwiseData();
 
 impl BlockwiseData {
@@ -150,6 +161,7 @@ impl BlockwiseData {
             } else { // <blockwise COMPLETE>
                 stat.add_to_stream(None);
                 BlockwiseData::set_state_last(None);
+                crate::println!("!!!! debug - set None to {}", idx);
             }
 
             return None;
@@ -164,7 +176,7 @@ impl BlockwiseData {
             let bs = state.get_stream(); // makes sure stream is initialized before `.add_to_stream()`
 
             let states = Self::states();
-            crate::println!("sending <blockwise NEW>, via idx={}/{}, where states: {:?}",
+            crate::println!("debug <blockwise NEW>, via idx={}/{}, where states: {:?}",
                             idx, states.len(), states);
 
             let (addr, uri) = addr_uri.unwrap();

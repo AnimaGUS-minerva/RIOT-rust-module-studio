@@ -158,9 +158,10 @@ async fn xbd_main() {
             //
 
             use futures_util::stream::StreamExt;
+            use xbd::{blockwise_states_print,blockwise_states_debug};
             let mut debug_count = 0;
 
-            println!("!! sending NEW [blockwise-1]");
+            println!("!! debug NEW [blockwise-1]");
             let mut bs = Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt").unwrap();
             while let Some(Some(req)) = bs.next().await {
                 println!("req: {:?}", req);
@@ -170,17 +171,18 @@ async fn xbd_main() {
                 debug_count += 1;
 
                 if debug_count == 3 { // !!!!
-                //if debug_count == 9 { // !!!! right after [blockwise-1] done
-                    println!("!! sending NEW [blockwise-2]");
+                    println!("!! debug NEW [blockwise-2]");
                     let mut bs = Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt").unwrap();
                     while let Some(Some(req)) = bs.next().await {
                         let out = req.await;
                         println!("@@ out_2: {:?}", out);
-                        //panic!("!!");
                     }
-                    //panic!("$$");
+                    blockwise_states_print(); // !!!!
+                    assert_eq!(blockwise_states_debug()[0], false, "debug"); // !!!!
                 }
             }
+            assert_eq!(blockwise_states_debug()[1], false, "debug"); // !!!!
+
             panic!("ok"); // !!!!
         }
     }

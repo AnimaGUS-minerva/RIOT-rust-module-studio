@@ -30,7 +30,6 @@
 extern size_t xbd_blockwise_state_index(void);
 extern char * xbd_blockwise_addr_ptr(size_t idx);
 extern char * xbd_blockwise_uri_ptr(size_t idx);
-
 extern size_t xbd_blockwise_hdr_copy(const uint8_t *buf, size_t buf_sz, size_t idx);
 
 extern void xbd_blockwise_async_gcoap_req(
@@ -97,7 +96,7 @@ void xbd_gcoap_req_send(
     printf("@@ xbd_gcoap_req_send(): addr: %s, uri: %s hdr_len: %u\n", addr, uri, hdr_len);
 
     if (blockwise) {
-        printf("@@ sending (blockwise_state_index: %u)\n", idx);
+        printf("@@ debug - blockwise_state_index: %u\n", idx);
     }
 
     printf("@@ payload: %p payload_len: %d\n", payload, payload_len);
@@ -207,8 +206,7 @@ static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap
                 last_addr, strlen(last_addr),
                 last_uri, last_uri_len,
                 (char *)pdu->hdr, len);
-    }
-    else { // @@ WIP similar cleanup logic on blockwise timeout
+    } else {
         puts("--- blockwise complete ---");
         xbd_blockwise_async_gcoap_complete(idx);
     }

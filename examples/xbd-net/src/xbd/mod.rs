@@ -11,6 +11,7 @@ mod stream;
 
 mod blockwise;
 use blockwise::{BlockwiseStream, BlockwiseData};
+pub use blockwise::{blockwise_states_print,blockwise_states_debug};
 
 mod timeout;
 use timeout::Timeout;
