@@ -170,20 +170,33 @@ async fn xbd_main() {
                 println!("@@ out_1: {:?}", out);
                 debug_count += 1;
 
-                if debug_count == 3 { // !!!!
+                if debug_count == 3 {
+                //if debug_count == 9 { // right after [blockwise-1] done
                     println!("!! debug NEW [blockwise-2]");
                     let mut bs = Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt").unwrap();
                     while let Some(Some(req)) = bs.next().await {
                         let out = req.await;
                         println!("@@ out_2: {:?}", out);
                     }
-                    blockwise_states_print(); // !!!!
-                    assert_eq!(blockwise_states_debug()[0], false, "debug"); // !!!!
+
+                    blockwise_states_print();
+                    assert_eq!(blockwise_states_debug()[1], false, "debug");
                 }
             }
-            assert_eq!(blockwise_states_debug()[1], false, "debug"); // !!!!
 
-            panic!("ok"); // !!!!
+            blockwise_states_print();
+            assert_eq!(blockwise_states_debug()[0], false, "debug");
+
+/* WIP - message: "XbdStream::new should only be called once: AlreadyInit"
+            println!("!! debug NEW [blockwise-3]");
+            let mut bs = Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt").unwrap();
+            while let Some(Some(req)) = bs.next().await {
+                let out = req.await;
+                println!("@@ out_3: {:?}", out);
+            }
+*/
+
+            panic!("debug ok"); // !!!!
         }
     }
 
