@@ -187,14 +187,14 @@ async fn xbd_main() {
             blockwise_states_print();
             assert_eq!(blockwise_states_debug()[0], false, "debug");
 
-/* WIP - message: "XbdStream::new should only be called once: AlreadyInit"
             println!("!! debug NEW [blockwise-3]");
             let mut bs = Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt").unwrap();
             while let Some(Some(req)) = bs.next().await {
                 let out = req.await;
                 println!("@@ out_3: {:?}", out);
             }
-*/
+
+            // WIP error/timeout (not COMPLETE) cases !!!!
 
             panic!("debug ok"); // !!!!
         }

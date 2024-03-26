@@ -177,17 +177,14 @@ impl BlockwiseData {
 
         if let Some((idx, slot)) = Self::find_state_available() {
             let state = BlockwiseState::get(idx);
+
             *slot = Some(state.clone());
-
-            let bs = state.get_stream(); // makes sure stream is initialized before `.add_to_stream()`
-
-            let states = Self::states();
-            crate::println!("debug <blockwise NEW>, via idx={}/{}, where states: {:?}",
-                            idx, states.len(), states);
+            crate::println!("debug <blockwise NEW>, via idx={}/{}", idx, BLOCKWISE_STATES_MAX);
+            blockwise_states_print(); // debug
 
             let (addr, uri) = addr_uri.unwrap();
             let req = ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx));
-            state.add_to_stream(Some(req));
+            let bs = state.add_to_stream(Some(req));
 
             Some(bs)
         } else { // no available BlockwiseState
@@ -239,8 +236,11 @@ impl BlockwiseState {
         BlockwiseStream::get(self.queue, self.waker)
     }
 
-    fn add_to_stream(&self, req: Option<ReqInner>) {
+    fn add_to_stream(&self, req: Option<ReqInner>) -> BlockwiseStream {
+        let bs = self.get_stream(); // makes sure the stream is initialized
         XbdStream::add(self.queue, self.waker, req);
+
+        bs
     }
 
     fn update_metadata(data_in: &[u8], data: &mut [u8], data_max: usize) -> usize {
@@ -262,7 +262,7 @@ pub struct BlockwiseStream(XbdStream<Option<ReqInner>>);
 impl BlockwiseStream {
     pub fn get(queue: &'static OnceCell<ArrayQueue<Option<ReqInner>>>, waker: &'static AtomicWaker) -> Self {
         Self(XbdStream::get(&queue, &waker)
-            .unwrap_or(XbdStream::new_with_cap(&queue, &waker, 1)))
+            .unwrap_or_else(|| XbdStream::new_with_cap(&queue, &waker, 1)))
     }
 }
 
