@@ -88,10 +88,10 @@ pub fn blockwise_states_print() {
     crate::println!("[debug] blockwise_states_print(): states: {:?}", BlockwiseData::states());
 }
 
-pub fn blockwise_states_debug() -> heapless::Vec<bool, BLOCKWISE_STATES_MAX> {
+pub fn blockwise_states_debug() -> heapless::Vec<Option<()>, BLOCKWISE_STATES_MAX> {
     BlockwiseData::states()
         .iter()
-        .map(|x| x.is_some())
+        .map(|s| if s.is_some() { Some(()) } else { None })
         .collect::<_>()
 }
 
