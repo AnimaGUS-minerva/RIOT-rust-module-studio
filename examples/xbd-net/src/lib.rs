@@ -51,7 +51,9 @@ pub extern fn rustmod_start(
 
     if 0 == 1 {
         println!("@@ running `xbd_main()` with `blogos12::Runtime` ...");
-        blogos12::Runtime::new().unwrap().block_on(xbd_main());
+        let _ = blogos12::Runtime::new()
+            .unwrap()
+            .block_on(xbd_main());
         panic!("should be never reached");
     }
 
@@ -61,8 +63,8 @@ pub extern fn rustmod_start(
     }
 }
 
-async fn xbd_main() {
-    xbd::start_gcoap_server().unwrap();
+async fn xbd_main() -> Result<(), i8> {
+    xbd::start_gcoap_server()?;
 
     if 0 == 1 { // non-blocking, ok
         use blogos12::keyboard::add_scancode as blogos12_add_scancode;
@@ -158,13 +160,17 @@ async fn xbd_main() {
             //
 
             use futures_util::stream::StreamExt;
-            use xbd::{blockwise_states_print,blockwise_states_debug};
-            let mut debug_count = 0;
+            use xbd::{blockwise_states_print, blockwise_states_debug};
+            let get_blockwise = || {
+                Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt")
+                    .ok_or(-42) // !!!!
+            };
 
             println!("!! debug NEW [blockwise-1]");
-            let mut bs = Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt").unwrap();
+            let mut bs = get_blockwise()?;
             assert!(blockwise_states_debug()[0].is_some(), "debug");
 
+            let mut debug_count = 0;
             while let Some(Some(req)) = bs.next().await {
                 println!("req: {:?}", req);
 
@@ -175,7 +181,7 @@ async fn xbd_main() {
                 if debug_count == 3 {
                 //if debug_count == 9 { // right after [blockwise-1] done
                     println!("!! debug NEW [blockwise-2]");
-                    let mut bs = Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt").unwrap();
+                    let mut bs = get_blockwise()?;
                     assert!(blockwise_states_debug()[1].is_some(), "debug");
 
                     while let Some(Some(req)) = bs.next().await {
@@ -194,7 +200,7 @@ async fn xbd_main() {
             //
 
             println!("!! debug NEW [blockwise-3]");
-            let mut bs = Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt").unwrap();
+            let mut bs = get_blockwise()?;
             assert!(blockwise_states_debug()[0].is_some(), "debug");
 
             while let Some(Some(req)) = bs.next().await {
@@ -233,4 +239,6 @@ async fn xbd_main() {
         let out = Xbd::async_gcoap_get(req_external_native.0, req_external_native.1).await;
         println!("@@ out: {:?}", out);
     }
+
+    Ok(())
 }

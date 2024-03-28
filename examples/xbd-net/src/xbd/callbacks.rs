@@ -32,7 +32,7 @@ pub fn add_xbd_gcoap_req_callback(arg_ptr: CVoidPtr) {
     add_api_callback(ApiCallback::GcoapReq(arg_ptr as PtrSend));
 }
 
-pub async fn process_api_stream() {
+pub async fn process_api_stream() -> Result<(), i8> {
     let mut stream = XbdStream::new(&API_QUEUE, &API_WAKER);
 
     while let Some(cb) = stream.next().await {
@@ -53,6 +53,8 @@ pub async fn process_api_stream() {
             },
         }
     }
+
+    Ok(())
 }
 
 //

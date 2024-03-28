@@ -6,7 +6,7 @@ use executor::Executor;
 
 #[embassy_executor::task]
 async fn task_xbd_main() {
-    super::xbd_main().await;
+    super::xbd_main().await.unwrap();
 
     //loop { Xbd::async_sleep(1000).await; } // yield -> executor busy
     loop { Xbd::msleep(1000, true); } // not yield (debug only) -> executor not busy
@@ -14,7 +14,7 @@ async fn task_xbd_main() {
 
 #[embassy_executor::task]
 async fn task_api_stream() {
-    xbd::process_api_stream().await;
+    xbd::process_api_stream().await.unwrap();
 }
 
 #[embassy_executor::task]
