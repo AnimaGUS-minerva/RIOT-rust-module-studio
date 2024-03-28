@@ -213,6 +213,16 @@ async fn xbd_main() -> Result<(), i8> {
 
             //
 
+            { // !!!! w.r.t. `BLOCKWISE_STATES_MAX`
+                assert!(get_blockwise().is_ok());
+                assert!(get_blockwise().is_ok());
+                assert!(get_blockwise().is_ok());
+                assert!(get_blockwise().is_ok());
+                assert!(get_blockwise().is_err());
+            }
+
+            //
+
             // WIP error/timeout (not COMPLETE) cases !!!!
 
             panic!("debug ok"); // !!!!
