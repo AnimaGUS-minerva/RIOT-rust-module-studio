@@ -69,7 +69,7 @@ impl Stream for ScancodeStream {
     }
 }
 
-pub async fn print_keypresses() {
+pub async fn print_keypresses() -> Result<(), i8> {
     println!("@@ print_keypresses(): ^^");
 
     let mut scancodes = ScancodeStream::new();
@@ -90,4 +90,5 @@ pub async fn print_keypresses() {
     }
 
     println!("@@ print_keypresses(): $$");
+    Ok(())
 }

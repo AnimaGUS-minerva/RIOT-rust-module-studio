@@ -23,7 +23,7 @@ impl SimpleExecutor {
             let mut context = Context::from_waker(&waker);
             if 0 == 1 { println!("@@ SimpleExecutor: calling task.poll()"); } // CPU busy, without Waker support
             match task.poll(&mut context) {
-                Poll::Ready(()) => {} // task done
+                Poll::Ready(Ok(())) | Poll::Ready(Err(_)) => {} // task done
                 Poll::Pending => self.task_queue.push_back(task),
             }
         }

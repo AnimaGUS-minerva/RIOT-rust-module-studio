@@ -23,7 +23,7 @@ impl Executor {
     //====
     //pub fn spawn(&mut self, task: Task) -> &mut Self {
     //==== @@
-    pub fn spawn(&mut self, future: impl core::future::Future<Output = ()> + 'static) -> &mut Self {
+    pub fn spawn(&mut self, future: impl core::future::Future<Output = Result<(), i8>> + 'static) -> &mut Self {
         let task = Task::new(future);
     //====
         let task_id = task.id;
@@ -55,7 +55,7 @@ impl Executor {
             let mut context = Context::from_waker(waker);
             //mcu_if::println!("@@ Executor: calling task.poll()"); // not CPU busy, with Waker support
             match task.poll(&mut context) {
-                Poll::Ready(()) => {
+                Poll::Ready(Ok(())) | Poll::Ready(Err(_)) => {
                     // task done -> remove it and its cached waker
                     self.tasks.remove(&task_id);
                     self.waker_cache.remove(&task_id);

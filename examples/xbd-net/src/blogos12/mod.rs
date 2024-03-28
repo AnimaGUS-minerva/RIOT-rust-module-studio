@@ -11,9 +11,11 @@ use mcu_if::println;
 
 async fn async_number() -> u32 { 42 }
 
-pub async fn example_task() {
+pub async fn example_task() -> Result<(), i8> {
     let number = async_number().await;
     println!("async number: {}", number);
+
+    Ok(())
 }
 
 //
@@ -36,7 +38,7 @@ impl Runtime {
     }
 
     // c.f. https://docs.rs/tokio/latest/tokio/runtime/struct.Runtime.html#method.block_on
-    pub fn block_on<F: Future<Output = ()> + 'static>(&mut self, future: F) -> F::Output {
+    pub fn block_on<F: Future<Output = Result<(), i8>> + 'static>(&mut self, future: F) -> F::Output {
         self.0.spawn(future).run();
     }
 }
@@ -66,6 +68,8 @@ pub fn test_misc() {
             .spawn(process_api_stream()) // processor
             .spawn(async move { // main
                 println!("@@ hello");
+
+                Ok(())
             })
             .run();
     }

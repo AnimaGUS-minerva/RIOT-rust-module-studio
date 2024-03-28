@@ -8,18 +8,18 @@ use mcu_if::alloc::boxed::Box;
 
 pub struct Task {
     pub id: TaskId,
-    future: Pin<Box<dyn Future<Output = ()>>>,
+    future: Pin<Box<dyn Future<Output = Result<(), i8>>>>,
 }
 
 impl Task {
-    pub fn new(future: impl Future<Output = ()> + 'static) -> Task {
+    pub fn new(future: impl Future<Output = Result<(), i8>> + 'static) -> Task {
         Task {
             id: TaskId::new(),
             future: Box::pin(future),
         }
     }
 
-    pub fn poll(&mut self, context: &mut Context) -> Poll<()> {
+    pub fn poll(&mut self, context: &mut Context) -> Poll<Result<(), i8>> {
         self.future.as_mut().poll(context)
     }
 }
