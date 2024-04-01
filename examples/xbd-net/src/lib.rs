@@ -174,7 +174,10 @@ async fn xbd_main() -> Result<(), i8> {
     Ok(())
 }
 
-async fn test_blockwise(addr_self: &str) -> Result<(), xbd::BlockwiseError> {
+use futures_util::stream::StreamExt;
+use xbd::{BlockwiseError, BLOCKWISE_STATES_MAX, blockwise_states_print, blockwise_states_debug};
+
+async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
     // first, make sure non-blockwise get works
 
     println!("!! sending NEW [non-blockwise-1]");
@@ -184,9 +187,9 @@ async fn test_blockwise(addr_self: &str) -> Result<(), xbd::BlockwiseError> {
 
     //
 
-    use futures_util::stream::StreamExt;
-    use xbd::{blockwise_states_print, blockwise_states_debug};
     let get_blockwise = || Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt");
+
+    //
 
     println!("!! debug NEW [blockwise-1]");
     let mut bs = get_blockwise()?;
@@ -236,17 +239,14 @@ async fn test_blockwise(addr_self: &str) -> Result<(), xbd::BlockwiseError> {
 
     //
 
-    { // 1111 !!!! w.r.t. `BLOCKWISE_STATES_MAX`
+    for _ in 0..BLOCKWISE_STATES_MAX {
         assert!(get_blockwise().is_ok());
-        assert!(get_blockwise().is_ok());
-        assert!(get_blockwise().is_ok());
-        assert!(get_blockwise().is_ok());
-        assert!(get_blockwise().is_err());
     }
+    assert_eq!(get_blockwise().err(), Some(BlockwiseError::StateNotAvailable));
 
     //
 
-    // WIP error/timeout (not COMPLETE) cases !!!! 1111
+    // WIP error/timeout (not COMPLETE) cases !!!!
 
     Ok(())
 }
