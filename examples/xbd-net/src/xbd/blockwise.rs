@@ -39,7 +39,7 @@ pub extern fn xbd_blockwise_hdr_copy(buf: *mut u8, buf_sz: usize, idx: usize) ->
 }
 
 #[no_mangle]
-pub extern fn xbd_blockwise_async_gcoap_continue(
+pub extern fn xbd_blockwise_async_gcoap_next(
     idx: usize,
     addr: *const c_void, addr_len: usize,
     uri: *const c_void, uri_len: usize,
@@ -56,6 +56,7 @@ pub extern fn xbd_blockwise_async_gcoap_continue(
 pub extern fn xbd_blockwise_async_gcoap_complete(idx: usize) {
     let _ = BlockwiseData::send_blockwise_req(Some(idx), None, None);
 }
+
 //
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -241,7 +242,7 @@ impl BlockwiseState {
     }
 
     fn get_stream(&self) -> BlockwiseStream {
-        BlockwiseStream::get(self.queue, self.waker)
+        BlockwiseStream::get(self.idx, self.queue, self.waker)
     }
 
     fn add_to_stream(&self, req: Option<ReqInner>) -> BlockwiseStream {
@@ -265,12 +266,21 @@ impl BlockwiseState {
 //
 
 #[derive(Debug)]
-pub struct BlockwiseStream(XbdStream<Option<ReqInner>>);
+pub struct BlockwiseStream {
+    idx: usize,
+    xs: XbdStream<Option<ReqInner>>,
+}
 
 impl BlockwiseStream {
-    pub fn get(queue: &'static OnceCell<ArrayQueue<Option<ReqInner>>>, waker: &'static AtomicWaker) -> Self {
-        Self(XbdStream::get(&queue, &waker)
-            .unwrap_or_else(|| XbdStream::new_with_cap(&queue, &waker, 1)))
+    pub fn get(idx: usize, queue: &'static OnceCell<ArrayQueue<Option<ReqInner>>>, waker: &'static AtomicWaker) -> Self {
+        let xs = XbdStream::get(&queue, &waker)
+            .unwrap_or_else(|| XbdStream::new_with_cap(&queue, &waker, 1));
+
+        Self { idx, xs }
+    }
+
+    pub fn get_state_index(&self) -> usize {
+        self.idx
     }
 }
 
@@ -280,7 +290,7 @@ impl Stream for BlockwiseStream {
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
         unsafe {
             match Pin::get_unchecked_mut(self) {
-                Self(inner) => Pin::new_unchecked(inner).poll_next(cx),
+                Self { xs, .. } => Pin::new_unchecked(xs).poll_next(cx),
             }
         }
     }

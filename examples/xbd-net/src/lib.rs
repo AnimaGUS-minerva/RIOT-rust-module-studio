@@ -180,10 +180,11 @@ use xbd::{BlockwiseError, BLOCKWISE_STATES_MAX, blockwise_states_print, blockwis
 async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
     // first, make sure non-blockwise get works
 
-    println!("!! sending NEW [non-blockwise-1]");
-    println!("@@ out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
-    println!("!! sending NEW [non-blockwise-2]");
-    println!("@@ out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
+    println!("!! debug NEW [non-blockwise-1]");
+    println!("@@ debug out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
+    println!("!! debug NEW [non-blockwise-2]");
+    println!("@@ debug out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
+    //if 1 == 1 { panic!("!!"); }
 
     //
 
@@ -239,14 +240,27 @@ async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
 
     //
 
+    let mut bss = heapless::Vec::<_, BLOCKWISE_STATES_MAX>::new();
     for _ in 0..BLOCKWISE_STATES_MAX {
-        assert!(get_blockwise().is_ok());
+        bss.push(get_blockwise()?).unwrap();
     }
     assert_eq!(get_blockwise().err(), Some(BlockwiseError::StateNotAvailable));
+
+    bss.iter().for_each(|bs| {
+        println!("@@ debug bs idx: {}", bs.get_state_index());
+
+//        bs.cancel().await; // WIP: sth like `xbd_blockwise_async_gcoap_complete` ...
+    });
+
+    blockwise_states_print();
+    assert!(blockwise_states_debug()[0].is_none(), "debug");
 
     //
 
     // WIP error/timeout (not COMPLETE) cases !!!!
+    //----
+
+    //
 
     Ok(())
 }
