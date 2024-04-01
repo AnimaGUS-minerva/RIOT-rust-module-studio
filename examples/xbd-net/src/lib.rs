@@ -144,87 +144,8 @@ async fn xbd_main() -> Result<(), i8> {
 
         // TODO async gcoap ping
 
-        if 1777 == 1 { // fileserver, blockwise, TEMP
-            let out = Xbd::async_gcoap_get(addr_self, "/const/song.txt").await;
-            println!("@@ out: {:?}", out);
-            //panic!("ok");
-        }
         if 1 == 1 { // fileserver, blockwise, stream
-            // first, make sure non-blockwise get works
-
-            println!("!! sending NEW [non-blockwise-1]");
-            println!("@@ out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
-            println!("!! sending NEW [non-blockwise-2]");
-            println!("@@ out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
-
-            //
-
-            use futures_util::stream::StreamExt;
-            use xbd::{blockwise_states_print, blockwise_states_debug};
-            let get_blockwise = || {
-                Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt")
-                    .ok_or(-42) // !!!!
-            };
-
-            println!("!! debug NEW [blockwise-1]");
-            let mut bs = get_blockwise()?;
-            assert!(blockwise_states_debug()[0].is_some(), "debug");
-
-            let mut debug_count = 0;
-            while let Some(Some(req)) = bs.next().await {
-                println!("req: {:?}", req);
-
-                let out = req.await;
-                println!("@@ out_1: {:?}", out);
-                debug_count += 1;
-
-                if debug_count == 3 {
-                //if debug_count == 9 { // right after [blockwise-1] done
-                    println!("!! debug NEW [blockwise-2]");
-                    let mut bs = get_blockwise()?;
-                    assert!(blockwise_states_debug()[1].is_some(), "debug");
-
-                    while let Some(Some(req)) = bs.next().await {
-                        let out = req.await;
-                        println!("@@ out_2: {:?}", out);
-                    }
-
-                    blockwise_states_print();
-                    assert!(blockwise_states_debug()[1].is_none(), "debug");
-                }
-            }
-
-            blockwise_states_print();
-            assert!(blockwise_states_debug()[0].is_none(), "debug");
-
-            //
-
-            println!("!! debug NEW [blockwise-3]");
-            let mut bs = get_blockwise()?;
-            assert!(blockwise_states_debug()[0].is_some(), "debug");
-
-            while let Some(Some(req)) = bs.next().await {
-                let out = req.await;
-                println!("@@ out_3: {:?}", out);
-            }
-
-            blockwise_states_print();
-            assert!(blockwise_states_debug()[0].is_none(), "debug");
-
-            //
-
-            { // !!!! w.r.t. `BLOCKWISE_STATES_MAX`
-                assert!(get_blockwise().is_ok());
-                assert!(get_blockwise().is_ok());
-                assert!(get_blockwise().is_ok());
-                assert!(get_blockwise().is_ok());
-                assert!(get_blockwise().is_err());
-            }
-
-            //
-
-            // WIP error/timeout (not COMPLETE) cases !!!!
-
+            test_blockwise(addr_self).await.unwrap();
             panic!("debug ok"); // !!!!
         }
     }
@@ -249,6 +170,83 @@ async fn xbd_main() -> Result<(), i8> {
         let out = Xbd::async_gcoap_get(req_external_native.0, req_external_native.1).await;
         println!("@@ out: {:?}", out);
     }
+
+    Ok(())
+}
+
+async fn test_blockwise(addr_self: &str) -> Result<(), xbd::BlockwiseError> {
+    // first, make sure non-blockwise get works
+
+    println!("!! sending NEW [non-blockwise-1]");
+    println!("@@ out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
+    println!("!! sending NEW [non-blockwise-2]");
+    println!("@@ out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
+
+    //
+
+    use futures_util::stream::StreamExt;
+    use xbd::{blockwise_states_print, blockwise_states_debug};
+    let get_blockwise = || Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt");
+
+    println!("!! debug NEW [blockwise-1]");
+    let mut bs = get_blockwise()?;
+    assert!(blockwise_states_debug()[0].is_some(), "debug");
+
+    let mut debug_count = 0;
+    while let Some(Some(req)) = bs.next().await {
+        println!("req: {:?}", req);
+
+        let out = req.await;
+        println!("@@ out_1: {:?}", out);
+        debug_count += 1;
+
+        if debug_count == 3 {
+        //if debug_count == 9 { // right after [blockwise-1] done
+            println!("!! debug NEW [blockwise-2]");
+            let mut bs = get_blockwise()?;
+            assert!(blockwise_states_debug()[1].is_some(), "debug");
+
+            while let Some(Some(req)) = bs.next().await {
+                let out = req.await;
+                println!("@@ out_2: {:?}", out);
+            }
+
+            blockwise_states_print();
+            assert!(blockwise_states_debug()[1].is_none(), "debug");
+        }
+    }
+
+    blockwise_states_print();
+    assert!(blockwise_states_debug()[0].is_none(), "debug");
+
+    //
+
+    println!("!! debug NEW [blockwise-3]");
+    let mut bs = get_blockwise()?;
+    assert!(blockwise_states_debug()[0].is_some(), "debug");
+
+    while let Some(Some(req)) = bs.next().await {
+        //blockwise_states_print();
+        let out = req.await;
+        println!("@@ out_3: {:?}", out);
+    }
+
+    blockwise_states_print();
+    assert!(blockwise_states_debug()[0].is_none(), "debug");
+
+    //
+
+    { // 1111 !!!! w.r.t. `BLOCKWISE_STATES_MAX`
+        assert!(get_blockwise().is_ok());
+        assert!(get_blockwise().is_ok());
+        assert!(get_blockwise().is_ok());
+        assert!(get_blockwise().is_ok());
+        assert!(get_blockwise().is_err());
+    }
+
+    //
+
+    // WIP error/timeout (not COMPLETE) cases !!!! 1111
 
     Ok(())
 }

@@ -39,13 +39,13 @@ pub extern fn xbd_blockwise_hdr_copy(buf: *mut u8, buf_sz: usize, idx: usize) ->
 }
 
 #[no_mangle]
-pub extern fn xbd_blockwise_async_gcoap_req(
+pub extern fn xbd_blockwise_async_gcoap_continue(
     idx: usize,
     addr: *const c_void, addr_len: usize,
     uri: *const c_void, uri_len: usize,
     hdr: *const c_void, hdr_len: usize)
 {
-    BlockwiseData::send_blockwise_req(
+    let _ = BlockwiseData::send_blockwise_req(
         Some(idx),
         Some((from_utf8(u8_slice_from(addr as *const u8, addr_len)).unwrap(),
               from_utf8(u8_slice_from(uri as *const u8, uri_len)).unwrap())),
@@ -54,7 +54,13 @@ pub extern fn xbd_blockwise_async_gcoap_req(
 
 #[no_mangle]
 pub extern fn xbd_blockwise_async_gcoap_complete(idx: usize) {
-    BlockwiseData::send_blockwise_req(Some(idx), None, None);
+    let _ = BlockwiseData::send_blockwise_req(Some(idx), None, None);
+}
+//
+
+#[derive(Copy, Clone, PartialEq, Debug)]
+pub enum BlockwiseError {
+    StateNotAvailable,
 }
 
 //
@@ -151,26 +157,27 @@ impl BlockwiseData {
         Self::states().iter_mut().enumerate().find(|x| x.1.is_none())
     }
 
-    pub fn send_blockwise_req(idx: Option<usize>, addr_uri: Option<(&str, &str)>, hdr: Option<&[u8]>) -> Option<BlockwiseStream> {
+    pub fn send_blockwise_req(idx: Option<usize>, addr_uri: Option<(&str, &str)>, hdr: Option<&[u8]>) -> Result<BlockwiseStream, BlockwiseError> {
         if let Some(idx) = idx {
             let stat = Self::state(&idx).unwrap();
+            let bs;
 
             if let Some((addr, uri)) = addr_uri { // <blockwise NEXT>
                 assert!(hdr.is_some());
                 BlockwiseData::update_state(idx, None, None, hdr);
                 // idx/addr/uri is updated much later via `ReqInner::poll()`
 
-                stat.add_to_stream(Some(
+                bs = stat.add_to_stream(Some(
                     ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx))));
             } else { // <blockwise COMPLETE>
                 BlockwiseData::set_state_last(None);
                 BlockwiseData::clear_state(idx);
 
-                stat.add_to_stream(None);
+                bs = stat.add_to_stream(None);
                 BlockwiseData::invalidate_state(idx);
             }
 
-            return None;
+            return Ok(bs);
         }
 
         // <blockwise NEW>
@@ -180,15 +187,15 @@ impl BlockwiseData {
 
             *slot = Some(state.clone());
             crate::println!("debug <blockwise NEW>, via idx={}/{}", idx, BLOCKWISE_STATES_MAX);
-            blockwise_states_print(); // debug
+            //blockwise_states_print(); // debug
 
             let (addr, uri) = addr_uri.unwrap();
             let req = ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx));
             let bs = state.add_to_stream(Some(req));
 
-            Some(bs)
-        } else { // no available BlockwiseState
-            None
+            Ok(bs)
+        } else {
+            Err(BlockwiseError::StateNotAvailable)
         }
     }
 }

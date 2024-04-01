@@ -32,7 +32,7 @@ extern char * xbd_blockwise_addr_ptr(size_t idx);
 extern char * xbd_blockwise_uri_ptr(size_t idx);
 extern size_t xbd_blockwise_hdr_copy(const uint8_t *buf, size_t buf_sz, size_t idx);
 
-extern void xbd_blockwise_async_gcoap_req(
+extern void xbd_blockwise_async_gcoap_continue(
         size_t idx,
         const char *addr, size_t addr_len,
         const char *uri, size_t uri_len,
@@ -202,7 +202,7 @@ static void _resp_handler_blockwise_async(const gcoap_request_memo_t *memo, coap
         (void)memo;
         (void)remote;
         size_t len = coap_opt_finish(pdu, COAP_OPT_FINISH_NONE);
-        xbd_blockwise_async_gcoap_req(idx,
+        xbd_blockwise_async_gcoap_continue(idx,
                 last_addr, strlen(last_addr),
                 last_uri, last_uri_len,
                 (char *)pdu->hdr, len);

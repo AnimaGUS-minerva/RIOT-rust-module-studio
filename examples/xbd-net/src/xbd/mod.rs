@@ -11,7 +11,7 @@ mod stream;
 
 mod blockwise;
 use blockwise::{BlockwiseStream, BlockwiseData};
-pub use blockwise::{blockwise_states_print,blockwise_states_debug};
+pub use blockwise::{BlockwiseError, blockwise_states_print,blockwise_states_debug};
 
 mod timeout;
 use timeout::Timeout;
@@ -173,7 +173,7 @@ impl Xbd {
         gcoap::Req::new(COAP_METHOD_GET, addr, uri, None)
     }
 
-    pub fn async_gcoap_get_blockwise(addr: &str, uri: &str) -> Option<BlockwiseStream> {
+    pub fn async_gcoap_get_blockwise(addr: &str, uri: &str) -> Result<BlockwiseStream, BlockwiseError> {
         BlockwiseData::send_blockwise_req(None, Some((addr, uri)), None)
     }
 
