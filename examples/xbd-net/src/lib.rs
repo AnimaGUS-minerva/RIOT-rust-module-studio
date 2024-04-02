@@ -197,7 +197,7 @@ async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
     assert!(blockwise_states_debug()[0].is_some(), "debug");
 
     let mut debug_count = 0;
-    while let Some(Some(req)) = bs.next().await {
+    while let Some(req) = bs.next().await {
         println!("req: {:?}", req);
 
         let out = req.await;
@@ -210,7 +210,7 @@ async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
             let mut bs = get_blockwise()?;
             assert!(blockwise_states_debug()[1].is_some(), "debug");
 
-            while let Some(Some(req)) = bs.next().await {
+            while let Some(req) = bs.next().await {
                 let out = req.await;
                 println!("@@ out_2: {:?}", out);
             }
@@ -229,7 +229,7 @@ async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
     let mut bs = get_blockwise()?;
     assert!(blockwise_states_debug()[0].is_some(), "debug");
 
-    while let Some(Some(req)) = bs.next().await {
+    while let Some(req) = bs.next().await {
         //blockwise_states_print();
         let out = req.await;
         println!("@@ out_3: {:?}", out);
@@ -247,13 +247,15 @@ async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
     assert_eq!(get_blockwise().err(), Some(BlockwiseError::StateNotAvailable));
 
     bss.iter().for_each(|bs| {
-        println!("@@ debug bs idx: {}", bs.get_state_index());
+        println!("@@ debug bs idx: {}", bs.get_state_index_debug());
 
-//        bs.cancel().await; // WIP: sth like `xbd_blockwise_async_gcoap_complete` ...
+        bs.cancel();
     });
 
     blockwise_states_print();
-    assert!(blockwise_states_debug()[0].is_none(), "debug");
+    for idx in 0..BLOCKWISE_STATES_MAX {
+        assert!(blockwise_states_debug()[idx].is_none(), "debug");
+    }
 
     //
 

@@ -272,25 +272,35 @@ pub struct BlockwiseStream {
 }
 
 impl BlockwiseStream {
-    pub fn get(idx: usize, queue: &'static OnceCell<ArrayQueue<Option<ReqInner>>>, waker: &'static AtomicWaker) -> Self {
+    fn get(idx: usize, queue: &'static OnceCell<ArrayQueue<Option<ReqInner>>>, waker: &'static AtomicWaker) -> Self {
         let xs = XbdStream::get(&queue, &waker)
             .unwrap_or_else(|| XbdStream::new_with_cap(&queue, &waker, 1));
 
         Self { idx, xs }
     }
 
-    pub fn get_state_index(&self) -> usize {
+    pub fn cancel(&self) {
+        xbd_blockwise_async_gcoap_complete(self.idx); // !!!!
+    }
+
+    pub fn get_state_index_debug(&self) -> usize {
         self.idx
     }
 }
 
 impl Stream for BlockwiseStream {
-    type Item = Option<ReqInner>;
+    type Item = ReqInner;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
         unsafe {
             match Pin::get_unchecked_mut(self) {
-                Self { xs, .. } => Pin::new_unchecked(xs).poll_next(cx),
+                Self { xs, .. } => {
+                    if let Poll::Ready(Some(item)) = Pin::new_unchecked(xs).poll_next(cx) {
+                        Poll::Ready(item)
+                    } else {
+                        Poll::Pending
+                    }
+                },
             }
         }
     }
