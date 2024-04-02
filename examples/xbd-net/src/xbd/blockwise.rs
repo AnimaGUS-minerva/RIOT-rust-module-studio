@@ -161,21 +161,20 @@ impl BlockwiseData {
 
     pub fn send_blockwise_req(idx: Option<usize>, addr_uri: Option<(&str, &str)>, hdr: Option<&[u8]>) -> Result<BlockwiseStream, BlockwiseError> {
         if let Some(idx) = idx {
-            let stat = Self::state(&idx).unwrap();
-            let bs;
+            let bs = Self::state(&idx).unwrap().get_stream();
 
             if let Some((addr, uri)) = addr_uri { // <blockwise NEXT>
                 assert!(hdr.is_some());
                 BlockwiseData::update_state(idx, None, None, hdr);
                 // idx/addr/uri is updated much later via `ReqInner::poll()`
 
-                bs = stat.add_to_stream(Some(
-                    ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx))));
+                bs.add(Some(ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx))));
             } else { // <blockwise COMPLETE>
                 BlockwiseData::set_state_last(None);
                 BlockwiseData::clear_state(idx);
 
-                bs = stat.add_to_stream(None);
+                bs.empty(); // !!!! !!!!
+                bs.add(None);
                 BlockwiseData::invalidate_state(idx);
             }
 
@@ -193,7 +192,8 @@ impl BlockwiseData {
 
             let (addr, uri) = addr_uri.unwrap();
             let req = ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx));
-            let bs = state.add_to_stream(Some(req));
+            let bs = state.get_stream();
+            bs.add(Some(req));
 
             Ok(bs)
         } else {
@@ -245,13 +245,6 @@ impl BlockwiseState {
         BlockwiseStream::get(self.idx, self.queue, self.waker)
     }
 
-    fn add_to_stream(&self, req: Option<ReqInner>) -> BlockwiseStream {
-        let bs = self.get_stream(); // makes sure the stream is initialized
-        XbdStream::add(self.queue, self.waker, req);
-
-        bs
-    }
-
     fn update_metadata(data_in: &[u8], data: &mut [u8], data_max: usize) -> usize {
         let data_len = data_in.len();
         assert!(data_len < data_max);
@@ -279,8 +272,16 @@ impl BlockwiseStream {
         Self { idx, xs }
     }
 
+    fn add(&self, req: Option<ReqInner>) {
+        self.xs.add(req);
+    }
+
+    fn empty(&self) {
+        self.xs.empty();
+    }
+
     pub fn cancel(&self) {
-        xbd_blockwise_async_gcoap_complete(self.idx); // !!!!
+        xbd_blockwise_async_gcoap_complete(self.idx); // !!!!---- WIP
     }
 
     pub fn get_state_index_debug(&self) -> usize {
