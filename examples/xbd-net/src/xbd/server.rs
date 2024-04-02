@@ -29,7 +29,7 @@ static SERVER_QUEUE: OnceCell<ArrayQueue<ServerCallback>> = OnceCell::uninit();
 static SERVER_WAKER: AtomicWaker = AtomicWaker::new();
 
 fn add_server_callback(cb: ServerCallback) {
-    XbdStream::add(&SERVER_QUEUE, &SERVER_WAKER, cb);
+    XbdStream::get(&SERVER_QUEUE, &SERVER_WAKER).unwrap().add(cb);
 }
 
 fn add_xbd_gcoap_server_sock_udp_event_callback(arg_ptr: *const c_void) {
@@ -77,7 +77,6 @@ pub async fn process_gcoap_server_stream() {
 #[no_mangle]
 pub extern fn xbd_on_sock_udp_evt(sock: *const c_void, flags: usize, arg: *const c_void) {
     println!("@@ xbd_on_sock_udp_evt(): sock: {:?} type: {:?} arg: {:?}", sock, flags, arg);
-
     let cb_ptr = core::ptr::null::<()>();
     let evt_args = (sock, flags, arg);
 

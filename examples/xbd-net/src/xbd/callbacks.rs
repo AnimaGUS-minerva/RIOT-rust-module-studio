@@ -22,7 +22,7 @@ static API_QUEUE: OnceCell<ArrayQueue<ApiCallback>> = OnceCell::uninit();
 static API_WAKER: AtomicWaker = AtomicWaker::new();
 
 fn add_api_callback(cb: ApiCallback) {
-    XbdStream::add(&API_QUEUE, &API_WAKER, cb);
+    XbdStream::get(&API_QUEUE, &API_WAKER).unwrap().add(cb);
 }
 
 pub fn add_xbd_timeout_callback(arg_ptr: CVoidPtr) {

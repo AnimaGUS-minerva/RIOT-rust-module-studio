@@ -32,7 +32,7 @@ impl<T> XbdStream<T> {
     }
 
     // must not block/alloc/dealloc
-    pub fn add(queue: &'static OnceCell<ArrayQueue<T>>, waker: &'static AtomicWaker, item: T) {
+    fn _add(queue: &'static OnceCell<ArrayQueue<T>>, waker: &'static AtomicWaker, item: T) {
         if let Ok(queue) = queue.try_get() {
             if let Err(_) = queue.push(item) {
                 panic!("queue full");
@@ -41,6 +41,17 @@ impl<T> XbdStream<T> {
             }
         } else {
             panic!("queue uninitialized");
+        }
+    }
+
+    pub fn add(&self, item: T) {
+        Self::_add(self.queue, self.waker, item);
+    }
+
+    pub fn empty(&self) {
+        let queue = self.queue.try_get().unwrap();
+        while queue.len() > 0 {
+            queue.pop();
         }
     }
 }
