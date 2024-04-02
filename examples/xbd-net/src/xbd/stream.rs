@@ -50,9 +50,7 @@ impl<T> XbdStream<T> {
 
     pub fn empty(&self) {
         let queue = self.queue.try_get().unwrap();
-        while queue.len() > 0 {
-            queue.pop();
-        }
+        while let Some(_) = queue.pop() {}
     }
 
     pub fn len(&self) -> usize {
