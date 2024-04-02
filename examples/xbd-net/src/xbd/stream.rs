@@ -54,15 +54,15 @@ impl<T> Stream for XbdStream<T> {
             .expect("queue not initialized");
 
         // fast path
-        if let Some(arg_ptr) = queue.pop() {
-            return Poll::Ready(Some(arg_ptr));
+        if let Some(item) = queue.pop() {
+            return Poll::Ready(Some(item));
         }
 
         self.waker.register(&cx.waker());
         match queue.pop() {
-            Some(arg_ptr) => {
+            Some(item) => {
                 self.waker.take();
-                Poll::Ready(Some(arg_ptr))
+                Poll::Ready(Some(item))
             }
             None => Poll::Pending,
         }
