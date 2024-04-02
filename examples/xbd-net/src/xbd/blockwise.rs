@@ -273,6 +273,7 @@ impl BlockwiseStream {
     }
 
     fn add(&self, req: Option<ReqInner>) {
+        assert_eq!(self.xs.len(), 0);
         self.xs.add(req);
     }
 

@@ -54,6 +54,10 @@ impl<T> XbdStream<T> {
             queue.pop();
         }
     }
+
+    pub fn len(&self) -> usize {
+        self.queue.try_get().unwrap().len()
+    }
 }
 
 impl<T> Stream for XbdStream<T> {
