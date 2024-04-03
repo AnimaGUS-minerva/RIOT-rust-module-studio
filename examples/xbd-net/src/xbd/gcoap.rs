@@ -17,13 +17,14 @@ pub struct _GcoapPing {
 // const GCOAP_MEMO_WAIT: u8 =        0x02;
 const GCOAP_MEMO_RESP: u8 =        0x03;
 const GCOAP_MEMO_TIMEOUT: u8 =     0x04;
-// const GCOAP_MEMO_ERR: u8 =         0x05;
+const GCOAP_MEMO_ERR: u8 =         0x05;
 // const GCOAP_MEMO_RESP_TRUNC: u8 =  0x06;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum GcoapMemoState {
     Resp(Option<Vec<u8>>),
     Timeout,
+    Err,
 }
 
 impl GcoapMemoState {
@@ -32,6 +33,7 @@ impl GcoapMemoState {
             // ...
             GCOAP_MEMO_RESP => Self::Resp(payload),
             GCOAP_MEMO_TIMEOUT => Self::Timeout,
+            GCOAP_MEMO_ERR => Self::Err,
             // ...
             _ => unreachable!(),
         }
@@ -141,6 +143,11 @@ impl Future for ReqInner {
                 COAP_METHOD_GET => {
                     if self.blockwise {
                         let idx = self.blockwise_state_index.unwrap();
+                        if !BlockwiseData::state_is_valid(idx) {
+                            // blockwise stream could be already canceled
+                            BlockwiseData::set_state_last(None);
+                            return Poll::Ready(GcoapMemoState::Err)
+                        }
 
                         BlockwiseData::set_state_last(Some(idx));
                         BlockwiseData::update_state(idx,

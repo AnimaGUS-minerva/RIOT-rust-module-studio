@@ -155,6 +155,10 @@ impl BlockwiseData {
         Self::states()[*idx].as_mut()
     }
 
+    pub fn state_is_valid(idx: usize) -> bool {
+        Self::state(&idx).is_some()
+    }
+
     fn find_state_available() -> Option<(usize, &'static mut Option<BlockwiseState>)> {
         Self::states().iter_mut().enumerate().find(|x| x.1.is_none())
     }
@@ -170,12 +174,10 @@ impl BlockwiseData {
 
                 bs.add(Some(ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx))));
             } else { // <blockwise COMPLETE>
-                BlockwiseData::set_state_last(None);
                 BlockwiseData::clear_state(idx);
-
-                bs.empty(); // !!!! !!!!
-                bs.add(None);
                 BlockwiseData::invalidate_state(idx);
+
+                bs.add(None);
             }
 
             return Ok(bs);
@@ -282,11 +284,11 @@ impl BlockwiseStream {
     }
 
     pub fn cancel(&self) {
-        xbd_blockwise_async_gcoap_complete(self.idx); // !!!!---- WIP
-    }
+        BlockwiseData::clear_state(self.idx);
+        BlockwiseData::invalidate_state(self.idx);
 
-    pub fn get_state_index_debug(&self) -> usize {
-        self.idx
+        self.empty();
+        self.add(None);
     }
 }
 
