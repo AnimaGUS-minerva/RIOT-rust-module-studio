@@ -12,7 +12,7 @@ fn alloc_error(layout: mcu_if::alloc::alloc::Layout) -> ! { mcu_if::alloc_error(
 use mcu_if::{println, alloc::boxed::Box, null_terminate_bytes};
 
 mod xbd;
-use xbd::{Xbd, XbdFnsEnt};
+use xbd::{Xbd, XbdFnsEnt, GcoapMemoState};
 
 mod blogos12;
 mod embassy;
@@ -246,16 +246,24 @@ async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
     }
     assert_eq!(get_blockwise().err(), Some(BlockwiseError::StateNotAvailable));
 
-    bss.iter().for_each(|bs| {
-        println!("@@ debug bs idx: {}", bs.get_state_index_debug());
+    //
 
-        bs.cancel();
+    let req0 = bss[0].next().await.unwrap();
+    let req1 = bss[1].next().await.unwrap();
+
+    // before `.cancel()`
+    assert!(match req0.await {
+        GcoapMemoState::Resp(Some(x)) => x.len() > 0,
+        _ => false,
     });
 
-    blockwise_states_print();
-    for idx in 0..BLOCKWISE_STATES_MAX {
-        assert!(blockwise_states_debug()[idx].is_none(), "debug");
-    }
+    bss.iter().for_each(|bs| bs.cancel());
+    blockwise_states_debug().iter().for_each(|x| assert!(x.is_none()));
+
+    // after `.cancel()`
+    assert!(bss[0].next().await.is_none());
+    assert!(bss[1].next().await.is_none());
+    assert_eq!(req1.await, GcoapMemoState::Err);
 
     //
 
