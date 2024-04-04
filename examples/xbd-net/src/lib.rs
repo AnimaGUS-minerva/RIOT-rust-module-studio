@@ -49,16 +49,16 @@ pub extern fn rustmod_start(
         return;
     }
 
-    if 0 == 1 {
-        println!("@@ running `xbd_main()` with `blogos12::Runtime` ...");
+    if 1 == 1 {
+        println!("@@ [debug] `xbd_main()` with `blogos12::Runtime` ...");
         let _ = blogos12::Runtime::new()
             .unwrap()
             .block_on(xbd_main());
         panic!("should be never reached");
     }
 
-    if 1 == 1 {
-        println!("@@ running `xbd_main()` with `embassy::Runtime` ...");
+    if 0 == 1 {
+        println!("@@ [debug] `xbd_main()` with `embassy::Runtime` ...");
         embassy::Runtime::new_static().unwrap().run();
     }
 }
@@ -268,7 +268,7 @@ async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
     //
 
     // WIP error/timeout (not COMPLETE) cases !!!!
-    //----
+    //
 
     //
 

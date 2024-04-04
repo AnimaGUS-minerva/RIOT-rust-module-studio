@@ -19,7 +19,7 @@ async fn task_api_stream() {
 
 #[embassy_executor::task]
 async fn task_gcoap_server_stream() {
-    xbd::process_gcoap_server_stream().await;
+    xbd::process_gcoap_server_stream().await.unwrap();
 }
 
 pub struct Runtime(&'static mut Executor);

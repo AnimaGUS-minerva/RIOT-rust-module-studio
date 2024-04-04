@@ -22,7 +22,7 @@ pub async fn example_task() -> Result<(), i8> {
 
 use executor::Executor;
 use core::future::Future;
-use super::xbd::process_api_stream;
+use super::xbd;
 
 pub struct Runtime(Executor);
 
@@ -32,7 +32,8 @@ impl Runtime {
         ex
             //.spawn(example_task()) // debug
             //.spawn(keyboard::print_keypresses()) // processor, debug
-            .spawn(process_api_stream()); // processor
+            .spawn(xbd::process_gcoap_server_stream()) // processor
+            .spawn(xbd::process_api_stream()); // processor
 
         Ok(Self(ex))
     }
@@ -65,7 +66,7 @@ pub fn test_misc() {
         Executor::new()
             .spawn(blogos12_example_task())
             .spawn(process_blogos12_scancodes()) // processor
-            .spawn(process_api_stream()) // processor
+            .spawn(xbd::process_api_stream()) // processor
             .spawn(async move { // main
                 println!("@@ hello");
 
