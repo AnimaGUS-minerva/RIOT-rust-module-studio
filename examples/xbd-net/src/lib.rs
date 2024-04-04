@@ -49,7 +49,7 @@ pub extern fn rustmod_start(
         return;
     }
 
-    if 1 == 1 {
+    if 0 == 1 {
         println!("@@ [debug] `xbd_main()` with `blogos12::Runtime` ...");
         let _ = blogos12::Runtime::new()
             .unwrap()
@@ -57,7 +57,7 @@ pub extern fn rustmod_start(
         panic!("should be never reached");
     }
 
-    if 0 == 1 {
+    if 1 == 1 {
         println!("@@ [debug] `xbd_main()` with `embassy::Runtime` ...");
         embassy::Runtime::new_static().unwrap().run();
     }

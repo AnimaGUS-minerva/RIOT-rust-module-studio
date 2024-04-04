@@ -1,7 +1,7 @@
 use core::{future::Future, pin::Pin, task::{Context, Poll}, cell::RefCell};
 use futures_util::task::AtomicWaker;
-use mcu_if::{alloc::{vec::Vec, string::{String, ToString}, rc::Rc}};
-use super::BlockwiseData;
+use mcu_if::{alloc::{vec::Vec, rc::Rc}}; // !!!!
+use super::{BlockwiseData, BLOCKWISE_ADDR_MAX, BLOCKWISE_URI_MAX, BLOCKWISE_HDR_MAX};
 
 //
 // gcoap client
@@ -73,7 +73,7 @@ pub enum Req {
 }
 
 impl Req {
-    pub fn new(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>) -> Self {
+    pub fn new(method: CoapMethod, addr: &str, uri: &str, payload: Option<heapless::Vec<u8, BLOCKWISE_HDR_MAX>>) -> Self {
         let inner = ReqInner::new(method, addr, uri, payload, false, None);
 
         match method {
@@ -105,21 +105,21 @@ pub struct ReqInner {
     method: CoapMethod,
     blockwise: bool,
     blockwise_state_index: Option<usize>,
-    addr: String,
-    uri: String,
-    payload: Option<Vec<u8>>,
+    addr: heapless::String<{ BLOCKWISE_ADDR_MAX }>,
+    uri: heapless::String<{ BLOCKWISE_URI_MAX }>,
+    payload: Option<heapless::Vec<u8, BLOCKWISE_HDR_MAX>>,
     out: Rc<RefCell<Option<GcoapMemoState>>>,
     _waker: Option<AtomicWaker>,
 }
 
 impl ReqInner {
-    pub fn new(method: CoapMethod, addr: &str, uri: &str, payload: Option<Vec<u8>>, blockwise: bool, blockwise_state_index: Option<usize>) -> Self {
+    pub fn new(method: CoapMethod, addr: &str, uri: &str, payload: Option<heapless::Vec<u8, BLOCKWISE_HDR_MAX>>, blockwise: bool, blockwise_state_index: Option<usize>) -> Self {
         ReqInner {
             method,
             blockwise,
             blockwise_state_index,
-            addr: addr.to_string(),
-            uri: uri.to_string(),
+            addr: heapless::String::try_from(addr).unwrap(),
+            uri: heapless::String::try_from(uri).unwrap(),
             payload,
             out: Rc::new(RefCell::new(None)),
             _waker: Some(AtomicWaker::new()),

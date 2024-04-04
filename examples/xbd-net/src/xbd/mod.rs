@@ -10,8 +10,12 @@ pub use server::{start_gcoap_server, process_gcoap_server_stream};
 mod stream;
 
 mod blockwise;
-use blockwise::{BlockwiseStream, BlockwiseData};
-pub use blockwise::{BlockwiseError, BLOCKWISE_STATES_MAX, blockwise_states_print,blockwise_states_debug};
+use blockwise::{
+    BlockwiseStream, BlockwiseData,
+    BLOCKWISE_ADDR_MAX, BLOCKWISE_URI_MAX, BLOCKWISE_HDR_MAX};
+pub use blockwise::{
+    BlockwiseError, BLOCKWISE_STATES_MAX,
+    blockwise_states_print, blockwise_states_debug};
 
 mod timeout;
 use timeout::Timeout;
@@ -178,10 +182,10 @@ impl Xbd {
     }
 
     pub fn async_gcoap_post(addr: &str, uri: &str, payload: &[u8]) -> impl Future<Output = GcoapMemoState> + 'static {
-        gcoap::Req::new(gcoap::COAP_METHOD_POST, addr, uri, Some(payload.to_vec()))
+        gcoap::Req::new(gcoap::COAP_METHOD_POST, addr, uri, Some(heapless::Vec::from_slice(payload).unwrap()))
     }
 
     pub fn async_gcoap_put(addr: &str, uri: &str, payload: &[u8]) -> impl Future<Output = GcoapMemoState> + 'static {
-        gcoap::Req::new(gcoap::COAP_METHOD_PUT, addr, uri, Some(payload.to_vec()))
+        gcoap::Req::new(gcoap::COAP_METHOD_PUT, addr, uri, Some(heapless::Vec::from_slice(payload).unwrap()))
     }
 }

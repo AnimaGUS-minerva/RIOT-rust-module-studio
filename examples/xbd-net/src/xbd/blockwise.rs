@@ -67,10 +67,9 @@ pub enum BlockwiseError {
 //
 
 pub const BLOCKWISE_STATES_MAX: usize = 4;
-
-const BLOCKWISE_ADDR_MAX: usize = 64;
-const BLOCKWISE_URI_MAX: usize = 64;
-const BLOCKWISE_HDR_MAX: usize = 64;
+pub const BLOCKWISE_ADDR_MAX: usize = 64;
+pub const BLOCKWISE_URI_MAX: usize = 64;
+pub const BLOCKWISE_HDR_MAX: usize = 64;
 
 static mut BLOCKWISE_STATE_INDEX: Option<usize> = None;
 
