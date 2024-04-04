@@ -42,7 +42,7 @@ pub fn start_gcoap_server() -> Result<(), i8> {
     if ret == 0 { Ok(()) } else { Err(ret) }
 }
 
-pub async fn process_gcoap_server_stream() {
+pub async fn process_gcoap_server_stream() -> Result<(), i8> {
     let mut stream = XbdStream::new(&SERVER_QUEUE, &SERVER_WAKER);
 
     while let Some(cb) = stream.next().await {
@@ -70,6 +70,8 @@ pub async fn process_gcoap_server_stream() {
             ServerCallback::GcoapServerSockDtlsEvt(_) => todo!(),
         }
     }
+
+    Ok(())
 }
 
 //
@@ -77,6 +79,7 @@ pub async fn process_gcoap_server_stream() {
 #[no_mangle]
 pub extern fn xbd_on_sock_udp_evt(sock: *const c_void, flags: usize, arg: *const c_void) {
     println!("@@ xbd_on_sock_udp_evt(): sock: {:?} type: {:?} arg: {:?}", sock, flags, arg);
+// !!!!  check against "type: 48" stuff in ',log--get-blockwise-sync'
     let cb_ptr = core::ptr::null::<()>();
     let evt_args = (sock, flags, arg);
 
