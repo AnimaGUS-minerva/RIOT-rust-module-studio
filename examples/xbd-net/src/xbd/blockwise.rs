@@ -119,18 +119,14 @@ impl BlockwiseData {
         *(unsafe { &mut BLOCKWISE_STATE_INDEX }) = idx;
     }
 
-    pub fn update_state(idx: usize, addr: Option<&[u8]>, uri: Option<&[u8]>, hdr: Option<&[u8]>) {
+    pub fn update_state(idx: usize, addr: &[u8], uri: &[u8], hdr: Option<&[u8]>) {
         let state = Self::state_mut(&idx).unwrap();
 
-        if let Some(addr) = addr {
-            let buf = &mut state.addr;
-            BlockwiseState::update_metadata(addr, buf, buf.len());
-        }
+        let buf = &mut state.addr;
+        BlockwiseState::update_metadata(addr, buf, buf.len());
 
-        if let Some(uri) = uri {
-            let buf = &mut state.uri;
-            BlockwiseState::update_metadata(uri, buf, buf.len());
-        }
+        let buf = &mut state.uri;
+        BlockwiseState::update_metadata(uri, buf, buf.len());
 
         if let Some(hdr) = hdr {
             let BlockwiseState { hdr: buf, hdr_len: buf_len, .. } = state;
@@ -139,7 +135,7 @@ impl BlockwiseData {
     }
 
     pub fn clear_state(idx: usize) {
-        Self::update_state(idx, Some(&[]), Some(&[]), Some(&[]));
+        Self::update_state(idx, &[], &[], Some(&[]));
     }
 
     fn invalidate_state(idx: usize) {

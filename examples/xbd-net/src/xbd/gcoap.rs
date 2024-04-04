@@ -156,8 +156,8 @@ impl Future for ReqInner {
                         if BlockwiseData::state_is_valid(idx) {
                             BlockwiseData::set_state_last(Some(idx));
                             BlockwiseData::update_state(idx,
-                                Some(self.addr.as_bytes()),
-                                Some(self.uri.as_bytes()),
+                                self.addr.as_bytes(),
+                                self.uri.as_bytes(),
                                 self.blockwise_hdr.as_deref());
 
                             super::Xbd::gcoap_get_blockwise(&self.addr, &self.uri, idx, cb);
