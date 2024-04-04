@@ -3,6 +3,8 @@ use futures_util::task::AtomicWaker;
 use mcu_if::{alloc::{vec::Vec, rc::Rc}}; // !!!!
 use super::{BlockwiseData, BLOCKWISE_ADDR_MAX, BLOCKWISE_URI_MAX, BLOCKWISE_HDR_MAX};
 
+const REQ_PAYLOAD_MAX: usize = 256;
+
 //
 // gcoap client
 //
@@ -73,8 +75,9 @@ pub enum Req {
 }
 
 impl Req {
-    pub fn new(method: CoapMethod, addr: &str, uri: &str, payload: Option<heapless::Vec<u8, BLOCKWISE_HDR_MAX>>) -> Self {
-        let inner = ReqInner::new(method, addr, uri, payload, false, None);
+    pub fn new(method: CoapMethod, addr: &str, uri: &str,
+               payload: Option<heapless::Vec<u8, REQ_PAYLOAD_MAX>>) -> Self {
+        let inner = ReqInner::new(method, addr, uri, payload, false, None, None);
 
         match method {
             COAP_METHOD_GET => Self::Get(inner),
@@ -103,24 +106,30 @@ impl Future for Req {
 #[derive(Debug)]
 pub struct ReqInner {
     method: CoapMethod,
-    blockwise: bool,
-    blockwise_state_index: Option<usize>,
     addr: heapless::String<{ BLOCKWISE_ADDR_MAX }>,
     uri: heapless::String<{ BLOCKWISE_URI_MAX }>,
-    payload: Option<heapless::Vec<u8, BLOCKWISE_HDR_MAX>>,
+    payload: Option<heapless::Vec<u8, REQ_PAYLOAD_MAX>>,
+    blockwise: bool,
+    blockwise_state_index: Option<usize>,
+    blockwise_hdr: Option<heapless::Vec<u8, BLOCKWISE_HDR_MAX>>,
     out: Rc<RefCell<Option<GcoapMemoState>>>,
     _waker: Option<AtomicWaker>,
 }
 
 impl ReqInner {
-    pub fn new(method: CoapMethod, addr: &str, uri: &str, payload: Option<heapless::Vec<u8, BLOCKWISE_HDR_MAX>>, blockwise: bool, blockwise_state_index: Option<usize>) -> Self {
+    pub fn new(method: CoapMethod, addr: &str, uri: &str,
+               payload: Option<heapless::Vec<u8, REQ_PAYLOAD_MAX>>,
+               blockwise: bool,
+               blockwise_state_index: Option<usize>,
+               blockwise_hdr: Option<heapless::Vec<u8, BLOCKWISE_HDR_MAX>>) -> Self {
         ReqInner {
             method,
-            blockwise,
-            blockwise_state_index,
             addr: heapless::String::try_from(addr).unwrap(),
             uri: heapless::String::try_from(uri).unwrap(),
             payload,
+            blockwise,
+            blockwise_state_index,
+            blockwise_hdr,
             out: Rc::new(RefCell::new(None)),
             _waker: Some(AtomicWaker::new()),
         }
@@ -143,17 +152,20 @@ impl Future for ReqInner {
                 COAP_METHOD_GET => {
                     if self.blockwise {
                         let idx = self.blockwise_state_index.unwrap();
-                        if !BlockwiseData::state_is_valid(idx) {
-                            // blockwise stream could be already canceled
+
+                        if BlockwiseData::state_is_valid(idx) {
+                            BlockwiseData::set_state_last(Some(idx));
+                            BlockwiseData::update_state(idx,
+                                Some(self.addr.as_bytes()),
+                                Some(self.uri.as_bytes()),
+                                self.blockwise_hdr.as_deref());
+
+                            super::Xbd::gcoap_get_blockwise(&self.addr, &self.uri, idx, cb);
+                        } else { // blockwise stream could be already canceled
                             BlockwiseData::set_state_last(None);
+
                             return Poll::Ready(GcoapMemoState::Err)
                         }
-
-                        BlockwiseData::set_state_last(Some(idx));
-                        BlockwiseData::update_state(idx,
-                            Some(self.addr.as_bytes()), Some(self.uri.as_bytes()), None);
-
-                        super::Xbd::gcoap_get_blockwise(&self.addr, &self.uri, idx, cb);
                     } else {
                         super::Xbd::gcoap_get(&self.addr, &self.uri, cb);
                     }

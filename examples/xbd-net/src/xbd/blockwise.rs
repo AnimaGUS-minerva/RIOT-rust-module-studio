@@ -167,11 +167,10 @@ impl BlockwiseData {
             let bs = Self::state(&idx).unwrap().get_stream();
 
             if let Some((addr, uri)) = addr_uri { // <blockwise NEXT>
-                assert!(hdr.is_some());
-                BlockwiseData::update_state(idx, None, None, hdr);
-                // idx/addr/uri is updated much later via `ReqInner::poll()`
+                let hdr = heapless::Vec::from_slice(hdr.unwrap()).unwrap();
 
-                bs.add(Some(ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx))));
+                bs.add(Some(ReqInner::new(
+                    COAP_METHOD_GET, addr, uri, None, true, Some(idx), Some(hdr))));
             } else { // <blockwise COMPLETE>
                 BlockwiseData::clear_state(idx);
                 BlockwiseData::invalidate_state(idx);
@@ -192,7 +191,7 @@ impl BlockwiseData {
             //blockwise_states_print(); // debug
 
             let (addr, uri) = addr_uri.unwrap();
-            let req = ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx));
+            let req = ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx), None);
             let bs = state.get_stream();
             bs.add(Some(req));
 
