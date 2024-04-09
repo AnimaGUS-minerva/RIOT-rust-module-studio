@@ -178,8 +178,8 @@ use futures_util::stream::StreamExt;
 use xbd::{BlockwiseError, BLOCKWISE_STATES_MAX, blockwise_states_print, blockwise_states_debug};
 
 async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
-    // first, make sure non-blockwise get works
 
+    // first, make sure non-blockwise get works
     println!("!! debug NEW [non-blockwise-1]");
     println!("@@ debug out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
     println!("!! debug NEW [non-blockwise-2]");
@@ -267,8 +267,31 @@ async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
 
     //
 
-    // WIP error/timeout (not COMPLETE) cases !!!!
+    println!("!! debug NEW [blockwise-timeout]");
+    let get_blockwise_timeout = || Xbd::async_gcoap_get_blockwise(
+        "[::1]:5680", "/const/song.txt"); // induce `Timeout`, not 5683
+
+    let mut bs = get_blockwise_timeout()?;
+    while let Some(req) = bs.next().await {
+        match req.await {
+            GcoapMemoState::Timeout => bs.cancel(),
+            _ => panic!(),
+        };
+    }
+
     //
+
+    println!("!! debug NEW [blockwise-err]");
+    let get_blockwise_err = || Xbd::async_gcoap_get_blockwise(
+        "[::1]:5683", "/const/song2.txt"); // induce `Resp(None)`
+
+    let mut bs = get_blockwise_err()?;
+    while let Some(req) = bs.next().await {
+        match req.await {
+            GcoapMemoState::Resp(None) => bs.cancel(), // !!
+            _ => panic!(),
+        };
+    }
 
     //
 
