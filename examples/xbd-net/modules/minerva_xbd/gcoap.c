@@ -220,7 +220,9 @@ uint8_t xbd_resp_handler(
 
     *context = memo->context;
 
-    if (memo->state == GCOAP_MEMO_TIMEOUT || memo->state != GCOAP_MEMO_RESP) {
+    printf("@@ memo->state: %d\n", memo->state);
+    if (memo->state == GCOAP_MEMO_TIMEOUT ||
+        (memo->state != GCOAP_MEMO_RESP_TRUNC && memo->state != GCOAP_MEMO_RESP)) {
         *payload = NULL;
         *payload_len = 0;
     } else {

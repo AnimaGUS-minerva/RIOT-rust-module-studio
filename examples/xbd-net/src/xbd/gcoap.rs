@@ -20,13 +20,14 @@ pub struct _GcoapPing {
 const GCOAP_MEMO_RESP: u8 =        0x03;
 const GCOAP_MEMO_TIMEOUT: u8 =     0x04;
 const GCOAP_MEMO_ERR: u8 =         0x05;
-// const GCOAP_MEMO_RESP_TRUNC: u8 =  0x06;
+const GCOAP_MEMO_RESP_TRUNC: u8 =  0x06;
 
 #[derive(Debug, PartialEq)]
 pub enum GcoapMemoState {
     Resp(Option<Vec<u8>>),
     Timeout,
     Err,
+    RespTrunc(Option<Vec<u8>>),
 }
 
 impl GcoapMemoState {
@@ -36,7 +37,7 @@ impl GcoapMemoState {
             GCOAP_MEMO_RESP => Self::Resp(payload),
             GCOAP_MEMO_TIMEOUT => Self::Timeout,
             GCOAP_MEMO_ERR => Self::Err,
-            // ...
+            GCOAP_MEMO_RESP_TRUNC => Self::RespTrunc(payload),
             _ => unreachable!(),
         }
     }
