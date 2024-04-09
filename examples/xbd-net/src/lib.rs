@@ -251,16 +251,16 @@ async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
     let req0 = bss[0].next().await.unwrap();
     let req1 = bss[1].next().await.unwrap();
 
-    // before `.cancel()`
+    // before `.close()`
     assert!(match req0.await {
         GcoapMemoState::Resp(Some(x)) => x.len() > 0,
         _ => false,
     });
 
-    bss.iter().for_each(|bs| bs.cancel());
+    bss.iter().for_each(|bs| bs.close());
     blockwise_states_debug().iter().for_each(|x| assert!(x.is_none()));
 
-    // after `.cancel()`
+    // after `.close()`
     assert!(bss[0].next().await.is_none());
     assert!(bss[1].next().await.is_none());
     assert_eq!(req1.await, GcoapMemoState::Err);
@@ -274,7 +274,7 @@ async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
     let mut bs = get_blockwise_timeout()?;
     while let Some(req) = bs.next().await {
         match req.await {
-            GcoapMemoState::Timeout => bs.cancel(),
+            GcoapMemoState::Timeout => bs.close(),
             _ => panic!(),
         };
     }
@@ -288,7 +288,7 @@ async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
     let mut bs = get_blockwise_resp_none()?;
     while let Some(req) = bs.next().await {
         match req.await {
-            GcoapMemoState::Resp(None) => bs.cancel(),
+            GcoapMemoState::Resp(None) => bs.close(),
             _ => panic!(),
         };
     }

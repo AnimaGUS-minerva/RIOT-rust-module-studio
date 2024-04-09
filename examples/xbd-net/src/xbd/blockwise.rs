@@ -277,7 +277,7 @@ impl BlockwiseStream {
         self.xs.empty();
     }
 
-    pub fn cancel(&self) {
+    pub fn close(&self) {
         BlockwiseData::clear_state(self.idx);
         BlockwiseData::invalidate_state(self.idx);
 

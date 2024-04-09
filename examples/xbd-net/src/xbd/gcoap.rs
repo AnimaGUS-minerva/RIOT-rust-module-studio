@@ -162,7 +162,7 @@ impl Future for ReqInner {
                                 self.blockwise_hdr.as_deref());
 
                             super::Xbd::gcoap_get_blockwise(&self.addr, &self.uri, idx, cb);
-                        } else { // blockwise stream could be already canceled
+                        } else { // blockwise stream could be already closed
                             BlockwiseData::set_state_last(None);
 
                             return Poll::Ready(GcoapMemoState::Err)
