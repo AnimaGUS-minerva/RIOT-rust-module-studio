@@ -3,7 +3,7 @@ use futures_util::task::AtomicWaker;
 use mcu_if::{alloc::{vec::Vec, rc::Rc}}; // !!!!
 use super::{BlockwiseData, BLOCKWISE_ADDR_MAX, BLOCKWISE_URI_MAX, BLOCKWISE_HDR_MAX};
 
-const REQ_PAYLOAD_MAX: usize = 256;
+const REQ_PAYLOAD_MAX: usize = 48;
 
 //
 // gcoap client
