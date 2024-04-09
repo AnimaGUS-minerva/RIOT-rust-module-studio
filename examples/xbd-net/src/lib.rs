@@ -281,14 +281,14 @@ async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
 
     //
 
-    println!("!! debug NEW [blockwise-err]");
-    let get_blockwise_err = || Xbd::async_gcoap_get_blockwise(
+    println!("!! debug NEW [blockwise-resp-none]");
+    let get_blockwise_resp_none = || Xbd::async_gcoap_get_blockwise(
         "[::1]:5683", "/const/song2.txt"); // induce `Resp(None)`
 
-    let mut bs = get_blockwise_err()?;
+    let mut bs = get_blockwise_resp_none()?;
     while let Some(req) = bs.next().await {
         match req.await {
-            GcoapMemoState::Resp(None) => bs.cancel(), // !!
+            GcoapMemoState::Resp(None) => bs.cancel(),
             _ => panic!(),
         };
     }
