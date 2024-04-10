@@ -233,7 +233,7 @@ int server_init(void)
     if (res < 0 && res != CREDMAN_EXIST) {
         /* ignore duplicate credentials */
         printf("gcoap: cannot add credential to system: %d\n", res);
-        return;
+        return 2;
     }
     sock_dtls_t *gcoap_sock_dtls = gcoap_get_sock_dtls();
     res = sock_dtls_add_credential(gcoap_sock_dtls, GCOAP_DTLS_CREDENTIAL_TAG);

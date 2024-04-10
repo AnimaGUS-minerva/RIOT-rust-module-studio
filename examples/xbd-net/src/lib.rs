@@ -179,6 +179,11 @@ use xbd::{BlockwiseError, BLOCKWISE_STATES_MAX, blockwise_states_print, blockwis
 
 async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
 
+    // !!!! do test with alias='nns'
+    println!("!! debug NEW [gcoap-dtls]");
+    println!("@@ debug out: {:?}", Xbd::async_gcoap_get("[::1]:5684", "/cli/stats").await);
+    if 1 == 1 { panic!("!!"); }
+
     // first, make sure non-blockwise get works
     println!("!! debug NEW [non-blockwise-1]");
     println!("@@ debug out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);

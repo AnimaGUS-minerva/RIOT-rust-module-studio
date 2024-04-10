@@ -36,6 +36,27 @@ USEMODULE += vfs_default
 USEMODULE += vfs_auto_format
 #--------
 
+#-------- cf. 'RIOT-2023.07-devel-minerva/examples/gcoap_dtls/Makefile'
+# Enables DTLS-secured CoAP messaging
+GCOAP_ENABLE_DTLS ?= 0
+ifeq (1,$(GCOAP_ENABLE_DTLS))
+  # Required by DTLS. Currently, only tinyDTLS is supported by sock_dtls.
+  USEPKG += tinydtls
+  USEMODULE += sock_dtls
+  USEMODULE += tinydtls_sock_dtls
+  USEMODULE += gcoap_dtls
+  # tinydtls needs crypto secure PRNG
+  USEMODULE += prng_sha1prng
+endif
+
+# Increase from default for confirmable block2 follow-on requests
+GCOAP_RESEND_BUFS_MAX ?= 2
+CFLAGS += -DCONFIG_GCOAP_RESEND_BUFS_MAX=$(GCOAP_RESEND_BUFS_MAX)
+
+CFLAGS += -DTHREAD_STACKSIZE_MAIN=\(2*THREAD_STACKSIZE_LARGE\)
+#--------
+
+FEATURES_REQUIRED += arch_32bit
 USEMODULE += minerva_xbd
 INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_xbd/include
 
