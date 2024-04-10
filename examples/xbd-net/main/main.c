@@ -266,10 +266,16 @@ gcoap: @@ after _process_coap_pdu() via _on_sock_udp_evt()
 
     init_gcoap_fileserver(); // !!!!
 
-    if (0) { KLUDGE_FORCE_NO_ASYNC = true; // !!
+    if (0) { KLUDGE_FORCE_NO_ASYNC = true; // !! test with alias='nn'
         test_gcoap_req("get", "[::1]:5683", "/const/song.txt"); // ok
         //test_gcoap_req("get", "[::1]:5683", "/const/song2.txt"); // ok, 4.04
         //assert(0); // ok
+        start_shell(shell_commands_minerva);
+    }
+
+    if (1) { KLUDGE_FORCE_NO_ASYNC = true; // !! test with alias='nns'
+        test_gcoap_req("get", "[::1]:5684", "/.well-known/core"); // --> coap: authentication timed out
+        //test_gcoap_req("get", "[::1]:5684", "/const/song.txt"); // TODO
         start_shell(shell_commands_minerva);
     }
 
