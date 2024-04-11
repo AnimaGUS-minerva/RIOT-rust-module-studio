@@ -264,18 +264,86 @@ gcoap: @@ after _process_coap_pdu() via _on_sock_udp_evt()
         }
     }
 
+    if (1) { KLUDGE_FORCE_NO_ASYNC = true; // !! test with alias='nns'
+        puts("@@ main(): initializing CoAP server (hint: check with `> coap info`)");
+        server_init();
+
+        //----
+        test_gcoap_req("get", "[::1]:5684", "/.well-known/core"); // ok <-- coap: authentication timed out
+        // cf. [ ] "another" client code with DTLS - 'libcoap/examples/riot/examples_libcoap_client/main.c'
+        //----
+/*
+
+---- linux
+$ libcoap/local/bin/coap-client -m get coaps://[fe80::10ef:d5ff:fe61:c7c%tap1]/.well-known/core -k "secretPSK" -u "Client_identity"
+</cli/stats>;ct=0;rt="count";obs,</riot/board>  <==== !! ok
+$ libcoap/local/bin/coap-client -m get coaps://[fe80::78ec:5fff:febd:add9%tap1]/.well-known/core -k "secretPSK" -u "Client_identity"
+^CApr 11 15:45:10.803 ERR  cannot send CoAP pdu  <==== ?? FIXME why failing ??
+$ libcoap/local/bin/coap-client -m get coap://[fe80::10ef:d5ff:fe61:c7c%tap1]/.well-known/core
+</cli/stats>;ct=0;rt="count";obs,</riot/board>
+$ libcoap/local/bin/coap-client -m get coap://[fe80::78ec:5fff:febd:add9%tap1]/.well-known/core
+</cli/stats>;ct=0;rt="count";obs,</riot/board>
+
+---- riot
+$ ./crates/RIOT--base/examples/gcoap_dtls/bin/native/gcoap_example.elf tap1  # cf. vanilla
+
+$ nns  # ok
+> ifconfig
+ifconfig
+Iface  9  HWaddr: 12:EF:D5:61:0C:7C
+          L2-PDU:1500  MTU:1500  HL:64  RTR
+          Source address length: 6
+          Link type: wired
+          inet6 addr: fe80::10ef:d5ff:fe61:c7c  scope: link  VAL
+          inet6 addr: fe80::78ec:5fff:febd:add9  scope: link  VAL
+          inet6 group: ff02::2
+          inet6 group: ff02::1
+          inet6 group: ff02::1:ff61:c7c
+          inet6 group: ff02::1:ffbd:add9
+
+> unsupported tls extension: 0
+unsupported tls extension: 35
+gcoap: @@ after _process_coap_pdu() via _on_sock_dtls_evt()
+
+>
+ */
+        if (1) {
+            init_gcoap_fileserver();
+            /* !! ok
+$ libcoap/local/bin/coap-client -m get coaps://[fe80::10ef:d5ff:fe61:c7c%tap1]/const/song.txt -k "secretPSK" -u "Client_identity"
+Join us now and share the software;
+You'll be free, hackers, you'll be free.
+Join us now and share the software;
+You'll be free, hackers, you'll be free.
+
+Hoarders can get piles of money,
+That is true, hackers, that is true.
+But they cannot help their neighbors;
+That's not good, hackers, that's not good.
+
+When we have enough free software
+At our call, hackers, at our call,
+We'll kick out those dirty licenses
+Ever more, hackers, ever more.
+
+Join us now and share the software;
+You'll be free, hackers, you'll be free.
+Join us now and share the software;
+You'll be free, hackers, you'll be free.
+             */
+        }
+
+        start_shell(shell_commands_minerva);
+    }
+
+    //
+
     init_gcoap_fileserver(); // !!!!
 
     if (0) { KLUDGE_FORCE_NO_ASYNC = true; // !! test with alias='nn'
         test_gcoap_req("get", "[::1]:5683", "/const/song.txt"); // ok
         //test_gcoap_req("get", "[::1]:5683", "/const/song2.txt"); // ok, 4.04
         //assert(0); // ok
-        start_shell(shell_commands_minerva);
-    }
-
-    if (1) { KLUDGE_FORCE_NO_ASYNC = true; // !! test with alias='nns'
-        test_gcoap_req("get", "[::1]:5684", "/.well-known/core"); // --> coap: authentication timed out
-        //test_gcoap_req("get", "[::1]:5684", "/const/song.txt"); // TODO
         start_shell(shell_commands_minerva);
     }
 
