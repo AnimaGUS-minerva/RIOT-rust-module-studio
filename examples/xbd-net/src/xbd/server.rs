@@ -30,9 +30,11 @@ static SERVER_WAKER: AtomicWaker = AtomicWaker::new();
 
 fn add_server_callback(cb: ServerCallback) {
     XbdStream::get(&SERVER_QUEUE, &SERVER_WAKER).unwrap().add(cb);
+
 }
 
 fn add_xbd_gcoap_server_sock_udp_event_callback(arg_ptr: *const c_void) {
+    println!("@@ add_xbd_gcoap_server_sock_udp_event_callback(): ^^");
     add_server_callback(ServerCallback::GcoapServerSockUdpEvt(arg_ptr as PtrSend));
 }
 

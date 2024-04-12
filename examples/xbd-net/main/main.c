@@ -264,7 +264,7 @@ gcoap: @@ after _process_coap_pdu() via _on_sock_udp_evt()
         }
     }
 
-    if (1) { KLUDGE_FORCE_NO_ASYNC = true; // !! test with alias='nns'
+    if (0) { KLUDGE_FORCE_NO_ASYNC = true; // !! test with alias='nns'
         puts("@@ main(): initializing CoAP server (hint: check with `> coap info`)");
         server_init();
 

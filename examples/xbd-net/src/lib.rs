@@ -49,17 +49,15 @@ pub extern fn rustmod_start(
         return;
     }
 
-    if 0 == 1 {
+    if 1 == 1 {
+        println!("@@ [debug] `xbd_main()` with `embassy::Runtime` ...");
+        embassy::Runtime::new_static().unwrap().run();
+    } else {
         println!("@@ [debug] `xbd_main()` with `blogos12::Runtime` ...");
         let _ = blogos12::Runtime::new()
             .unwrap()
             .block_on(xbd_main());
         panic!("should be never reached");
-    }
-
-    if 1 == 1 {
-        println!("@@ [debug] `xbd_main()` with `embassy::Runtime` ...");
-        embassy::Runtime::new_static().unwrap().run();
     }
 }
 
@@ -146,7 +144,7 @@ async fn xbd_main() -> Result<(), i8> {
 
         if 1 == 1 { // fileserver, blockwise, stream
             test_blockwise(addr_self).await.unwrap();
-            panic!("debug ok"); // !!!!
+            //panic!("debug ok"); // !!!!
         }
     }
 
@@ -179,10 +177,24 @@ use xbd::{BlockwiseError, BLOCKWISE_STATES_MAX, blockwise_states_print, blockwis
 
 async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
 
-    // !!!! do test with alias='nns'
-    println!("!! debug NEW [gcoap-dtls]"); // WIP
-    println!("@@ debug out: {:?}", Xbd::async_gcoap_get("[::1]:5684", "/cli/stats").await);
-    if 1 == 1 { panic!("!!"); }
+    // !! do test with alias='nns'
+    println!("!! debug NEW [gcoap-dtls]");
+
+    //---- ok <-- gcoap: authentication timed out
+    //println!("@@ debug out: {:?}", Xbd::async_gcoap_get("[::1]:5684", "/cli/stats").await);
+    //---- ok [old mechanism working (WIP[ ]: new async mechanism), while coap::// working with new async mechanism]
+    // $ libcoap/local/bin/coap-client -m get coaps://[fe80::10ef:d5ff:fe61:c7c%tap1]/cli/stats -k "secretPSK" -u "Client_identity"
+    // $ libcoap/local/bin/coap-client -m get coaps://[fe80::10ef:d5ff:fe61:c7c%tap1]/const/song.txt -k "secretPSK" -u "Client_identity"
+/* note
+> ifconfig
+...
+          inet6 addr: fe80::10ef:d5ff:fe61:c7c  scope: link  VAL  <==== ok
+          inet6 addr: fe80::78ec:5fff:febd:add9  scope: link  VAL <==== ? NG ?
+...
+*/
+    //----
+
+    if 1 == 1 { return Ok(()); }
 
     // first, make sure non-blockwise get works
     println!("!! debug NEW [non-blockwise-1]");
