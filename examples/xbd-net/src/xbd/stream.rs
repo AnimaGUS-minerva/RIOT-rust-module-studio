@@ -62,6 +62,8 @@ impl<T> Stream for XbdStream<T> {
     type Item = T;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
+        //crate::println!("@@ poll_next(): ^^");
+
         let queue = self.queue
             .try_get()
             .expect("queue not initialized");

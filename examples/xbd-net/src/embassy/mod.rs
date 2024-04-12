@@ -9,7 +9,10 @@ async fn task_xbd_main() {
     super::xbd_main().await.unwrap();
 
     //loop { Xbd::async_sleep(1000).await; } // yield -> executor busy
-    loop { Xbd::msleep(1000, true); } // not yield (debug only) -> executor not busy
+    //====
+    //loop { Xbd::msleep(1000, true); } // not yield (debug for internal async API calls only) -> executor not busy
+    //==== kludge
+    loop { Xbd::async_sleep(1).await;  Xbd::msleep(500, true); } // yield && less busy
 }
 
 #[embassy_executor::task]

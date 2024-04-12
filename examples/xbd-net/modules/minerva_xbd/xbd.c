@@ -26,7 +26,7 @@ void xbd_ztimer_msleep(uint32_t delay, bool debug) {
 }
 
 void xbd_ztimer_set(uint32_t delay, void (*cb_handler)(void *), void *arg_ptr, void **timeout_pp) {
-    printf("@@ xbd_ztimer_set(): delay(ms): %d\n", delay);
+    //printf("@@ xbd_ztimer_set(): delay(ms): %d\n", delay);
 
     ztimer_t *timeout = (ztimer_t *) calloc(sizeof(ztimer_t), 1);
     timeout->callback = cb_handler;
