@@ -88,8 +88,7 @@ async fn xbd_main() -> Result<(), i8> {
     let req_internal_native = ("[fe80::78ec:5fff:febd:add9]:5683", "/.well-known/core");
     let req_external_native = ("[fe80::20be:cdff:fe0e:44a1]:5683", "/hello");
 
-    if 0 == 1 { // non-blocking [FIXME c.f. server.rs::xbd_on_sock_udp_evt() - assume KLUDGE_FORCE_NO_ASYNC==true]
-
+    if 0 == 1 { // non-blocking
         let cb = |out| { println!("@@ out: {:?}", out); };
 
         //==== native, internal server
@@ -134,7 +133,7 @@ async fn xbd_main() -> Result<(), i8> {
             panic!("ok");
         }
 
-        if 0 == 1 { // [FIXME c.f. server.rs::xbd_on_sock_udp_evt() - assume KLUDGE_FORCE_NO_ASYNC==true]
+        if 0 == 1 {
             println!("!! ======== dev calling non-blocking");
             Xbd::gcoap_get(addr_self, "/cli/stats", |out| { println!("!! out: {:?}", out); });
             Xbd::gcoap_get(addr_self, "/cli/stats", |out| { println!("!! out: {:?}", out); });

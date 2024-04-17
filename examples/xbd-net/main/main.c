@@ -215,9 +215,6 @@ static const size_t xbd_fns_sz = sizeof(xbd_fns) / sizeof(xbd_fns[0]);
 
 //
 
-static bool KLUDGE_FORCE_NO_ASYNC = false; // !! cf. 'server.rs'
-bool get_kludge_force_no_async(void) { return KLUDGE_FORCE_NO_ASYNC; } // !!
-
 static msg_t main_msg_queue[16];
 static gnrc_netif_t *outer_interface = NULL;
 static gnrc_netif_t *inner_interface = NULL;
@@ -238,7 +235,7 @@ int main(void) {
     find_ifces(&outer_interface, &inner_interface);
     set_ips(outer_interface, inner_interface);
 
-    if (0) { KLUDGE_FORCE_NO_ASYNC = true; // !!
+    if (0) {
 
         if (outer_interface) {
             puts("@@ main(): initializing CoAP server (hint: check with `> coap info`)");
@@ -264,7 +261,7 @@ gcoap: @@ after _process_coap_pdu() via _on_sock_udp_evt()
         }
     }
 
-    if (0) { KLUDGE_FORCE_NO_ASYNC = true; // !! test with alias='nns'
+    if (0) { // !! test with alias='nns'
         puts("@@ main(): initializing CoAP server (hint: check with `> coap info`)");
         server_init();
 
@@ -340,14 +337,14 @@ You'll be free, hackers, you'll be free.
 
     init_gcoap_fileserver(); // !!!!
 
-    if (0) { KLUDGE_FORCE_NO_ASYNC = true; // !! test with alias='nn'
+    if (0) { // !! test with alias='nn'
         test_gcoap_req("get", "[::1]:5683", "/const/song.txt"); // ok
         //test_gcoap_req("get", "[::1]:5683", "/const/song2.txt"); // ok, 4.04
         //assert(0); // ok
         start_shell(shell_commands_minerva);
     }
 
-    if (1) { KLUDGE_FORCE_NO_ASYNC = false; // !!
+    if (1) {
         rustmod_start(xbd_fns, xbd_fns_sz);
 
         /* !!!! WIP async shell
