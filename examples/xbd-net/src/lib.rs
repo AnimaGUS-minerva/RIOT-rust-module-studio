@@ -181,7 +181,7 @@ async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
 
     //---- ok <-- gcoap: authentication timed out
     //println!("@@ debug out: {:?}", Xbd::async_gcoap_get("[::1]:5684", "/cli/stats").await);
-    //---- ok [old mechanism working (WIP[ ]: new async mechanism), while coap::// working with new async mechanism]
+    //---- ok
     // $ libcoap/local/bin/coap-client -m get coaps://[fe80::10ef:d5ff:fe61:c7c%tap1]/cli/stats -k "secretPSK" -u "Client_identity"
     // $ libcoap/local/bin/coap-client -m get coaps://[fe80::10ef:d5ff:fe61:c7c%tap1]/const/song.txt -k "secretPSK" -u "Client_identity"
 /* note
@@ -191,6 +191,30 @@ async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
           inet6 addr: fe80::78ec:5fff:febd:add9  scope: link  VAL <==== ? NG ?
 ...
 */
+    //---- !!!!
+/* cf.
+$ libcoap/local/bin/coap-server -k "secretPSK  # TODO `-u`
+
+$ libcoap/local/bin/coap-client -m get coaps://[::1]/.well-known/core -k "secretPSK" -u "Client_identity"
+</>;title="General Info";ct=0,</time>;if="clock";rt="ticks";title="Internal Clock";ct=0;obs,</async>;ct=0,</example_data>;title="Example Data";ct=0;obs
+
+# w.r.t. coap-server, for now, only `-k` is working
+$ libcoap/local/bin/coap-client -m get coaps://[::1]/.well-known/core -k "secretPSK" -u "Client_identity_foo"
+</>;title="General Info";ct=0,</time>;if="clock";rt="ticks";title="Internal Clock";ct=0;obs,</async>;ct=0,</example_data>;title="Example Data";ct=0;obs
+ */
+    loop {
+        Xbd::async_sleep(1000).await;
+
+        //---- w.r.t. $ libcoap/local/bin/coap-server
+        //         or $ libcoap/local/bin/coap-server -k "secretPSK"
+        // let out = Xbd::async_gcoap_get(
+        //     "[fe80::20be:cdff:fe0e:44a1]:5683", "/.well-known/core").await; // ok
+        //---- w.r.t. $ libcoap/local/bin/coap-server -k "secretPSK"
+        // !!!! TODO [ ] integrate 'libcoap/examples/riot/examples_libcoap_client'
+        let out = Xbd::async_gcoap_get(
+            "[fe80::20be:cdff:fe0e:44a1]:5684", "/.well-known/core").await; // WIP
+        println!("@@ debug out: {:?}", out);
+    }
     //----
 
     if 1 == 1 { return Ok(()); }
