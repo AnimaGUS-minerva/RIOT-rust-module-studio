@@ -92,7 +92,7 @@ COAP_SERVER := LD_LIBRARY_PATH=./libcoap/local/lib $(_COAP_SERVER)
 test-native-tap1:
 	killall $(_COAP_SERVER) || true
 	$(COAP_SERVER) 5683 fe80::20be:cdff:fe0e:44a1%tap1 &
-	IPV6_AUTO=0 IPV6_ADDR=fe80::78ec:5fff:febd:add9  make build-native
+	IPV6_AUTO=0 IPV6_ADDR=fe80::78ec:5fff:febd:add9 GCOAP_ENABLE_DTLS=1  make build-native
 	EMU_TIMEOUT=32000 EMU_NATIVE_TAP=tap1  make native-run-riot &
 	sleep 2 && $(COAP_CLIENT) 5683 fe80::78ec:5fff:febd:add9%tap1 .well-known/core &
 
