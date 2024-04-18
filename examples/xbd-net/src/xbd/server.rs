@@ -5,10 +5,11 @@ use mcu_if::{println, alloc::boxed::Box, c_types::c_void, null_terminate_str};
 use super::stream::XbdStream;
 use super::callbacks::{PtrSend, arg_from};
 
+//fn _on_sock_dtls_evt_minerva(sock: *const c_void, flags: usize, arg: *const c_void) {} // !! nn
 extern "C" {
     fn server_init() -> i8;
     fn _on_sock_udp_evt_minerva(sock: *const c_void, flags: usize, arg: *const c_void);
-    fn get_kludge_force_no_async() -> bool; // !!
+    fn _on_sock_dtls_evt_minerva(sock: *const c_void, flags: usize, arg: *const c_void); // !! nns
     fn riot_stats_handler_minerva(
         pdu: *const c_void, buf: *const c_void, len: usize, ctx: *const c_void) -> isize;
     fn riot_board_handler_minerva(
@@ -19,8 +20,8 @@ extern "C" {
 }
 
 enum ServerCallback {
-    GcoapServerSockUdpEvt(PtrSend),
-    GcoapServerSockDtlsEvt(PtrSend),
+    GcoapServerSockUdpMsgRecv(PtrSend),
+    GcoapServerSockDtlsMsgRecv(PtrSend),
     //ServeRiotBoard(PtrSend),
     //ServeStats(PtrSend),
 }
@@ -28,14 +29,8 @@ enum ServerCallback {
 static SERVER_QUEUE: OnceCell<ArrayQueue<ServerCallback>> = OnceCell::uninit();
 static SERVER_WAKER: AtomicWaker = AtomicWaker::new();
 
-fn add_server_callback(cb: ServerCallback) {
+fn add_to_server_stream(cb: ServerCallback) {
     XbdStream::get(&SERVER_QUEUE, &SERVER_WAKER).unwrap().add(cb);
-
-}
-
-fn add_xbd_gcoap_server_sock_udp_event_callback(arg_ptr: *const c_void) {
-    println!("@@ add_xbd_gcoap_server_sock_udp_event_callback(): ^^");
-    add_server_callback(ServerCallback::GcoapServerSockUdpEvt(arg_ptr as PtrSend));
 }
 
 pub fn start_gcoap_server() -> Result<(), i8> {
@@ -46,30 +41,30 @@ pub fn start_gcoap_server() -> Result<(), i8> {
 
 pub async fn process_gcoap_server_stream() -> Result<(), i8> {
     let mut stream = XbdStream::new(&SERVER_QUEUE, &SERVER_WAKER);
+    let unpack = |arg_ptr| arg_from::<(*const c_void, usize, *const c_void)>(arg_ptr);
 
     while let Some(cb) = stream.next().await {
+        if 0 == 1 { crate::Xbd::async_sleep(1_000).await; } // debug, ok
+
         match cb {
-            ServerCallback::GcoapServerSockUdpEvt(arg_ptr) => {
-                let (cb_ptr, (sock, flags, arg) /* evt_args */) =
-                    arg_from::<(*const c_void, usize, *const c_void)>(arg_ptr);
+            ServerCallback::GcoapServerSockUdpMsgRecv(arg_ptr) => {
+                let (cb_ptr, (sock, flags, arg)) = unpack(arg_ptr);
                 assert_eq!(cb_ptr, core::ptr::null());
 
-                //let _ = crate::xbd::gcoap::GcoapServe::new("param", "param").await; // ok
-                if 0 == 1 { crate::Xbd::async_sleep(100).await; } // ok
-
-                //====
-                println!("@@ process_gcoap_server_stream(): calling _on_sock_udp_evt_minerva(sock, flags, arg)");
-                // TODO check comp ,log--get-blockwise-sync (flags)
-                unsafe { _on_sock_udp_evt_minerva(sock, flags, arg) };
-                //====
-                //let pdu_args = (); // !! (pdu, buf, len, ctx) = xx(evt_args);
+                // TODO rust impl process/send
+                // e.g.
+                // let pdu_args = (); // !! (pdu, buf, len, ctx) = xx(sock, flags, arg);
                 // let pdu_len = unsafe { riot_board_handler_fill(pdu, buf, len, ctx, board.as_ptr()) };
-                // panic!("!!!!22 pdu_len: {:?}", pdu_len);
+                // .... send
 
-                // ........... send
-                //====
+                unsafe { _on_sock_udp_evt_minerva(sock, flags, arg) };
             },
-            ServerCallback::GcoapServerSockDtlsEvt(_) => todo!(),
+            ServerCallback::GcoapServerSockDtlsMsgRecv(arg_ptr) => {
+                let (cb_ptr, (sock, flags, arg)) = unpack(arg_ptr);
+                assert_eq!(cb_ptr, core::ptr::null());
+
+                unsafe { _on_sock_dtls_evt_minerva(sock, flags, arg) };
+            },
         }
     }
 
@@ -80,26 +75,51 @@ pub async fn process_gcoap_server_stream() -> Result<(), i8> {
 
 #[no_mangle]
 pub extern fn xbd_on_sock_udp_evt(sock: *const c_void, flags: usize, arg: *const c_void) {
-    println!("@@ xbd_on_sock_udp_evt(): sock: {:?} type: {:?} arg: {:?}", sock, flags, arg);
-// !!!!  check against "type: 48" stuff in ',log--get-blockwise-sync'
-    let cb_ptr = core::ptr::null::<()>();
-    let evt_args = (sock, flags, arg);
-
-    let flag = unsafe { get_kludge_force_no_async() }; // !!
-    if flag { //==== Xbd::async_gcoap_get(): NG (FIXME), Xbd::gcoap_get(): ok
-        unsafe { _on_sock_udp_evt_minerva(sock, flags, arg) };
-    } else { //==== Xbd::async_gcoap_get(): ok, Xbd::gcoap_get(): NG (FIXME)
-        add_xbd_gcoap_server_sock_udp_event_callback(
-            Box::into_raw(Box::new((cb_ptr, evt_args))) as *const c_void); // arg_ptr
-    }
+    on_sock_evt(false, sock, flags, arg);
 }
 
 #[no_mangle]
 pub extern fn xbd_on_sock_dtls_evt(sock: *const c_void, flags: usize, arg: *const c_void) {
-    println!("@@ xbd_on_sock_dtls_evt(): sock: {:?} type: {:?} arg: {:?}", sock, flags, arg);
-
-    todo!();
+    on_sock_evt(true, sock, flags, arg);
 }
+
+// cf. RIOT/sys/include/net/sock/async/types.h
+// const SOCK_ASYNC_CONN_RDY  : usize = 0x0001;  /**< Connection ready event */
+// const SOCK_ASYNC_CONN_FIN  : usize = 0x0002;  /**< Connection finished event */
+// const SOCK_ASYNC_CONN_RECV : usize = 0x0004;  /**< Listener received connection event */
+const SOCK_ASYNC_MSG_RECV  : usize = 0x0010;  /**< Message received event */
+// const SOCK_ASYNC_MSG_SENT  : usize = 0x0020;  /**< Message sent event */
+// const SOCK_ASYNC_PATH_PROP : usize = 0x0040;  /**< Path property changed event */
+
+fn on_sock_evt(is_dtls: bool, sock: *const c_void, flags: usize, arg: *const c_void) {
+    //println!("@@ on_sock_evt(): is_dtls: {} sock: {:?} type: {:?} arg: {:?}", is_dtls, sock, flags, arg);
+    // !!!!  check against "type: 48" stuff in ',log--get-blockwise-sync'
+
+    if flags & SOCK_ASYNC_MSG_RECV > 0 {
+        let arg_ptr = into_arg_ptr(sock, flags, arg) as _;
+        add_to_server_stream(if is_dtls {
+            ServerCallback::GcoapServerSockDtlsMsgRecv(arg_ptr)
+        } else {
+            ServerCallback::GcoapServerSockUdpMsgRecv(arg_ptr)
+        });
+    } else { // bypass async server
+        if is_dtls {
+            // To avoid handshake (timing/ordering) issues, `SOCK_ASYNC_CONN_*` are directly processed
+            unsafe { _on_sock_dtls_evt_minerva(sock, flags, arg) };
+        } else {
+            unsafe { _on_sock_udp_evt_minerva(sock, flags, arg) };
+        }
+    }
+}
+
+fn into_arg_ptr(sock: *const c_void, flags: usize, arg: *const c_void) -> *const c_void {
+    let cb_ptr = core::ptr::null::<()>();
+    let evt_args = (sock, flags, arg);
+
+    Box::into_raw(Box::new((cb_ptr, evt_args))) as _
+}
+
+//
 
 #[no_mangle]
 pub extern fn xbd_riot_stats_handler(
