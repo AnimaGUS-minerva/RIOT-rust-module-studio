@@ -5,11 +5,10 @@ use mcu_if::{println, alloc::boxed::Box, c_types::c_void, null_terminate_str};
 use super::stream::XbdStream;
 use super::callbacks::{PtrSend, arg_from};
 
-//fn _on_sock_dtls_evt_minerva(sock: *const c_void, flags: usize, arg: *const c_void) {} // !! nn
 extern "C" {
     fn server_init() -> i8;
     fn _on_sock_udp_evt_minerva(sock: *const c_void, flags: usize, arg: *const c_void);
-    fn _on_sock_dtls_evt_minerva(sock: *const c_void, flags: usize, arg: *const c_void); // !! nns
+    fn _on_sock_dtls_evt_minerva(sock: *const c_void, flags: usize, arg: *const c_void);
     fn riot_stats_handler_minerva(
         pdu: *const c_void, buf: *const c_void, len: usize, ctx: *const c_void) -> isize;
     fn riot_board_handler_minerva(

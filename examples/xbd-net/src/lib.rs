@@ -202,16 +202,17 @@ $ libcoap/local/bin/coap-client -m get coaps://[::1]/.well-known/core -k "secret
 $ libcoap/local/bin/coap-client -m get coaps://[::1]/.well-known/core -k "secretPSK" -u "Client_identity_foo"
 </>;title="General Info";ct=0,</time>;if="clock";rt="ticks";title="Internal Clock";ct=0;obs,</async>;ct=0,</example_data>;title="Example Data";ct=0;obs
  */
-    loop {
+    for _ in 0..4 {
         Xbd::async_sleep(1000).await;
 
         //---- w.r.t. $ libcoap/local/bin/coap-server
         //         or $ libcoap/local/bin/coap-server -k "secretPSK"
-        // let out = Xbd::async_gcoap_get(
+        // let out = Xbd::async_gcoap_get( // nn
         //     "[fe80::20be:cdff:fe0e:44a1]:5683", "/.well-known/core").await; // ok
         //---- w.r.t. $ libcoap/local/bin/coap-server -k "secretPSK"
-        // !!!! TODO [ ] integrate 'libcoap/examples/riot/examples_libcoap_client'
-        let out = Xbd::async_gcoap_get(
+        // !!!! TODO integrate 'libcoap/examples/riot/examples_libcoap_client'
+        // !!!! TODO error return on **auth** timeout
+        let out = Xbd::async_gcoap_get( // nns
             "[fe80::20be:cdff:fe0e:44a1]:5684", "/.well-known/core").await; // WIP
         println!("@@ debug out: {:?}", out);
     }
