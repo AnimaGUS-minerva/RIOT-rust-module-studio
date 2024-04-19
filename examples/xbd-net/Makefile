@@ -81,8 +81,7 @@ tap-cleanup:
 #--------@@ end: bridged networking
 
 
-test-native-notap:
-	GCOAP_ENABLE_DTLS=1  make build-native
+test-native-notap: build-native
 	EMU_TIMEOUT=4000  make native-run-riot
 
 COAP_CLIENT := LD_LIBRARY_PATH=./libcoap/local/lib libcoap-minimal/client
