@@ -22,7 +22,7 @@ INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_gnrc/include
 USEMODULE += minerva_gcoap
 INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_gcoap/include
 
-#-------- !!!! WIP
+#-------- !!!! refactor
 USEMODULE += gcoap_fileserver
 USEMODULE += gcoap_fileserver_callback
 USEMODULE += gcoap_fileserver_delete
@@ -36,7 +36,7 @@ USEMODULE += vfs_default
 USEMODULE += vfs_auto_format
 #--------
 
-#-------- cf. 'RIOT-2023.07-devel-minerva/examples/gcoap_dtls/Makefile'
+#-------- cf. 'RIOT-2023.07-devel-minerva/examples/gcoap_dtls/Makefile' ** refactor **
 # Enables DTLS-secured CoAP messaging
 GCOAP_ENABLE_DTLS ?= 0
 ifeq (1,$(GCOAP_ENABLE_DTLS))
@@ -54,6 +54,23 @@ GCOAP_RESEND_BUFS_MAX ?= 2
 CFLAGS += -DCONFIG_GCOAP_RESEND_BUFS_MAX=$(GCOAP_RESEND_BUFS_MAX)
 
 CFLAGS += -DTHREAD_STACKSIZE_MAIN=\(2*THREAD_STACKSIZE_LARGE\)
+#--------
+
+# WIP !!!!
+#-------- cf. 'libcoap/examples/riot/examples_libcoap_client/Makefile' ** refactor ** `nn` not `nns`
+# a cryptographically secure implementation of PRNG is needed for tinydtls
+# Uncomment the following 3 lines for tinydtls support
+CFLAGS += -DWITH_RIOT_SOCK
+USEPKG += tinydtls
+USEMODULE += prng_sha1prng
+
+# libcoap support
+USEPKG += libcoap
+# Uncomment to enable libcoap OSCORE support
+# USEMODULE += libcoap_oscore
+
+# Configure if DNS is required
+# USEMODULE += sock_dns
 #--------
 
 FEATURES_REQUIRED += arch_32bit
