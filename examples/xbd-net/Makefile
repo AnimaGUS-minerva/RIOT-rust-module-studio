@@ -14,7 +14,7 @@ sync-crate-embassy:
 
 # native
 
-build-native: get-crate-embassy
+build-native: get-crate-embassy libcoap-riot-pkg
 	make native-build-module
 	make native-build-riot
 
@@ -32,7 +32,7 @@ run-native-tap-second:# in second shell
 
 # esp32
 
-build-esp32: get-crate-embassy
+build-esp32: get-crate-embassy libcoap-riot-pkg
 	make esp32-build-module
 	RIOT_BOARD=esp32-ethernet-kit-v1_0  make esp32-build-riot
 build-esp32-minimal:
@@ -105,7 +105,7 @@ test-esp32-tap0: build-esp32
  make esp32-run-riot &
 	sleep 2 && $(COAP_CLIENT) 5683 fe80::200:ff:fe00:3%br0 .well-known/core &
 
-test: build-libcoap-minimal
+test: build-libcoap-minimal libcoap-riot-examples
 	make test-native-notap
 	rm -rf ./main/bin && make test-native-tap1
 	make test-esp32-minimal
@@ -125,6 +125,15 @@ get-libcoap:
 sync-libcoap:
 	git submodule update --remote libcoap && \
  cd libcoap && git checkout develop-minerva && git pull
+
+libcoap-riot-pkg: get-libcoap
+	[ -e "libcoap/examples/riot/RIOT" ] || \
+ (cd libcoap/examples/riot && ln -s ../../../../../RIOT .)
+	make pkg -C libcoap/examples/riot
+
+libcoap-riot-examples: libcoap-riot-pkg
+	make client -C libcoap/examples/riot
+	##FIXME##make server -C libcoap/examples/riot
 
 #
 
