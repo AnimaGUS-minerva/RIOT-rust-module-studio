@@ -9,12 +9,20 @@
  * of use.
  */
 
+/*
+ * Copyright (C) 2024 ANIMA Minerva toolkit
+ */
+
 #include <thread.h>
 #include <debug.h>
 #include <coap3/coap.h>
 #include "client-coap.h"
 #include <stdio.h>
 #include "macros/utils.h"
+
+#define CONFIG_LIBCOAP_CLIENT_URI "coap://[fe80::405:5aff:fe15:9b7f]/.well-known/core"
+#define CONFIG_LIBCOAP_USE_PSK "secretPSK"
+#define CONFIG_LIBCOAP_USE_PSK_ID "user_abc"
 
 #ifdef CONFIG_LIBCOAP_CLIENT_URI
 #define COAP_CLIENT_URI CONFIG_LIBCOAP_CLIENT_URI
