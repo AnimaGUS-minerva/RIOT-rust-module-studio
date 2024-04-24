@@ -1,0 +1,15 @@
+# cf. 'libcoap/examples/riot/examples_libcoap_client/Makefile' !!!! debug with `nn` not `nns`
+
+# a cryptographically secure implementation of PRNG is needed for tinydtls
+# Uncomment the following 3 lines for tinydtls support
+CFLAGS += -DWITH_RIOT_SOCK
+USEPKG += tinydtls
+USEMODULE += prng_sha1prng
+
+# libcoap support
+USEPKG += libcoap
+# Uncomment to enable libcoap OSCORE support
+# USEMODULE += libcoap_oscore
+
+# Configure if DNS is required
+# USEMODULE += sock_dns
