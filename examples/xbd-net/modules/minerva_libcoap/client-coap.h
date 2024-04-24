@@ -19,6 +19,11 @@ extern "C" {
 /* Start up the CoAP Client */
 void client_coap_init(int argc, char **argv);
 
+int libcoap_client_coap_init(int argc, char **argv) {//@@
+    client_coap_init(argc, argv);
+    return 0;
+}
+
 #ifdef __cplusplus
 }
 #endif
