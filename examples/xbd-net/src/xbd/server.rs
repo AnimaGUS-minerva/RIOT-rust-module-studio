@@ -28,15 +28,11 @@ enum ServerCallback {
 static SERVER_QUEUE: OnceCell<ArrayQueue<ServerCallback>> = OnceCell::uninit();
 static SERVER_WAKER: AtomicWaker = AtomicWaker::new();
 
-fn start_gcoap_server() -> Result<XbdStream<ServerCallback>, i8> {
-    let stream = XbdStream::new(&SERVER_QUEUE, &SERVER_WAKER);
-    let ret = unsafe { server_init() };
-
-    if ret == 0 { Ok(stream) } else { Err(ret) }
-}
-
 pub async fn process_gcoap_server_stream() -> Result<(), i8> {
-    let mut stream = start_gcoap_server()?;
+    let ret = unsafe { server_init() };
+    if ret != 0 { return Err(ret); }
+
+    let mut stream = XbdStream::new(&SERVER_QUEUE, &SERVER_WAKER);
     let unpack = |arg_ptr| arg_from::<(*const c_void, usize, *const c_void)>(arg_ptr);
 
     while let Some(cb) = stream.next().await {
