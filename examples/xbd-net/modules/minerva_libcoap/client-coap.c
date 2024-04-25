@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include "macros/utils.h"
 
-#define CONFIG_LIBCOAP_CLIENT_URI "coap://[fe80::405:5aff:fe15:9b7f]/.well-known/core"
+#define CONFIG_LIBCOAP_CLIENT_URI "coap://[fe80::902f:8cff:fe74:41ae]/.well-known/core" // @@ !!
 #define CONFIG_LIBCOAP_USE_PSK "secretPSK"
 #define CONFIG_LIBCOAP_USE_PSK_ID "user_abc"
 

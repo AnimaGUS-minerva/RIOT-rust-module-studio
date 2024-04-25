@@ -1,4 +1,9 @@
-# cf. 'libcoap/examples/riot/examples_libcoap_client/Makefile' !!!! debug with `nn` not `nns`
+#@@ cf. 'libcoap/examples/riot/examples_libcoap_client/Makefile'
+
+# Specify the mandatory networking modules for IPv6 and UDP
+USEMODULE += gnrc_ipv6_default
+USEMODULE += memarray
+USEMODULE += ipv4_addr
 
 # a cryptographically secure implementation of PRNG is needed for tinydtls
 # Uncomment the following 3 lines for tinydtls support
@@ -13,3 +18,6 @@ USEPKG += libcoap
 
 # Configure if DNS is required
 # USEMODULE += sock_dns
+
+# libcoap needs some space
+CFLAGS += -DTHREAD_STACKSIZE_MAIN=\(3*THREAD_STACKSIZE_DEFAULT\)

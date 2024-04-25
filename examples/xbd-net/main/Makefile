@@ -19,6 +19,9 @@ EXTERNAL_MODULE_DIRS += $(MINERVA_NET_MODULE_DIR)
 USEMODULE += minerva_gnrc
 INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_gnrc/include
 
+USEMODULE += minerva_libcoap
+INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_libcoap/include
+
 USEMODULE += minerva_gcoap
 INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_gcoap/include
 
@@ -36,7 +39,8 @@ USEMODULE += vfs_default
 USEMODULE += vfs_auto_format
 #--------
 
-#-------- cf. 'RIOT-2023.07-devel-minerva/examples/gcoap_dtls/Makefile' ** refactor ** into 'modules/minerva_gcoap'
+# ** refactor ** into 'modules/minerva_gcoap'
+#-------- cf. 'RIOT-2023.07-devel-minerva/examples/gcoap_dtls/Makefile'
 # Enables DTLS-secured CoAP messaging
 GCOAP_ENABLE_DTLS ?= 0
 ifeq (1,$(GCOAP_ENABLE_DTLS))
@@ -47,18 +51,14 @@ ifeq (1,$(GCOAP_ENABLE_DTLS))
   USEMODULE += gcoap_dtls
   # tinydtls needs crypto secure PRNG
   USEMODULE += prng_sha1prng
-endif
+#--@@endif
 
 # Increase from default for confirmable block2 follow-on requests
 GCOAP_RESEND_BUFS_MAX ?= 2
 CFLAGS += -DCONFIG_GCOAP_RESEND_BUFS_MAX=$(GCOAP_RESEND_BUFS_MAX)
 
 CFLAGS += -DTHREAD_STACKSIZE_MAIN=\(2*THREAD_STACKSIZE_LARGE\)
-#--------
-
-#-------- WIP !!!!
-USEMODULE += minerva_libcoap
-INCLUDES += -I$(MINERVA_NET_MODULE_DIR)/minerva_libcoap/include
+endif#@@++
 #--------
 
 FEATURES_REQUIRED += arch_32bit

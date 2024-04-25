@@ -4,6 +4,7 @@
 
 #include "minerva_border_router.h"
 #include "minerva_gcoap.h"
+#include "minerva_libcoap.h"
 #include "minerva_xbd.h"
 #include "rustmod.h"
 
@@ -190,6 +191,7 @@ static int debug_esp32_eth_init(void) {
 
 static const shell_command_t shell_commands_minerva[] = {
     { "coap", "CoAP example", gcoap_cli_cmd },
+    { "coapc", "Start a libcoap client", libcoap_client_coap_init },
     { NULL, NULL, NULL }
 };
 
@@ -335,12 +337,14 @@ You'll be free, hackers, you'll be free.
 
     //
 
-    init_gcoap_fileserver(); // !!!!
+    init_gcoap_fileserver(); // !!!! to refactor
 
-    if (0) { // !! test with alias='nn'
-        test_gcoap_req("get", "[::1]:5683", "/const/song.txt"); // ok
+    if (1) { // !! test with alias='nn'
+        //test_gcoap_req("get", "[::1]:5683", "/const/song.txt"); // ok
         //test_gcoap_req("get", "[::1]:5683", "/const/song2.txt"); // ok, 4.04
         //assert(0); // ok
+
+        // wip !!!! coapc command
         start_shell(shell_commands_minerva);
     }
 
