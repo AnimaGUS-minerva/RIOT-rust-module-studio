@@ -28,18 +28,15 @@ enum ServerCallback {
 static SERVER_QUEUE: OnceCell<ArrayQueue<ServerCallback>> = OnceCell::uninit();
 static SERVER_WAKER: AtomicWaker = AtomicWaker::new();
 
-fn add_to_server_stream(cb: ServerCallback) {
-    XbdStream::get(&SERVER_QUEUE, &SERVER_WAKER).unwrap().add(cb);
-}
-
-pub fn start_gcoap_server() -> Result<(), i8> {
+fn start_gcoap_server() -> Result<XbdStream<ServerCallback>, i8> {
+    let stream = XbdStream::new(&SERVER_QUEUE, &SERVER_WAKER);
     let ret = unsafe { server_init() };
 
-    if ret == 0 { Ok(()) } else { Err(ret) }
+    if ret == 0 { Ok(stream) } else { Err(ret) }
 }
 
 pub async fn process_gcoap_server_stream() -> Result<(), i8> {
-    let mut stream = XbdStream::new(&SERVER_QUEUE, &SERVER_WAKER);
+    let mut stream = start_gcoap_server()?;
     let unpack = |arg_ptr| arg_from::<(*const c_void, usize, *const c_void)>(arg_ptr);
 
     while let Some(cb) = stream.next().await {
@@ -94,20 +91,25 @@ fn on_sock_evt(is_dtls: bool, sock: *const c_void, flags: usize, arg: *const c_v
     //println!("@@ on_sock_evt(): is_dtls: {} sock: {:?} type: {:?} arg: {:?}", is_dtls, sock, flags, arg);
     // !!!!  check against "type: 48" stuff in ',log--get-blockwise-sync'
 
-    if flags & SOCK_ASYNC_MSG_RECV > 0 {
-        let arg_ptr = into_arg_ptr(sock, flags, arg) as _;
-        add_to_server_stream(if is_dtls {
-            ServerCallback::GcoapServerSockDtlsMsgRecv(arg_ptr)
-        } else {
-            ServerCallback::GcoapServerSockUdpMsgRecv(arg_ptr)
-        });
-    } else { // bypass async server
-        if is_dtls {
-            // To avoid handshake (timing/ordering) issues, `SOCK_ASYNC_CONN_*` are directly processed
-            unsafe { _on_sock_dtls_evt_minerva(sock, flags, arg) };
-        } else {
-            unsafe { _on_sock_udp_evt_minerva(sock, flags, arg) };
+    let bypass_async_server = || if is_dtls {
+        unsafe { _on_sock_dtls_evt_minerva(sock, flags, arg) };
+    } else {
+        unsafe { _on_sock_udp_evt_minerva(sock, flags, arg) };
+    };
+
+    if let Some(stream) = XbdStream::get(&SERVER_QUEUE, &SERVER_WAKER) {
+        if flags & SOCK_ASYNC_MSG_RECV > 0 {
+            let arg_ptr = into_arg_ptr(sock, flags, arg) as _;
+            stream.add(if is_dtls {
+                ServerCallback::GcoapServerSockDtlsMsgRecv(arg_ptr)
+            } else {
+                ServerCallback::GcoapServerSockUdpMsgRecv(arg_ptr)
+            });
+        } else { // avoid handshake (timing/ordering) issues, directly process `SOCK_ASYNC_CONN_*`
+            bypass_async_server();
         }
+    } else { // async server not available
+        bypass_async_server();
     }
 }
 

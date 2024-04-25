@@ -62,7 +62,6 @@ pub extern fn rustmod_start(
 }
 
 async fn xbd_main() -> Result<(), i8> {
-    xbd::start_gcoap_server()?;
 
     if 0 == 1 { // non-blocking, ok
         use blogos12::keyboard::add_scancode as blogos12_add_scancode;
@@ -178,6 +177,7 @@ async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
 
     // !! do test with alias='nns'
     println!("!! debug NEW [gcoap-dtls]");
+    if 1 == 1 { return Ok(()); } // test server only
 
     //---- ok <-- gcoap: authentication timed out
     //println!("@@ debug out: {:?}", Xbd::async_gcoap_get("[::1]:5684", "/cli/stats").await);
@@ -193,7 +193,7 @@ async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
 */
     //---- !!!!
 /* cf.
-$ libcoap/local/bin/coap-server -k "secretPSK  # TODO `-u`
+$ libcoap/local/bin/coap-server -k "secretPSK"  # TODO `-u`
 
 $ libcoap/local/bin/coap-client -m get coaps://[::1]/.well-known/core -k "secretPSK" -u "Client_identity"
 </>;title="General Info";ct=0,</time>;if="clock";rt="ticks";title="Internal Clock";ct=0;obs,</async>;ct=0,</example_data>;title="Example Data";ct=0;obs
