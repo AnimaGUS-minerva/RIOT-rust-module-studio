@@ -344,7 +344,18 @@ You'll be free, hackers, you'll be free.
         //test_gcoap_req("get", "[::1]:5683", "/const/song2.txt"); // ok, 4.04
         //assert(0); // ok
 
-        // wip !!!! coapc command
+        /* !!!! WIP support COAP_USE_PSK/COAP_USE_PSK_ID
+$ libcoap/local/bin/coap-server
+$ libcoap/local/bin/coap-server -k "secretPSK"  # N/A `-u`
+
+> coapc
+coapc <uri>
+> coapc coap://[fe80::902f:8cff:fe74:41ae]/.well-known/core
+...
+> coapc coaps://[fe80::902f:8cff:fe74:41ae]/.well-known/core
+...
+         */
+
         start_shell(shell_commands_minerva);
     }
 

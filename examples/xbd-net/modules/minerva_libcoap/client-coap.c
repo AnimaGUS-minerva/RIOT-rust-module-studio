@@ -20,27 +20,13 @@
 #include <stdio.h>
 #include "macros/utils.h"
 
-#define CONFIG_LIBCOAP_CLIENT_URI "coap://[fe80::902f:8cff:fe74:41ae]/.well-known/core" // @@ !!
-#define CONFIG_LIBCOAP_USE_PSK "secretPSK"
-#define CONFIG_LIBCOAP_USE_PSK_ID "user_abc"
-
-#ifdef CONFIG_LIBCOAP_CLIENT_URI
-#define COAP_CLIENT_URI CONFIG_LIBCOAP_CLIENT_URI
-#else /* ! CONFIG_LIBCOAP_CLIENT_URI */
 #define COAP_CLIENT_URI "coap://[fe80::405:5aff:fe15:9b7f]/.well-known/core"
-#endif /* ! CONFIG_LIBCOAP_CLIENT_URI */
 
-#ifdef CONFIG_LIBCOAP_USE_PSK
-#define COAP_USE_PSK CONFIG_LIBCOAP_USE_PSK
-#else /* ! CONFIG_LIBCOAP_USE_PSK */
-#define COAP_USE_PSK NULL
-#endif /* ! CONFIG_LIBCOAP_USE_PSK */
+#define COAP_USE_PSK "secretPSK"
+//#define COAP_USE_PSK NULL
 
-#ifdef CONFIG_LIBCOAP_USE_PSK_ID
-#define COAP_USE_PSK_ID CONFIG_LIBCOAP_USE_PSK_ID
-#else /* ! CONFIG_LIBCOAP_USE_PSK_ID */
-#define COAP_USE_PSK_ID NULL
-#endif /* ! CONFIG_LIBCOAP_USE_PSK_ID */
+#define COAP_USE_PSK_ID "user_abc"
+//#define COAP_USE_PSK_ID NULL
 
 static coap_context_t *main_coap_context = NULL;
 static coap_optlist_t *optlist = NULL;
@@ -146,6 +132,7 @@ client_coap_init(int argc, char **argv)
     if (argc > 1) {
         coap_uri = argv[1];
     }
+    printf("@@ client_coap_init(): coap_uri: %s\n", coap_uri);
 
     /* Initialize libcoap library */
     coap_startup();

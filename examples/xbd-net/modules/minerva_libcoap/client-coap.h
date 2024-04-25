@@ -20,7 +20,12 @@ extern "C" {
 void client_coap_init(int argc, char **argv);
 
 int libcoap_client_coap_init(int argc, char **argv) {//@@
-    client_coap_init(argc, argv);
+    if (argc < 2) {
+        printf("coapc <uri>\n");
+    } else {
+        client_coap_init(argc, argv);
+    }
+
     return 0;
 }
 
