@@ -20,8 +20,6 @@
 #include <stdio.h>
 #include "macros/utils.h"
 
-#define COAP_CLIENT_URI "coap://[fe80::405:5aff:fe15:9b7f]/.well-known/core"
-
 #define COAP_USE_PSK "secretPSK"
 //#define COAP_USE_PSK NULL
 
@@ -127,7 +125,7 @@ client_coap_init(int argc, char **argv)
 #define BUFSIZE 100
     unsigned char buf[BUFSIZE];
     int res;
-    const char *coap_uri = COAP_CLIENT_URI;
+    const char *coap_uri = COAP_CLIENT_URI_DEFAULT;
 
     if (argc > 1) {
         coap_uri = argv[1];
@@ -269,4 +267,19 @@ fail:
     coap_free_context(main_coap_context);
     main_coap_context = NULL;
     coap_cleanup();
+}
+
+int test_libcoap_req(char *req, char *uri) {//@@
+    //====
+    assert(strcmp(req, "get") == 0);
+    char *argv[] = {"libcoap", uri};
+    printf("@@-------- test_libcoap_req(): libcoap %s\n", uri ? uri : "(null)");
+    //==== TODO post|put|ping|...
+    //char *argv[] = {"libcoap", req, uri};
+    //====
+
+    int argc = sizeof(argv) / sizeof(argv[0]);
+    if (!uri) { argc--; } // support "ping"
+
+    return libcoap_cli_cmd(argc, argv);
 }

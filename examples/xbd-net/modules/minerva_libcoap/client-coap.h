@@ -16,12 +16,16 @@
 extern "C" {
 #endif
 
+#define COAP_CLIENT_URI_DEFAULT "coap://[fe80::405:5aff:fe15:9b7f]/.well-known/core"
+
+int test_libcoap_req(char *req, char *uri);//@@
+
 /* Start up the CoAP Client */
 void client_coap_init(int argc, char **argv);
 
-int libcoap_client_coap_init(int argc, char **argv) {//@@
+int libcoap_cli_cmd(int argc, char **argv) {//@@
     if (argc < 2) {
-        printf("coapc <uri>\n");
+        printf("usage: %s <uri> (e.g. %s)\n", argv[0], COAP_CLIENT_URI_DEFAULT);
     } else {
         client_coap_init(argc, argv);
     }

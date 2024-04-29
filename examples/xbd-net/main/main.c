@@ -190,8 +190,8 @@ static int debug_esp32_eth_init(void) {
 #endif
 
 static const shell_command_t shell_commands_minerva[] = {
-    { "coap", "CoAP example", gcoap_cli_cmd },
-    { "coapc", "Start a libcoap client", libcoap_client_coap_init },
+    { "gcoap", "@@ CoAP example", gcoap_cli_cmd },
+    { "libcoap", "@@ Start a libcoap client", libcoap_cli_cmd },
     { NULL, NULL, NULL }
 };
 
@@ -340,11 +340,12 @@ You'll be free, hackers, you'll be free.
     init_gcoap_fileserver(); // !!!! to refactor
 
     if (1) { // !! test with alias='nn'
-        //test_gcoap_req("get", "[::1]:5683", "/const/song.txt"); // ok
+        //----
+//        test_gcoap_req("get", "[::1]:5683", "/const/song.txt"); // ok
         //test_gcoap_req("get", "[::1]:5683", "/const/song2.txt"); // ok, 4.04
         //assert(0); // ok
-
-        /* !!!! WIP support COAP_USE_PSK/COAP_USE_PSK_ID
+        //----
+        /* ok
 $ libcoap/local/bin/coap-server
 $ libcoap/local/bin/coap-server -k "secretPSK"  # N/A `-u`
 
@@ -355,6 +356,11 @@ coapc <uri>
 > coapc coaps://[fe80::902f:8cff:fe74:41ae]/.well-known/core
 ...
          */
+        //----
+        test_libcoap_req("get", "coap://[fe80::902f:8cff:fe74:41ae]/.well-known/core");
+        test_libcoap_req("get", "coaps://[fe80::902f:8cff:fe74:41ae]/.well-known/core");
+        test_libcoap_req("get", "coap://[::1]/const/song.txt"); // TODO blockwise
+        //----
 
         start_shell(shell_commands_minerva);
     }

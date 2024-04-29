@@ -9,7 +9,8 @@
 extern "C" {
 #endif
 
-int libcoap_client_coap_init(int argc, char **argv);
+int libcoap_cli_cmd(int argc, char **argv);
+int test_libcoap_req(char *req, char *uri);
 
 #ifdef __cplusplus
 }
