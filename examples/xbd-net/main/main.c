@@ -8,6 +8,9 @@
 #include "minerva_xbd.h"
 #include "rustmod.h"
 
+#include "native_internal.h"
+#include "async_read.h"
+
 //-------- !!!! WIP
 #include "fs/constfs.h"
 
@@ -206,6 +209,56 @@ void start_shell(const shell_command_t *shell_commands /* NULL to use only syste
 
 //
 
+// cf. https://github.com/RIOT-OS/RIOT/blob/master/cpu/native/periph/uart.c
+static void io_signal_handler(int fd, void *arg) {
+    printf("@@ io_signal_handler(): ^^\n");
+
+    (void) arg;
+    int is_first = 1;
+
+    while (1) {
+        char c;
+        int status = real_read(fd, &c, 1); // via 'native_internal.h'
+
+        if (status == 1) {
+            if (is_first) {
+                is_first = 0;
+                printf("@@ read char from fd:");
+            }
+
+            printf(" %02x", (unsigned char) c);
+//!!!!
+//            uart_config[uart].rx_cb(uart_config[uart].arg, c);
+        } else {
+            if (status == -1 && errno != EAGAIN) {
+                printf("@@ error: cannot read from fd\n");
+            }
+
+            break;
+        }
+    }
+
+    if (!is_first) {
+        printf("\n");
+    }
+
+    native_async_read_continue(fd);
+}
+
+void native_async_shell(void) {
+    printf("@@ native_async_shell(): ^^\n");
+
+    native_async_read_setup();
+    native_async_read_add_handler(0, NULL, io_signal_handler);
+
+    if (0) { // debug
+        while (1) { xbd_ztimer_msleep(500, true); }
+        assert(0); // should be never reached
+    }
+}
+
+//
+
 static const xbd_fn_t xbd_fns[] = {
     { "xbd_usleep", (xbd_fn_ptr_t)xbd_usleep },
     { "xbd_ztimer_msleep", (xbd_fn_ptr_t)xbd_ztimer_msleep },
@@ -339,7 +392,7 @@ You'll be free, hackers, you'll be free.
 
     init_gcoap_fileserver(); // !!!! to refactor
 
-    if (1) { // !! test with alias='nn'
+    if (0) { // !! test with alias='nn'
         //----
 //        test_gcoap_req("get", "[::1]:5683", "/const/song.txt"); // ok
         //test_gcoap_req("get", "[::1]:5683", "/const/song2.txt"); // ok, 4.04
@@ -357,15 +410,18 @@ coapc <uri>
 ...
          */
         //----
-        test_libcoap_req("get", "coap://[fe80::902f:8cff:fe74:41ae]/.well-known/core");
-        test_libcoap_req("get", "coaps://[fe80::902f:8cff:fe74:41ae]/.well-known/core");
-        test_libcoap_req("get", "coap://[::1]/const/song.txt"); // TODO blockwise
+//        test_libcoap_req("get", "coap://[fe80::902f:8cff:fe74:41ae]/.well-known/core");
+//        test_libcoap_req("get", "coaps://[fe80::902f:8cff:fe74:41ae]/.well-known/core");
+//        test_libcoap_req("get", "coap://[::1]/cli/stats");
+        test_libcoap_req("get", "coap://[::1]/const/song.txt");
         //----
 
         start_shell(shell_commands_minerva);
     }
 
     if (1) {
+        native_async_shell(); // WIP !!!!
+
         rustmod_start(xbd_fns, xbd_fns_sz);
 
         /* !!!! WIP async shell
