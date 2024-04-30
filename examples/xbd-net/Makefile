@@ -130,7 +130,7 @@ sync-libcoap:
 libcoap-riot-pkg: get-libcoap
 	[ -e "libcoap/examples/riot/RIOT" ] || \
  (cd libcoap/examples/riot && ln -s ../../../../../RIOT .)
-	make pkg -C libcoap/examples/riot
+	[ -e "../../RIOT/pkg/libcoap" ] || make pkg -C libcoap/examples/riot
 
 libcoap-riot-examples: libcoap-riot-pkg
 	make client -C libcoap/examples/riot
