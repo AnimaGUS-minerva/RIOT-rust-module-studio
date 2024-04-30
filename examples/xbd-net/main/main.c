@@ -8,8 +8,10 @@
 #include "minerva_xbd.h"
 #include "rustmod.h"
 
+#ifdef MINERVA_BOARD_NATIVE
 #include "native_internal.h"
 #include "async_read.h"
+#endif
 
 //-------- !!!! WIP
 #include "fs/constfs.h"
@@ -209,6 +211,9 @@ void start_shell(const shell_command_t *shell_commands /* NULL to use only syste
 
 //
 
+//-------- ^^ refactor
+#ifdef MINERVA_BOARD_NATIVE
+
 // cf. https://github.com/RIOT-OS/RIOT/blob/master/cpu/native/periph/uart.c
 static void io_signal_handler(int fd, void *arg) {
     printf("@@ io_signal_handler(): ^^\n");
@@ -256,6 +261,8 @@ void native_async_shell(void) {
         assert(0); // should be never reached
     }
 }
+#endif
+//-------- $$
 
 //
 
@@ -420,8 +427,9 @@ coapc <uri>
     }
 
     if (1) {
+#ifdef MINERVA_BOARD_NATIVE
         native_async_shell(); // WIP !!!!
-
+#endif
         rustmod_start(xbd_fns, xbd_fns_sz);
 
         /* !!!! WIP async shell
