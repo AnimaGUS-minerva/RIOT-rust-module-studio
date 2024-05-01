@@ -4,14 +4,20 @@ use futures_util::{stream::StreamExt, task::AtomicWaker};
 use super::stream::XbdStream;
 
 extern "C" {
-    fn init_native_async_read() -> i8;
+    fn xbd_shell_init() -> i8;
+}
+
+#[no_mangle]
+pub extern fn xbd_shell_on_read_line(/* TODO */) {
+    crate::println!("@@ xbd_shell_on_read_line(): ^^");
 }
 
 static SERVER_QUEUE: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
 static SERVER_WAKER: AtomicWaker = AtomicWaker::new();
 
 pub async fn process_shell_stream() -> Result<(), i8> {
-    let ret = unsafe { init_native_async_read() };
+    // TODO conditional !! native only for now
+    let ret = unsafe { xbd_shell_init() };
     if ret != 0 { return Err(ret); }
 
     let mut stream = XbdStream::new(&SERVER_QUEUE, &SERVER_WAKER);
