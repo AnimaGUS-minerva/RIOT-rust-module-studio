@@ -10,12 +10,12 @@ extern "C" {
 }
 
 type CVoidPtr = *const c_void;
-pub type PtrSend = u32; // support RIOT 32bit MCUs only
+pub type Ptr32Send = u32;
 
 enum ApiCallback {
-    Timeout(PtrSend),
-    _GcoapPing(PtrSend),
-    GcoapReq(PtrSend),
+    Timeout(Ptr32Send),
+    _GcoapPing(Ptr32Send),
+    GcoapReq(Ptr32Send),
 }
 
 static API_QUEUE: OnceCell<ArrayQueue<ApiCallback>> = OnceCell::uninit();
@@ -26,10 +26,10 @@ fn add_api_callback(cb: ApiCallback) {
 }
 
 pub fn add_xbd_timeout_callback(arg_ptr: CVoidPtr) {
-    add_api_callback(ApiCallback::Timeout(arg_ptr as PtrSend));
+    add_api_callback(ApiCallback::Timeout(arg_ptr as Ptr32Send));
 }
 pub fn add_xbd_gcoap_req_callback(arg_ptr: CVoidPtr) {
-    add_api_callback(ApiCallback::GcoapReq(arg_ptr as PtrSend));
+    add_api_callback(ApiCallback::GcoapReq(arg_ptr as Ptr32Send));
 }
 
 pub async fn process_api_stream() -> Result<(), i8> {
@@ -65,7 +65,7 @@ pub fn into_raw<F, T>(cb: F) -> CVoidPtr where F: FnOnce(T) + 'static {
     Box::into_raw(cb) as *const _
 }
 
-pub fn arg_from<T>(arg_ptr: PtrSend) -> (CVoidPtr, T) {
+pub fn arg_from<T>(arg_ptr: Ptr32Send) -> (CVoidPtr, T) {
     unsafe { *Box::from_raw(arg_ptr as *mut _) }
 }
 

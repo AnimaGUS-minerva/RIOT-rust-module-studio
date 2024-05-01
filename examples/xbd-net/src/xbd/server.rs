@@ -3,7 +3,7 @@ use crossbeam_queue::ArrayQueue;
 use futures_util::{stream::StreamExt, task::AtomicWaker};
 use mcu_if::{println, alloc::boxed::Box, c_types::c_void, null_terminate_str};
 use super::stream::XbdStream;
-use super::callback::{PtrSend, arg_from};
+use super::callback::{Ptr32Send, arg_from};
 
 extern "C" {
     fn server_init() -> i8;
@@ -19,10 +19,10 @@ extern "C" {
 }
 
 enum ServerCallback {
-    GcoapServerSockUdpMsgRecv(PtrSend),
-    GcoapServerSockDtlsMsgRecv(PtrSend),
-    //ServeRiotBoard(PtrSend),
-    //ServeStats(PtrSend),
+    GcoapServerSockUdpMsgRecv(Ptr32Send),
+    GcoapServerSockDtlsMsgRecv(Ptr32Send),
+    //ServeRiotBoard(Ptr32Send),
+    //ServeStats(Ptr32Send),
 }
 
 static SERVER_QUEUE: OnceCell<ArrayQueue<ServerCallback>> = OnceCell::uninit();

@@ -54,7 +54,7 @@ pub fn init_once(xbd_fns_ptr: *const XbdFnsEnt, xbd_fns_sz: usize) {
                 let name = unsafe { core::str::from_utf8_unchecked(
                     core::slice::from_raw_parts(name, strlen(name))).to_string() };
 
-                (name, ptr as PtrSend)
+                (name, ptr as Ptr32Send)
             })
             .collect::<Vec<(_, _)>>());
 
@@ -63,8 +63,8 @@ pub fn init_once(xbd_fns_ptr: *const XbdFnsEnt, xbd_fns_sz: usize) {
         .expect("init_once() should only be called once");
 }
 
-type PtrSend = u32; // support RIOT 32bit MCUs only
-pub struct Xbd(BTreeMap<String, PtrSend>);
+type Ptr32Send = u32;
+pub struct Xbd(BTreeMap<String, Ptr32Send>);
 
 macro_rules! get_xbd_fn {
     ($name:expr, $t:ty) => {
