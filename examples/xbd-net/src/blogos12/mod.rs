@@ -32,8 +32,9 @@ impl Runtime {
         ex
             //.spawn(example_task()) // debug
             //.spawn(keyboard::print_keypresses()) // processor, debug
-            .spawn(xbd::process_gcoap_server_stream()) // processor
-            .spawn(xbd::process_api_stream()); // processor
+            .spawn(xbd::process_shell_stream())
+            .spawn(xbd::process_gcoap_server_stream())
+            .spawn(xbd::process_api_stream());
 
         Ok(Self(ex))
     }

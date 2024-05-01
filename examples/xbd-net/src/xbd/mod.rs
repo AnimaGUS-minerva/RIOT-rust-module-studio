@@ -7,6 +7,9 @@ use callback::{
 mod server;
 pub use server::process_gcoap_server_stream;
 
+mod shell;
+pub use shell::process_shell_stream;
+
 mod stream;
 
 mod blockwise;
