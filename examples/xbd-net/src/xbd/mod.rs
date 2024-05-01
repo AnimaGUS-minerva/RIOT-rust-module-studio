@@ -1,6 +1,6 @@
-mod callbacks;
-pub use callbacks::process_api_stream;
-use callbacks::{
+mod callback;
+pub use callback::process_api_stream;
+use callback::{
     add_xbd_timeout_callback,
     add_xbd_gcoap_req_callback};
 
@@ -90,7 +90,7 @@ impl Xbd {
     pub fn set_timeout<F>(msec: u32, cb: F) where F: FnOnce(()) + 'static {
         let timeout_ptr = Box::new(core::ptr::null());
         let timeout_pp = Box::into_raw(timeout_ptr);
-        let arg = Box::new((callbacks::into_raw(cb), timeout_pp));
+        let arg = Box::new((callback::into_raw(cb), timeout_pp));
 
         type Ty = unsafe extern "C" fn(
             u32, *const c_void, *mut (*const c_void, *mut *const c_void), *mut *const c_void);
@@ -136,7 +136,7 @@ impl Xbd {
                 null_terminate_str!(uri).as_ptr(),
                 method, payload_ptr, payload_len,
                 blockwise, blockwise_state_index.unwrap_or(0 /* to be ignored */),
-                callbacks::into_raw(cb), // context
+                callback::into_raw(cb), // context
                 Self::gcoap_req_resp_handler as *const c_void);
         }
     }

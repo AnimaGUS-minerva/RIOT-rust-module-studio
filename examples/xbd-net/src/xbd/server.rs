@@ -3,7 +3,7 @@ use crossbeam_queue::ArrayQueue;
 use futures_util::{stream::StreamExt, task::AtomicWaker};
 use mcu_if::{println, alloc::boxed::Box, c_types::c_void, null_terminate_str};
 use super::stream::XbdStream;
-use super::callbacks::{PtrSend, arg_from};
+use super::callback::{PtrSend, arg_from};
 
 extern "C" {
     fn server_init() -> i8;
