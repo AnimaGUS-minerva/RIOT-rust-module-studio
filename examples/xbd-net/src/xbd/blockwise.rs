@@ -1,12 +1,8 @@
 use mcu_if::c_types::c_void;
 use mcu_if::utils::{u8_slice_from, u8_slice_mut_from};
-
 use core::{str::from_utf8, pin::Pin, task::{Context, Poll}};
-use futures_util::{stream::Stream, task::AtomicWaker};
-use conquer_once::spin::OnceCell;
-use crossbeam_queue::ArrayQueue;
-
-use super::stream::XbdStream;
+use futures_util::stream::Stream;
+use super::stream::{XbdStream, StreamData, stream_uninit};
 use super::gcoap::{ReqInner, COAP_METHOD_GET};
 
 #[no_mangle]
@@ -82,12 +78,14 @@ static mut GRID_URI: &'static mut GridUri = &mut [[0; BLOCKWISE_URI_MAX]; BLOCKW
 type GridHdr = [(usize, [u8; BLOCKWISE_HDR_MAX]); BLOCKWISE_STATES_MAX];
 static mut GRID_HDR: &'static mut GridHdr = &mut [(0, [0; BLOCKWISE_HDR_MAX]); BLOCKWISE_STATES_MAX];
 
-type QW = (OnceCell<ArrayQueue<Option<ReqInner>>>, AtomicWaker);
-const ARRAY_REPEAT_VALUE_QW: QW = (OnceCell::uninit(), AtomicWaker::new());
-static mut BLOCKWISE_QW: &'static mut [QW; BLOCKWISE_STATES_MAX] = &mut [ARRAY_REPEAT_VALUE_QW; BLOCKWISE_STATES_MAX];
+type BlockwiseStreamData = StreamData<Option<ReqInner>>;
+const ARRAY_REPEAT_VALUE_SD: BlockwiseStreamData = stream_uninit();
+static mut BLOCKWISE_SD: &'static mut [BlockwiseStreamData; BLOCKWISE_STATES_MAX] =
+    &mut [ARRAY_REPEAT_VALUE_SD; BLOCKWISE_STATES_MAX];
 
 const ARRAY_REPEAT_VALUE_BS: Option<BlockwiseState> = None;
-static mut BLOCKWISE_STATES: &'static mut [Option<BlockwiseState>] = &mut [ARRAY_REPEAT_VALUE_BS; BLOCKWISE_STATES_MAX];
+static mut BLOCKWISE_STATES: &'static mut [Option<BlockwiseState>] =
+    &mut [ARRAY_REPEAT_VALUE_BS; BLOCKWISE_STATES_MAX];
 
 //
 
@@ -203,8 +201,7 @@ impl BlockwiseData {
 #[derive(Debug)]
 struct BlockwiseState {
     idx: usize,
-    queue: &'static OnceCell<ArrayQueue<Option<ReqInner>>>,
-    waker: &'static AtomicWaker,
+    bsd: &'static BlockwiseStreamData,
     addr: &'static mut [u8],
     uri: &'static mut [u8],
     hdr: &'static mut [u8],
@@ -215,8 +212,7 @@ impl Clone for BlockwiseState {
     fn clone(&self) -> BlockwiseState {
         Self {
             idx: self.idx,
-            queue: self.queue,
-            waker: self.waker,
+            bsd: self.bsd,
             addr: unsafe { &mut GRID_ADDR[self.idx] },
             uri: unsafe { &mut GRID_URI[self.idx] },
             hdr: unsafe { &mut GRID_HDR[self.idx].1 },
@@ -227,9 +223,9 @@ impl Clone for BlockwiseState {
 
 impl BlockwiseState {
     fn get(idx: usize) -> Self {
-        let (queue, waker) = unsafe { &BLOCKWISE_QW[idx] };
+        let bsd = unsafe { &BLOCKWISE_SD[idx] };
 
-        Self { queue, waker, idx,
+        Self { bsd, idx,
             addr: unsafe { &mut GRID_ADDR[idx] },
             uri: unsafe { &mut GRID_URI[idx] },
             hdr: unsafe { &mut GRID_HDR[idx].1 },
@@ -238,7 +234,7 @@ impl BlockwiseState {
     }
 
     fn get_stream(&self) -> BlockwiseStream {
-        BlockwiseStream::get(self.idx, self.queue, self.waker)
+        BlockwiseStream::get(self.idx, self.bsd)
     }
 
     fn update_metadata(data_in: &[u8], data: &mut [u8], data_max: usize) -> usize {
@@ -261,9 +257,9 @@ pub struct BlockwiseStream {
 }
 
 impl BlockwiseStream {
-    fn get(idx: usize, queue: &'static OnceCell<ArrayQueue<Option<ReqInner>>>, waker: &'static AtomicWaker) -> Self {
-        let xs = XbdStream::get_inner(&queue, &waker)
-            .unwrap_or_else(|| XbdStream::new_with_cap_inner(&queue, &waker, 1));
+    fn get(idx: usize, bsd: &'static BlockwiseStreamData) -> Self {
+        let xs = XbdStream::get(bsd)
+            .unwrap_or_else(|| XbdStream::new_with_cap(&bsd, 1));
 
         Self { idx, xs }
     }
