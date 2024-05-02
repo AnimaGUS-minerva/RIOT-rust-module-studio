@@ -1,7 +1,6 @@
-use futures_util::stream::StreamExt;
 use mcu_if::{alloc::boxed::Box, c_types::c_void};
 use super::gcoap::GcoapMemoState;
-use super::stream::{XbdStream, StreamData, stream_uninit};
+use super::stream::{XbdStream, StreamData, stream_uninit, StreamExt};
 
 extern "C" {
     fn free(ptr: *mut c_void);

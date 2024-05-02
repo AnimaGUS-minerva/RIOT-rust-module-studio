@@ -1,7 +1,6 @@
-use futures_util::stream::StreamExt;
 use mcu_if::{println, alloc::boxed::Box, c_types::c_void, null_terminate_str};
-use super::stream::{XbdStream, StreamData, stream_uninit};
 use super::callback::{Ptr32Send, arg_from};
+use super::stream::{XbdStream, StreamData, stream_uninit, StreamExt};
 
 extern "C" {
     fn server_init() -> i8;

@@ -1,5 +1,4 @@
-use futures_util::stream::StreamExt;
-use super::stream::{XbdStream, StreamData, stream_uninit};
+use super::stream::{XbdStream, StreamData, stream_uninit, StreamExt};
 
 extern "C" {
     fn xbd_shell_init() -> i8;

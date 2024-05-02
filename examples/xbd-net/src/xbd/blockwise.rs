@@ -2,7 +2,7 @@ use mcu_if::c_types::c_void;
 use mcu_if::utils::{u8_slice_from, u8_slice_mut_from};
 
 use core::{str::from_utf8, pin::Pin, task::{Context, Poll}};
-use futures_util::{task::AtomicWaker, Stream};
+use futures_util::{stream::Stream, task::AtomicWaker};
 use conquer_once::spin::OnceCell;
 use crossbeam_queue::ArrayQueue;
 

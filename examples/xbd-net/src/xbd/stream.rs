@@ -1,7 +1,8 @@
-use conquer_once::spin::OnceCell;
 use core::{pin::Pin, task::{Context, Poll}};
+use conquer_once::spin::OnceCell;
 use crossbeam_queue::ArrayQueue;
 use futures_util::{stream::Stream, task::AtomicWaker};
+pub use futures_util::StreamExt;
 
 pub type StreamData<T> = (OnceCell<ArrayQueue<T>>, AtomicWaker);
 pub const fn stream_uninit<T>() -> StreamData<T> {
