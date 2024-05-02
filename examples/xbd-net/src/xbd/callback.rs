@@ -1,9 +1,7 @@
-use conquer_once::spin::OnceCell;
-use crossbeam_queue::ArrayQueue;
-use futures_util::{stream::StreamExt, task::AtomicWaker};
+use futures_util::stream::StreamExt;
 use mcu_if::{alloc::boxed::Box, c_types::c_void};
 use super::gcoap::GcoapMemoState;
-use super::stream::XbdStream;
+use super::stream::{XbdStream, StreamData, stream_uninit};
 
 extern "C" {
     fn free(ptr: *mut c_void);
@@ -18,11 +16,10 @@ enum ApiCallback {
     GcoapReq(Ptr32Send),
 }
 
-static API_QUEUE: OnceCell<ArrayQueue<ApiCallback>> = OnceCell::uninit();
-static API_WAKER: AtomicWaker = AtomicWaker::new();
+static SD: StreamData<ApiCallback> = stream_uninit();
 
 fn add_api_callback(cb: ApiCallback) {
-    XbdStream::get(&API_QUEUE, &API_WAKER).unwrap().add(cb);
+    XbdStream::get(&SD).unwrap().add(cb);
 }
 
 pub fn add_xbd_timeout_callback(arg_ptr: CVoidPtr) {
@@ -33,7 +30,7 @@ pub fn add_xbd_gcoap_req_callback(arg_ptr: CVoidPtr) {
 }
 
 pub async fn process_api_stream() -> Result<(), i8> {
-    let mut stream = XbdStream::new(&API_QUEUE, &API_WAKER);
+    let mut stream = XbdStream::new(&SD);
 
     while let Some(cb) = stream.next().await {
         match cb {

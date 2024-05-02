@@ -17,7 +17,7 @@ pub async fn process_shell_stream() -> Result<(), i8> {
     let ret = unsafe { xbd_shell_init() };
     if ret != 0 { return Err(ret); }
 
-    let mut stream = XbdStream::from(&SD);
+    let mut stream = XbdStream::new(&SD);
 
     while let Some(cb) = stream.next().await {
         if 0 == 1 { crate::Xbd::async_sleep(1_000).await; } // debug, ok

@@ -1,8 +1,6 @@
-use conquer_once::spin::OnceCell;
-use crossbeam_queue::ArrayQueue;
-use futures_util::{stream::StreamExt, task::AtomicWaker};
+use futures_util::stream::StreamExt;
 use mcu_if::{println, alloc::boxed::Box, c_types::c_void, null_terminate_str};
-use super::stream::XbdStream;
+use super::stream::{XbdStream, StreamData, stream_uninit};
 use super::callback::{Ptr32Send, arg_from};
 
 extern "C" {
@@ -25,14 +23,13 @@ enum ServerCallback {
     //ServeStats(Ptr32Send),
 }
 
-static SERVER_QUEUE: OnceCell<ArrayQueue<ServerCallback>> = OnceCell::uninit();
-static SERVER_WAKER: AtomicWaker = AtomicWaker::new();
+static SD: StreamData<ServerCallback> = stream_uninit();
 
 pub async fn process_gcoap_server_stream() -> Result<(), i8> {
     let ret = unsafe { server_init() };
     if ret != 0 { return Err(ret); }
 
-    let mut stream = XbdStream::new(&SERVER_QUEUE, &SERVER_WAKER);
+    let mut stream = XbdStream::new(&SD);
     let unpack = |arg_ptr| arg_from::<(*const c_void, usize, *const c_void)>(arg_ptr);
 
     while let Some(cb) = stream.next().await {
@@ -93,7 +90,7 @@ fn on_sock_evt(is_dtls: bool, sock: *const c_void, flags: usize, arg: *const c_v
         unsafe { _on_sock_udp_evt_minerva(sock, flags, arg) };
     };
 
-    if let Some(stream) = XbdStream::get(&SERVER_QUEUE, &SERVER_WAKER) {
+    if let Some(stream) = XbdStream::get(&SD) {
         if flags & SOCK_ASYNC_MSG_RECV > 0 {
             let arg_ptr = into_arg_ptr(sock, flags, arg) as _;
             stream.add(if is_dtls {

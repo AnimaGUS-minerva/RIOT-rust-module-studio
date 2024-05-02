@@ -262,8 +262,8 @@ pub struct BlockwiseStream {
 
 impl BlockwiseStream {
     fn get(idx: usize, queue: &'static OnceCell<ArrayQueue<Option<ReqInner>>>, waker: &'static AtomicWaker) -> Self {
-        let xs = XbdStream::get(&queue, &waker)
-            .unwrap_or_else(|| XbdStream::new_with_cap(&queue, &waker, 1));
+        let xs = XbdStream::get_inner(&queue, &waker)
+            .unwrap_or_else(|| XbdStream::new_with_cap_inner(&queue, &waker, 1));
 
         Self { idx, xs }
     }

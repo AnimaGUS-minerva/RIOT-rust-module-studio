@@ -17,26 +17,28 @@ pub struct XbdStream<T: 'static> {
 const QUEUE_CAP_DEFAULT: usize = 100;
 
 impl<T> XbdStream<T> {
-    pub fn new(queue: &'static OnceCell<ArrayQueue<T>>, waker: &'static AtomicWaker) -> Self {
-        Self::new_with_cap(queue, waker, QUEUE_CAP_DEFAULT)
+    pub fn new(sd: &'static StreamData<T>) -> Self {
+        Self::new_with_cap(sd, QUEUE_CAP_DEFAULT)
     }
 
-    pub fn from(sd: &'static StreamData<T>) -> Self {
-        Self::from_with_cap(sd, QUEUE_CAP_DEFAULT)
+    pub fn new_with_cap(sd: &'static StreamData<T>, cap: usize) -> Self {
+        Self::new_with_cap_inner(&sd.0, &sd.1, cap)
     }
 
-    pub fn from_with_cap(sd: &'static StreamData<T>, cap: usize) -> Self {
-        Self::new_with_cap(&sd.0, &sd.1, cap)
-    }
-
-    pub fn new_with_cap(queue: &'static OnceCell<ArrayQueue<T>>, waker: &'static AtomicWaker, cap: usize) -> Self {
+    pub fn new_with_cap_inner(queue: &'static OnceCell<ArrayQueue<T>>, waker: &'static AtomicWaker, cap: usize) -> Self {
         queue.try_init_once(|| ArrayQueue::new(cap))
             .expect("XbdStream::new should only be called once");
 
         XbdStream { queue, waker }
     }
 
-    pub fn get(queue: &'static OnceCell<ArrayQueue<T>>, waker: &'static AtomicWaker) -> Option<Self> {
+    pub fn get(sd: &'static StreamData<T>) -> Option<Self> {
+        let (queue, waker) = sd;
+
+        Self::get_inner(queue, waker)
+    }
+
+    pub fn get_inner(queue: &'static OnceCell<ArrayQueue<T>>, waker: &'static AtomicWaker) -> Option<Self> {
         if queue.get().is_some() { // already init_once
             Some(XbdStream { queue, waker })
         } else {
