@@ -3,6 +3,11 @@ use core::{pin::Pin, task::{Context, Poll}};
 use crossbeam_queue::ArrayQueue;
 use futures_util::{stream::Stream, task::AtomicWaker};
 
+pub type StreamData<T> = (OnceCell<ArrayQueue<T>>, AtomicWaker);
+pub const fn stream_uninit<T>() -> StreamData<T> {
+    (OnceCell::uninit(), AtomicWaker::new())
+}
+
 #[derive(Debug)]
 pub struct XbdStream<T: 'static> {
     queue: &'static OnceCell<ArrayQueue<T>>,
@@ -14,6 +19,14 @@ const QUEUE_CAP_DEFAULT: usize = 100;
 impl<T> XbdStream<T> {
     pub fn new(queue: &'static OnceCell<ArrayQueue<T>>, waker: &'static AtomicWaker) -> Self {
         Self::new_with_cap(queue, waker, QUEUE_CAP_DEFAULT)
+    }
+
+    pub fn from(sd: &'static StreamData<T>) -> Self {
+        Self::from_with_cap(sd, QUEUE_CAP_DEFAULT)
+    }
+
+    pub fn from_with_cap(sd: &'static StreamData<T>, cap: usize) -> Self {
+        Self::new_with_cap(&sd.0, &sd.1, cap)
     }
 
     pub fn new_with_cap(queue: &'static OnceCell<ArrayQueue<T>>, waker: &'static AtomicWaker, cap: usize) -> Self {
