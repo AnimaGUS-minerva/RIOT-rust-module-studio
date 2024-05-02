@@ -23,10 +23,7 @@ impl<T> XbdStream<T> {
     }
 
     pub fn new_with_cap(sd: &'static StreamData<T>, cap: usize) -> Self {
-        Self::new_with_cap_inner(&sd.0, &sd.1, cap)
-    }
-
-    pub fn new_with_cap_inner(queue: &'static OnceCell<ArrayQueue<T>>, waker: &'static AtomicWaker, cap: usize) -> Self {
+        let (queue, waker) = sd;
         queue.try_init_once(|| ArrayQueue::new(cap))
             .expect("XbdStream::new should only be called once");
 
@@ -36,10 +33,6 @@ impl<T> XbdStream<T> {
     pub fn get(sd: &'static StreamData<T>) -> Option<Self> {
         let (queue, waker) = sd;
 
-        Self::get_inner(queue, waker)
-    }
-
-    pub fn get_inner(queue: &'static OnceCell<ArrayQueue<T>>, waker: &'static AtomicWaker) -> Option<Self> {
         if queue.get().is_some() { // already init_once
             Some(XbdStream { queue, waker })
         } else {
