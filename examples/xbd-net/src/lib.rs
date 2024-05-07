@@ -176,8 +176,8 @@ use xbd::{BlockwiseError, BLOCKWISE_STATES_MAX, blockwise_states_print, blockwis
 async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
 
     // !! do test with alias='nns'
-    println!("!! debug NEW [gcoap-dtls]");
     if 1 == 1 { return Ok(()); } // test server only
+    println!("!! debug NEW [gcoap-dtls]");
 
     //---- ok <-- gcoap: authentication timed out
     //println!("@@ debug out: {:?}", Xbd::async_gcoap_get("[::1]:5684", "/cli/stats").await);

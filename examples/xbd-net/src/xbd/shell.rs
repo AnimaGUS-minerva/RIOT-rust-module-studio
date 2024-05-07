@@ -18,13 +18,19 @@ pub extern fn xbd_shell_on_char(ch: u8) {
             10 => (), // ignore '\n'
             0 => { // process '\0' (end of input)
                 unsafe {
-                    xs.add(SHELL_BUF.clone());
-                    SHELL_BUF.clear();
+                    if SHELL_BUF.len() < SHELL_BUFSIZE { // allow up to SHELL_BUFSIZE - 1
+                        xs.add(SHELL_BUF.clone()); // send a line item
+                        SHELL_BUF.clear();
+                    } else {
+                        crate::println!("@@ too long input (> {}); ignored", SHELL_BUFSIZE - 1);
+                        SHELL_BUF.clear();
+                        xs.add(SHELL_BUF.clone()); // send an empty line item
+                    }
                 }
             },
             _ => {
                 let on_input_invalid = |_| {
-                    crate::println!("@@ NOP; input (> SHELL_BUFSIZE={})", SHELL_BUFSIZE);
+                    //crate::println!("@@ NOP; input (> SHELL_BUFSIZE={})", SHELL_BUFSIZE);
                 };
                 unsafe {
                     SHELL_BUF
