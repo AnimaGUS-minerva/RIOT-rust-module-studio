@@ -11,40 +11,29 @@
 #include "native_internal.h"
 #include "async_read.h"
 
-extern void xbd_shell_on_read_line(/* TODO */void);
+extern void xbd_shell_on_char(char ch);
 
 // cf. https://github.com/RIOT-OS/RIOT/blob/master/cpu/native/periph/uart.c
 static void io_signal_handler(int fd, void *arg) {
     printf("@@ io_signal_handler(): ^^\n");
 
     (void) arg;
-    int is_first = 1;
 
     while (1) {
         char c;
         int status = real_read(fd, &c, 1); // via 'native_internal.h'
 
         if (status == 1) {
-            if (is_first) {
-                is_first = 0;
-                printf("@@ read char from fd:");
-            }
-
-            printf(" %02x", (unsigned char) c);
+            xbd_shell_on_char(c);
         } else {
             if (status == -1 && errno != EAGAIN) {
                 printf("@@ error: cannot read from fd\n");
             }
 
+            xbd_shell_on_char('\0');
             break;
         }
     }
-
-    if (!is_first) {
-        printf("\n");
-    }
-
-    xbd_shell_on_read_line(/* WIP */); // !!!!
 
     native_async_read_continue(fd);
 }
