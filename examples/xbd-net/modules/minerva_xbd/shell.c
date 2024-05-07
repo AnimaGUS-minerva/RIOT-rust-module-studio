@@ -3,6 +3,7 @@
  */
 
 #include <stdio.h>
+#include <shell.h>
 #include <errno.h>
 #include <ztimer.h>
 
@@ -66,3 +67,7 @@ int xbd_shell_init(void) {
     return 2;
 }
 #endif /* MINERVA_BOARD_NATIVE */
+
+size_t xbd_shell_bufsize(void) {
+    return SHELL_DEFAULT_BUFSIZE;
+}
