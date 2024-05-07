@@ -16,7 +16,7 @@ extern void xbd_shell_on_char(char ch);
 
 // cf. https://github.com/RIOT-OS/RIOT/blob/master/cpu/native/periph/uart.c
 static void io_signal_handler(int fd, void *arg) {
-    printf("@@ io_signal_handler(): ^^\n");
+    //printf("@@ io_signal_handler(): ^^\n");
 
     (void) arg;
 
@@ -70,4 +70,8 @@ int xbd_shell_init(void) {
 
 size_t xbd_shell_bufsize(void) {
     return SHELL_DEFAULT_BUFSIZE;
+}
+
+void xbd_shell_prompt(void) {
+    printf(") ");
 }
