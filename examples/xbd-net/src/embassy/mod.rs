@@ -5,14 +5,14 @@ mod executor;
 use executor::Executor;
 
 #[embassy_executor::task]
-async fn task_xbd_main() {
+async fn task_xbd_main(throttle: u32) {
     super::xbd_main().await.unwrap();
 
     //loop { Xbd::async_sleep(1000).await; } // yield -> executor busy
     //====
     //loop { Xbd::msleep(1000, true); } // not yield (debug for internal async API calls only) -> executor not busy
     //==== kludge
-    loop { Xbd::async_sleep(1).await;  Xbd::msleep(500, true); } // yield && less busy
+    loop { Xbd::async_sleep(1).await;  Xbd::msleep(throttle, false); } // yield && less busy
 }
 
 #[embassy_executor::task]
@@ -46,8 +46,11 @@ impl Runtime {
     }
 
     pub fn run(&'static mut self) -> ! {
+        let throttle = 500;
+        crate::println!("@@ task_xbd_main(): throttle: {} ms", throttle);
+
         self.0.run(|spawner| {
-            spawner.spawn(task_xbd_main()).unwrap();
+            spawner.spawn(task_xbd_main(throttle)).unwrap();
             spawner.spawn(task_shell_stream()).unwrap();
             spawner.spawn(task_gcoap_server_stream()).unwrap();
             spawner.spawn(task_api_stream()).unwrap();

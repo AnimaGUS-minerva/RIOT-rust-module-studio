@@ -73,5 +73,5 @@ size_t xbd_shell_bufsize(void) {
 }
 
 void xbd_shell_prompt(void) {
-    printf(") ");
+    printf("a> ");
 }

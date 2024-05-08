@@ -65,7 +65,7 @@ pub async fn process_shell_stream() -> Result<(), i8> {
     while let Some(line) = stream.next().await {
         if 0 == 1 { crate::Xbd::async_sleep(1_000).await; } // debug, ok
 
-        crate::println!("@@ line: {} (len: {} bufsize: {})", line, line.len(), bufsize);
+        crate::println!("@@ [async shell] line: {} (len: {} bufsize: {})", line, line.len(), bufsize);
         match line {
             _ => (),
         }
