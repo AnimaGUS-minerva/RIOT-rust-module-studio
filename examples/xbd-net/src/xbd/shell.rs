@@ -1,10 +1,12 @@
 use super::stream::{XbdStream, StreamData, stream_uninit, StreamExt};
 use crate::println;
+use mcu_if::c_types::c_void;
 
 extern "C" {
     fn xbd_shell_init() -> i8;
     fn xbd_shell_bufsize() -> usize;
     fn xbd_shell_prompt();
+    fn handle_input_line_minerva(command_list: *const c_void, line: *const u8);
 }
 
 const SHELL_BUFSIZE: usize = 128;
@@ -61,15 +63,18 @@ pub async fn process_shell_stream() -> Result<(), i8> {
     let mut stream = XbdStream::new_with_cap(&SD, 1);
     prompt();
 
+    let mut line_buf = [0u8; SHELL_BUFSIZE];
     while let Some(input) = stream.next().await {
         assert!(input.len() < SHELL_BUFSIZE);
-        println!("@@ [async shell] input: {} (len: {} SHELL_BUFSIZE: {})",
+        println!("[async shell] input: {} (len: {} SHELL_BUFSIZE: {})",
                  input, input.len(), SHELL_BUFSIZE);
-        println!("@@ [async shell] input.as_bytes(): {:?}", input.as_bytes());
+        println!("  input.as_bytes(): {:?}", input.as_bytes());
 
-        match input {
-            _ => (),
-        }
+        line_buf.fill(0u8);
+        line_buf[..input.len()].copy_from_slice(input.as_bytes());
+        //println!("  line_buf: {:?}", line_buf);
+        let command_list = core::ptr::null(); // WIP connect `shell_commands_minerva`
+        unsafe { handle_input_line_minerva(command_list, line_buf.as_ptr()); }
 
         if 0 == 1 { crate::Xbd::async_sleep(1_000).await; } // debug, ok
 
