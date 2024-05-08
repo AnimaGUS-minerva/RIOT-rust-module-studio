@@ -10,31 +10,39 @@ extern "C" {
 }
 
 const SHELL_BUFSIZE: usize = 128;
-static mut SHELL_BUF: heapless::String<SHELL_BUFSIZE> = heapless::String::new();
+type ShellBuf = heapless::String<SHELL_BUFSIZE>;
+
+static mut SHELL_BUF: ShellBuf = heapless::String::new();
+static SD: StreamData<ShellBuf> = stream_uninit();
 
 #[no_mangle]
 pub extern fn xbd_shell_on_char(ch: u8) {
     //println!("@@ xbd_shell_on_char(): {}", ch);
 
     if let Some(xs) = prompt_is_ready() {
-        match ch as char {
+        let ch = ch as char;
+        match ch {
             '\0' => { // end of input
                 unsafe {
-                    if SHELL_BUF.len() < SHELL_BUFSIZE { // allow up to SHELL_BUFSIZE - 1
-                        xs.add(SHELL_BUF.clone()); // send input
+                    let null_terminated;
+                    if let Ok(_) = SHELL_BUF.push(ch) {
+                        null_terminated = SHELL_BUF.clone();
                         SHELL_BUF.clear();
                     } else {
                         println!("@@ input too long (> {}); to be ignored", SHELL_BUFSIZE - 1);
                         SHELL_BUF.clear();
-                        xs.add(SHELL_BUF.clone()); // send empty input
+                        SHELL_BUF.push(ch).unwrap();
+                        null_terminated = SHELL_BUF.clone();
                     }
+
+                    xs.add(null_terminated);
                 }
             },
             '\r' | '\n' => (), // ignore it
             _ => { // keep it
                 unsafe {
                     SHELL_BUF
-                        .push(ch as char)
+                        .push(ch)
                         .unwrap_or_else(|_| { // input too long
                             //println!("@@ NOP; input (> SHELL_BUFSIZE={})", SHELL_BUFSIZE);
                         });
@@ -43,9 +51,6 @@ pub extern fn xbd_shell_on_char(ch: u8) {
         }
     }
 }
-
-type StreamItem = heapless::String<{ SHELL_BUFSIZE }>;
-static SD: StreamData<StreamItem> = stream_uninit();
 
 pub async fn process_shell_stream() -> Result<(), i8> {
     assert_eq!(unsafe { xbd_shell_bufsize() }, SHELL_BUFSIZE);
@@ -63,18 +68,14 @@ pub async fn process_shell_stream() -> Result<(), i8> {
     let mut stream = XbdStream::new_with_cap(&SD, 1);
     prompt();
 
-    let mut line_buf = [0u8; SHELL_BUFSIZE];
-    while let Some(input) = stream.next().await {
-        assert!(input.len() < SHELL_BUFSIZE);
-        println!("[async shell] input: {} (len: {} SHELL_BUFSIZE: {})",
-                 input, input.len(), SHELL_BUFSIZE);
-        println!("  input.as_bytes(): {:?}", input.as_bytes());
-
-        line_buf.fill(0u8);
-        line_buf[..input.len()].copy_from_slice(input.as_bytes());
+    while let Some(line_buf) = stream.next().await {
+        println!("[async shell] (null terminated) line_buf: {} (len: {} SHELL_BUFSIZE: {})",
+                 line_buf, line_buf.len(), SHELL_BUFSIZE);
+        //println!("  line_buf.as_bytes(): {:?}", line_buf.as_bytes());
         //println!("  line_buf: {:?}", line_buf);
+
         let command_list = core::ptr::null(); // WIP connect `shell_commands_minerva`
-        unsafe { handle_input_line_minerva(command_list, line_buf.as_ptr()); }
+        unsafe { handle_input_line_minerva(command_list, line_buf.as_ptr()); }// TODO submodule update for sys/shell/shell.c
 
         if 0 == 1 { crate::Xbd::async_sleep(1_000).await; } // debug, ok
 
@@ -88,7 +89,7 @@ fn prompt() {
     unsafe { xbd_shell_prompt(); }
 }
 
-fn prompt_is_ready() -> Option<XbdStream<StreamItem>> {
+fn prompt_is_ready() -> Option<XbdStream<ShellBuf>> {
     let xs = XbdStream::get(&SD).unwrap();
 
     if xs.len() == 0 { // no pending items
