@@ -19,12 +19,12 @@ pub extern fn xbd_shell_on_char(ch: u8) {
             0 => { // process '\0' (end of input)
                 unsafe {
                     if SHELL_BUF.len() < SHELL_BUFSIZE { // allow up to SHELL_BUFSIZE - 1
-                        xs.add(SHELL_BUF.clone()); // send a line item
+                        xs.add(SHELL_BUF.clone()); // send input
                         SHELL_BUF.clear();
                     } else {
-                        crate::println!("@@ too long input (> {}); ignored", SHELL_BUFSIZE - 1);
+                        crate::println!("@@ input too long (> {}); to be ignored", SHELL_BUFSIZE - 1);
                         SHELL_BUF.clear();
-                        xs.add(SHELL_BUF.clone()); // send an empty line item
+                        xs.add(SHELL_BUF.clone()); // send empty input
                     }
                 }
             },
@@ -62,11 +62,11 @@ pub async fn process_shell_stream() -> Result<(), i8> {
     let mut stream = XbdStream::new_with_cap(&SD, 1);
     prompt();
 
-    while let Some(line) = stream.next().await {
+    while let Some(input) = stream.next().await {
         if 0 == 1 { crate::Xbd::async_sleep(1_000).await; } // debug, ok
 
-        crate::println!("@@ [async shell] line: {} (len: {} bufsize: {})", line, line.len(), bufsize);
-        match line {
+        crate::println!("@@ [async shell] input: {} (len: {} bufsize: {})", input, input.len(), bufsize);
+        match input {
             _ => (),
         }
 

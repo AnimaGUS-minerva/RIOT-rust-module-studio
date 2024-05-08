@@ -46,7 +46,7 @@ impl Runtime {
     }
 
     pub fn run(&'static mut self) -> ! {
-        let throttle = 500;
+        let throttle = 200;
         crate::println!("@@ task_xbd_main(): throttle: {} ms", throttle);
 
         self.0.run(|spawner| {
