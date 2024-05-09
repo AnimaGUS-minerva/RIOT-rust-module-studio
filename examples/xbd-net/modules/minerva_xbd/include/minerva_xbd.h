@@ -6,6 +6,7 @@
 #define MINERVA_XBD_H
 
 #include "minerva_gcoap.h"
+#include "minerva_libcoap.h"
 
 #ifdef __cplusplus
 extern "C" {

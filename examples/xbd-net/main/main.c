@@ -3,12 +3,10 @@
 #include <msg.h>
 
 #include "minerva_border_router.h"
-#include "minerva_gcoap.h"
-#include "minerva_libcoap.h"
 #include "minerva_xbd.h"
 #include "rustmod.h"
 
-//-------- !!!! WIP
+//-------- -------- ^^ TODO refactor into 'modules/minerva_gcoap'
 #include "fs/constfs.h"
 
 //--#include <stdio.h>
@@ -159,7 +157,7 @@ total 0 files
     //++shell_run(NULL, line_buf, SHELL_DEFAULT_BUFSIZE);
 }
 
-//--------
+//-------- -------- $$ TODO refactor into 'modules/minerva_gcoap'
 
 //
 
@@ -195,7 +193,7 @@ static const shell_command_t shell_commands_minerva[] = {
     { NULL, NULL, NULL }
 };
 
-void start_shell(const shell_command_t *shell_commands /* NULL to use only system shell commands */) {
+static void start_shell(const shell_command_t *shell_commands /* NULL to use only system shell commands */) {
     char line_buf[SHELL_DEFAULT_BUFSIZE];
     //====
     shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
@@ -349,7 +347,7 @@ coapc <uri>
         start_shell(shell_commands_minerva);
     }
 
-    if (1) {
+    if (0) {
         rustmod_start(xbd_fns, xbd_fns_sz);
     } else {
         start_shell(shell_commands_minerva);
