@@ -7,6 +7,9 @@
 #include <errno.h>
 #include <ztimer.h>
 
+#define ENABLE_DEBUG 0
+#include "debug.h"
+
 #ifdef MINERVA_BOARD_NATIVE
 
 #include "native_internal.h"
@@ -16,7 +19,7 @@ extern void xbd_shell_on_char(char ch);
 
 // cf. https://github.com/RIOT-OS/RIOT/blob/master/cpu/native/periph/uart.c
 static void io_signal_handler(int fd, void *arg) {
-    //printf("@@ io_signal_handler(): ^^\n");
+    DEBUG("@@ io_signal_handler(): ^^\n");
 
     (void) arg;
 
@@ -28,7 +31,7 @@ static void io_signal_handler(int fd, void *arg) {
             xbd_shell_on_char(c);
         } else {
             if (status == -1 && errno != EAGAIN) {
-                printf("@@ error: cannot read from fd\n");
+                DEBUG("@@ error: cannot read from fd\n");
             }
 
             xbd_shell_on_char('\0');
@@ -42,12 +45,12 @@ static void io_signal_handler(int fd, void *arg) {
 static bool init_async_shell_done = false;
 
 int xbd_shell_init(void) {
-    printf("@@ xbd_shell_init(): ^^\n");
+    DEBUG("@@ xbd_shell_init(): ^^\n");
 
     if (!init_async_shell_done) {
         init_async_shell_done = true;
     } else {
-        printf("@@ xbd_shell_init(): [error] already initialized\n");
+        DEBUG("@@ xbd_shell_init(): [error] already initialized\n");
         return 1;
     }
 
