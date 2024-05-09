@@ -78,3 +78,11 @@ size_t xbd_async_shell_bufsize(void) {
 void xbd_async_shell_prompt(void) {
     printf("a> ");
 }
+
+//
+
+void xbd_shell_start(const shell_command_t *shell_commands /* NULL to use only system shell commands */) {
+    char line_buf[SHELL_DEFAULT_BUFSIZE];
+
+    shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
+}

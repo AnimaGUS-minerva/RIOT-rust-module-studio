@@ -5,6 +5,7 @@
 #ifndef MINERVA_XBD_H
 #define MINERVA_XBD_H
 
+#include <shell.h>
 #include "minerva_gcoap.h"
 #include "minerva_libcoap.h"
 
@@ -15,6 +16,9 @@ extern "C" {
 void xbd_usleep(uint32_t delay);
 void xbd_ztimer_msleep(uint32_t delay, bool debug);
 void xbd_ztimer_set(uint32_t delay, void (*cb_handler)(void *), void *arg_ptr, void **timeout_pp);
+
+const shell_command_t * xbd_shell_get_commands(void);
+void xbd_shell_start(const shell_command_t *shell_commands);
 
 void xbd_async_shell_on_char(char ch);
 size_t xbd_async_shell_bufsize(void);
@@ -33,4 +37,3 @@ ssize_t riot_board_handler_fill(
 #endif
 
 #endif /* MINERVA_XBD_H */
-/** @} */

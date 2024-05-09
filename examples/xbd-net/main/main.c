@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <shell.h>
 #include <msg.h>
 
 #include "minerva_border_router.h"
@@ -187,21 +186,6 @@ static int debug_esp32_eth_init(void) {
 #define IP6_FIXTURE_SERVER "fe80::a00:27ff:fefd:b6f8" // IP6_FIXTURE_BR0
 #endif
 
-static const shell_command_t shell_commands_minerva[] = {
-    { "gcoap", "@@ CoAP example", gcoap_cli_cmd },
-    { "libcoap", "@@ Start a libcoap client", libcoap_cli_cmd },
-    { NULL, NULL, NULL }
-};
-
-static void start_shell(const shell_command_t *shell_commands /* NULL to use only system shell commands */) {
-    char line_buf[SHELL_DEFAULT_BUFSIZE];
-    //====
-    shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
-    //==== **** echo ls > foo && nn < foo  # ?? how to skip EOF ??
-//    shell_run_once(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE); // e.g. RIOT/tests/shell/main.c
-//    assert(0); // reaches here
-}
-
 //
 
 static const xbd_fn_t xbd_fns[] = {
@@ -313,7 +297,7 @@ You'll be free, hackers, you'll be free.
              */
         }
 
-        start_shell(shell_commands_minerva);
+        xbd_shell_start(xbd_shell_get_commands());
     }
 
     //
@@ -344,13 +328,13 @@ coapc <uri>
         test_libcoap_req("get", "coap://[::1]/const/song.txt");
         //----
 
-        start_shell(shell_commands_minerva);
+        xbd_shell_start(xbd_shell_get_commands());
     }
 
-    if (0) {
+    if (1) {
         rustmod_start(xbd_fns, xbd_fns_sz);
     } else {
-        start_shell(shell_commands_minerva);
+        xbd_shell_start(xbd_shell_get_commands());
     }
 
     /* should be never reached */

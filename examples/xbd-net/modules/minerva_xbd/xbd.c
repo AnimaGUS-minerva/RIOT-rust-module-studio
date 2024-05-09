@@ -37,3 +37,15 @@ void xbd_ztimer_set(uint32_t delay, void (*cb_handler)(void *), void *arg_ptr, v
 
     ztimer_set(ZTIMER_MSEC, timeout, delay);
 }
+
+//
+
+static const shell_command_t xbd_shell_commands[] = {
+    { "gcoap", "@@ CoAP example", gcoap_cli_cmd },
+    { "libcoap", "@@ Start a libcoap client", libcoap_cli_cmd },
+    { NULL, NULL, NULL }
+};
+
+const shell_command_t * xbd_shell_get_commands(void) {
+    return xbd_shell_commands;
+}
