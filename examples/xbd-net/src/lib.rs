@@ -2,6 +2,7 @@
 #![feature(alloc_error_handler)]
 #![feature(stmt_expr_attributes)]
 #![feature(type_alias_impl_trait)]
+#![allow(unexpected_cfgs)]
 
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! { mcu_if::panic(info) }
