@@ -3,9 +3,9 @@ use crate::println;
 use mcu_if::c_types::c_void;
 
 extern "C" {
-    fn xbd_shell_init() -> i8;
-    fn xbd_shell_bufsize() -> usize;
-    fn xbd_shell_prompt();
+    fn xbd_async_shell_init() -> i8;
+    fn xbd_async_shell_bufsize() -> usize;
+    fn xbd_async_shell_prompt();
     fn handle_input_line_minerva(command_list: *const c_void, line: *const u8);
 }
 
@@ -16,8 +16,8 @@ static mut SHELL_BUF: ShellBuf = heapless::String::new();
 static SD: StreamData<ShellBuf> = stream_uninit();
 
 #[no_mangle]
-pub extern fn xbd_shell_on_char(ch: u8) {
-    //println!("@@ xbd_shell_on_char(): {}", ch);
+pub extern fn xbd_async_shell_on_char(ch: u8) {
+    //println!("@@ xbd_async_shell_on_char(): {}", ch);
 
     if let Some(xs) = prompt_is_ready() {
         let ch = ch as char;
@@ -53,9 +53,9 @@ pub extern fn xbd_shell_on_char(ch: u8) {
 }
 
 pub async fn process_shell_stream() -> Result<(), i8> {
-    assert_eq!(unsafe { xbd_shell_bufsize() }, SHELL_BUFSIZE);
+    assert_eq!(unsafe { xbd_async_shell_bufsize() }, SHELL_BUFSIZE);
 
-    let ret = unsafe { xbd_shell_init() };
+    let ret = unsafe { xbd_async_shell_init() };
     match ret {
         0 => (), // ok, continue
         2 => { // kludge
@@ -86,7 +86,7 @@ pub async fn process_shell_stream() -> Result<(), i8> {
 }
 
 fn prompt() {
-    unsafe { xbd_shell_prompt(); }
+    unsafe { xbd_async_shell_prompt(); }
 }
 
 fn prompt_is_ready() -> Option<XbdStream<ShellBuf>> {

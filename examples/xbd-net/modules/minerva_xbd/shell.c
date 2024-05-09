@@ -15,7 +15,7 @@
 #include "native_internal.h"
 #include "async_read.h"
 
-extern void xbd_shell_on_char(char ch);
+extern void xbd_async_shell_on_char(char ch);
 
 // cf. https://github.com/RIOT-OS/RIOT/blob/master/cpu/native/periph/uart.c
 static void io_signal_handler(int fd, void *arg) {
@@ -28,13 +28,13 @@ static void io_signal_handler(int fd, void *arg) {
         int status = real_read(fd, &c, 1); // via 'native_internal.h'
 
         if (status == 1) {
-            xbd_shell_on_char(c);
+            xbd_async_shell_on_char(c);
         } else {
             if (status == -1 && errno != EAGAIN) {
                 DEBUG("@@ error: cannot read from fd\n");
             }
 
-            xbd_shell_on_char('\0');
+            xbd_async_shell_on_char('\0');
             break;
         }
     }
@@ -44,13 +44,13 @@ static void io_signal_handler(int fd, void *arg) {
 
 static bool init_async_shell_done = false;
 
-int xbd_shell_init(void) {
-    DEBUG("@@ xbd_shell_init(): ^^\n");
+int xbd_async_shell_init(void) {
+    DEBUG("@@ xbd_async_shell_init(): ^^\n");
 
     if (!init_async_shell_done) {
         init_async_shell_done = true;
     } else {
-        DEBUG("@@ xbd_shell_init(): [error] already initialized\n");
+        DEBUG("@@ xbd_async_shell_init(): [error] already initialized\n");
         return 1;
     }
 
@@ -65,16 +65,16 @@ int xbd_shell_init(void) {
     return 0;
 }
 #else
-int xbd_shell_init(void) {
-    printf("@@ xbd_shell_init(): TODO - support non-native board\n");
+int xbd_async_shell_init(void) {
+    printf("@@ xbd_async_shell_init(): TODO - support non-native board\n");
     return 2;
 }
 #endif /* MINERVA_BOARD_NATIVE */
 
-size_t xbd_shell_bufsize(void) {
+size_t xbd_async_shell_bufsize(void) {
     return SHELL_DEFAULT_BUFSIZE;
 }
 
-void xbd_shell_prompt(void) {
+void xbd_async_shell_prompt(void) {
     printf("a> ");
 }
