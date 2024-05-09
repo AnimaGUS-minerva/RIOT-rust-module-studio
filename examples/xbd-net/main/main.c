@@ -202,12 +202,16 @@ static const size_t xbd_fns_sz = sizeof(xbd_fns) / sizeof(xbd_fns[0]);
 static msg_t main_msg_queue[16];
 static gnrc_netif_t *outer_interface = NULL;
 static gnrc_netif_t *inner_interface = NULL;
+static shell_command_t *xbd_shell_commands = NULL;
 
 int main(void) {
+    puts("@@ [xbd-net] main(): ^^");
+
     /* we need a message queue for the thread running the shell in order to
      * receive potentially fast incoming networking packets */
     msg_init_queue(main_msg_queue, sizeof(main_msg_queue) / sizeof(main_msg_queue[0]));
-    puts("@@ [xbd-net] main(): ^^");
+
+    xbd_shell_commands = (shell_command_t *)xbd_shell_get_commands();
 
 #if defined(MINERVA_DEBUG_ETH_MINIMAL) || defined(MINERVA_DEBUG_ETH_MANUAL)
     if (debug_esp32_eth_init()) {
@@ -297,7 +301,7 @@ You'll be free, hackers, you'll be free.
              */
         }
 
-        xbd_shell_start(xbd_shell_get_commands());
+        xbd_shell_start(xbd_shell_commands);
     }
 
     //
@@ -328,13 +332,13 @@ coapc <uri>
         test_libcoap_req("get", "coap://[::1]/const/song.txt");
         //----
 
-        xbd_shell_start(xbd_shell_get_commands());
+        xbd_shell_start(xbd_shell_commands);
     }
 
     if (1) {
         rustmod_start(xbd_fns, xbd_fns_sz);
     } else {
-        xbd_shell_start(xbd_shell_get_commands());
+        xbd_shell_start(xbd_shell_commands);
     }
 
     /* should be never reached */
