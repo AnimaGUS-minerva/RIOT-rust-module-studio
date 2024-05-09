@@ -3,6 +3,7 @@ use crate::println;
 use mcu_if::c_types::c_void;
 
 extern "C" {
+    fn xbd_shell_get_commands() -> *const c_void;
     fn xbd_async_shell_init() -> i8;
     fn xbd_async_shell_bufsize() -> usize;
     fn xbd_async_shell_prompt();
@@ -74,8 +75,11 @@ pub async fn process_shell_stream() -> Result<(), i8> {
         //println!("  line_buf.as_bytes(): {:?}", line_buf.as_bytes());
         //println!("  line_buf: {:?}", line_buf);
 
-        let command_list = core::ptr::null(); // WIP connect `shell_commands_minerva`
-        unsafe { handle_input_line_minerva(command_list, line_buf.as_ptr()); }// TODO submodule update for sys/shell/shell.c
+        unsafe {
+            handle_input_line_minerva(
+                xbd_shell_get_commands(), // (`core::ptr::null()` for system commands only)
+                line_buf.as_ptr());
+        }
 
         if 0 == 1 { crate::Xbd::async_sleep(1_000).await; } // debug, ok
 
