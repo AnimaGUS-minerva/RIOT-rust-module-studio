@@ -72,13 +72,22 @@ pub async fn process_shell_stream() -> Result<(), i8> {
     let mut stream = XbdStream::new_with_cap(&SD, 1);
     prompt();
 
-    while let Some(line_buf) = stream.next().await {
-        println!("[async shell] (null terminated) line_buf: {} (len: {} SHELL_BUFSIZE: {})",
-                 line_buf, line_buf.len(), SHELL_BUFSIZE);
-        //println!("  line_buf.as_bytes(): {:?}", line_buf.as_bytes());
-        //println!("  line_buf: {:?}", line_buf);
+    while let Some(mut line) = stream.next().await {
+        println!("[async shell] (null terminated) line: {} (len: {} SHELL_BUFSIZE: {})",
+                 line, line.len(), SHELL_BUFSIZE);
+        //println!("  line.as_bytes(): {:?}", line.as_bytes());
+        //println!("  line: {:?}", line);
 
-        unsafe { handle_input_line_minerva(shell_commands, line_buf.as_ptr()); }
+        match line.as_str() { // alias handling
+            "h\0" => {
+                line.clear();
+                line.push_str("help\0").unwrap();
+            },
+            // ...
+            _ => (),
+        }
+
+        unsafe { handle_input_line_minerva(shell_commands, line.as_ptr()); }
 
         if 0 == 1 { crate::Xbd::async_sleep(1_000).await; } // debug, ok
 
