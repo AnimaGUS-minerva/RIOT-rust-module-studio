@@ -66,6 +66,9 @@ pub async fn process_shell_stream() -> Result<(), i8> {
         _ => return Err(ret),
     }
 
+    //let shell_commands = core::ptr::null(); // system commands only
+    let shell_commands = unsafe { xbd_shell_get_commands() };
+
     let mut stream = XbdStream::new_with_cap(&SD, 1);
     prompt();
 
@@ -75,11 +78,7 @@ pub async fn process_shell_stream() -> Result<(), i8> {
         //println!("  line_buf.as_bytes(): {:?}", line_buf.as_bytes());
         //println!("  line_buf: {:?}", line_buf);
 
-        unsafe {
-            handle_input_line_minerva(
-                xbd_shell_get_commands(), // (`core::ptr::null()` for system commands only)
-                line_buf.as_ptr());
-        }
+        unsafe { handle_input_line_minerva(shell_commands, line_buf.as_ptr()); }
 
         if 0 == 1 { crate::Xbd::async_sleep(1_000).await; } // debug, ok
 
