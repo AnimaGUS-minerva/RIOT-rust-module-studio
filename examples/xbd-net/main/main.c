@@ -238,7 +238,6 @@ int main(void) {
     set_ips(outer_interface, inner_interface);
 
     if (0) {
-
         if (outer_interface) {
             puts("@@ main(): initializing CoAP server (hint: check with `> coap info`)");
             server_init();
@@ -311,23 +310,7 @@ gcoap: @@ after _process_coap_pdu() via _on_sock_dtls_evt()
             /* !! ok
 $ libcoap/local/bin/coap-client -m get coaps://[fe80::10ef:d5ff:fe61:c7c%tap1]/const/song.txt -k "secretPSK" -u "Client_identity"
 Join us now and share the software;
-You'll be free, hackers, you'll be free.
-Join us now and share the software;
-You'll be free, hackers, you'll be free.
-
-Hoarders can get piles of money,
-That is true, hackers, that is true.
-But they cannot help their neighbors;
-That's not good, hackers, that's not good.
-
-When we have enough free software
-At our call, hackers, at our call,
-We'll kick out those dirty licenses
-Ever more, hackers, ever more.
-
-Join us now and share the software;
-You'll be free, hackers, you'll be free.
-Join us now and share the software;
+...
 You'll be free, hackers, you'll be free.
              */
         }
@@ -368,30 +351,9 @@ coapc <uri>
 
     if (1) {
         rustmod_start(xbd_fns, xbd_fns_sz);
-
-        /* !!!! WIP async shell
-         * - https://github.com/rust-lang/futures-rs/blob/master/futures-util/src/io/mod.rs
-//! Asynchronous I/O.
-//!
-//! This module is the asynchronous version of `std::io`. It defines four
-//! traits, [`AsyncRead`], [`AsyncWrite`], [`AsyncSeek`], and [`AsyncBufRead`],
-//! which mirror the `Read`, `Write`, `Seek`, and `BufRead` traits of the
-//! standard library. However, these traits integrate with the asynchronous
-//! task system, so that if an I/O object isn't ready for reading (or writing),
-//! the thread is not blocked, and instead the current task is queued to be
-//! woken when I/O is ready.
-//!
-//! In addition, the [`AsyncReadExt`], [`AsyncWriteExt`], [`AsyncSeekExt`], and
-//! [`AsyncBufReadExt`] extension traits offer a variety of useful combinators
-//! for operating with asynchronous I/O objects, including ways to work with
-//! them using futures, streams and sinks.
-//!
-//! This module is only available when the `std` feature of this
-//! library is activated, and it is activated by default.
-        */
+    } else {
+        start_shell(shell_commands_minerva);
     }
-
-    start_shell(shell_commands_minerva);
 
     /* should be never reached */
     return 0;
