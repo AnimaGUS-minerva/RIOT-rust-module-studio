@@ -10,7 +10,7 @@ fn panic(info: &core::panic::PanicInfo) -> ! { mcu_if::panic(info) }
 #[alloc_error_handler]
 fn alloc_error(layout: mcu_if::alloc::alloc::Layout) -> ! { mcu_if::alloc_error(layout) }
 
-use mcu_if::{println, alloc::boxed::Box, null_terminate_bytes};
+use mcu_if::{println, alloc::boxed::Box};
 
 mod xbd;
 use xbd::{Xbd, XbdFnsEnt, GcoapMemoState};
@@ -141,7 +141,7 @@ async fn xbd_main() -> Result<(), i8> {
 
         // TODO async gcoap ping
 
-        if 1 == 1 { // fileserver, blockwise, stream
+        if 0 == 1 { // fileserver, blockwise, stream
             test_blockwise(addr_self).await.unwrap();
             //panic!("debug ok"); // !!!!
         }
@@ -176,24 +176,23 @@ use xbd::{BlockwiseError, BLOCKWISE_STATES_MAX, blockwise_states_print, blockwis
 
 async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
 
-    // !! do test with alias='nns'
-    if 1 == 1 { return Ok(()); } // test server only
-    println!("!! debug NEW [gcoap-dtls]");
+    if 0 == 1 { // !! do test with alias='nns'
+        println!("!! debug NEW [gcoap-dtls]");
 
-    //---- ok <-- gcoap: authentication timed out
-    //println!("@@ debug out: {:?}", Xbd::async_gcoap_get("[::1]:5684", "/cli/stats").await);
-    //---- ok
-    // $ libcoap/local/bin/coap-client -m get coaps://[fe80::10ef:d5ff:fe61:c7c%tap1]/cli/stats -k "secretPSK" -u "Client_identity"
-    // $ libcoap/local/bin/coap-client -m get coaps://[fe80::10ef:d5ff:fe61:c7c%tap1]/const/song.txt -k "secretPSK" -u "Client_identity"
-/* note
-> ifconfig
-...
-          inet6 addr: fe80::10ef:d5ff:fe61:c7c  scope: link  VAL  <==== ok
-          inet6 addr: fe80::78ec:5fff:febd:add9  scope: link  VAL <==== ? NG ?
-...
-*/
-    //---- !!!!
-/* cf.
+        //---- ok <-- gcoap: authentication timed out
+        //println!("@@ debug out: {:?}", Xbd::async_gcoap_get("[::1]:5684", "/cli/stats").await);
+        //---- ok
+        // $ libcoap/local/bin/coap-client -m get coaps://[fe80::10ef:d5ff:fe61:c7c%tap1]/cli/stats -k "secretPSK" -u "Client_identity"
+        // $ libcoap/local/bin/coap-client -m get coaps://[fe80::10ef:d5ff:fe61:c7c%tap1]/const/song.txt -k "secretPSK" -u "Client_identity"
+    /* note
+    > ifconfig
+    ...
+              inet6 addr: fe80::10ef:d5ff:fe61:c7c  scope: link  VAL  <==== ok
+              inet6 addr: fe80::78ec:5fff:febd:add9  scope: link  VAL <==== ? NG ?
+    ...
+    */
+        //---- !!!!
+        /* cf.
 $ libcoap/local/bin/coap-server -k "secretPSK"  # TODO `-u`
 
 $ libcoap/local/bin/coap-client -m get coaps://[::1]/.well-known/core -k "secretPSK" -u "Client_identity"
@@ -203,30 +202,31 @@ $ libcoap/local/bin/coap-client -m get coaps://[::1]/.well-known/core -k "secret
 $ libcoap/local/bin/coap-client -m get coaps://[::1]/.well-known/core -k "secretPSK" -u "Client_identity_foo"
 </>;title="General Info";ct=0,</time>;if="clock";rt="ticks";title="Internal Clock";ct=0;obs,</async>;ct=0,</example_data>;title="Example Data";ct=0;obs
  */
-    for _ in 0..4 {
-        Xbd::async_sleep(1000).await;
+        for _ in 0..4 {
+            Xbd::async_sleep(1000).await;
 
-        //---- w.r.t. $ libcoap/local/bin/coap-server
-        //         or $ libcoap/local/bin/coap-server -k "secretPSK"
-        // let out = Xbd::async_gcoap_get( // nn
-        //     "[fe80::20be:cdff:fe0e:44a1]:5683", "/.well-known/core").await; // ok
-        //---- w.r.t. $ libcoap/local/bin/coap-server -k "secretPSK"
-        // !!!! TODO integrate 'libcoap/examples/riot/examples_libcoap_client'
-        // !!!! TODO error return on **auth** timeout
-        let out = Xbd::async_gcoap_get( // nns
-            "[fe80::20be:cdff:fe0e:44a1]:5684", "/.well-known/core").await; // WIP
-        println!("@@ debug out: {:?}", out);
+            //---- w.r.t. $ libcoap/local/bin/coap-server
+            //         or $ libcoap/local/bin/coap-server -k "secretPSK"
+            // let out = Xbd::async_gcoap_get( // nn
+            //     "[fe80::20be:cdff:fe0e:44a1]:5683", "/.well-known/core").await; // ok
+            //---- w.r.t. $ libcoap/local/bin/coap-server -k "secretPSK"
+            // !!!! TODO integrate 'libcoap/examples/riot/examples_libcoap_client'
+            // !!!! TODO error return on **auth** timeout
+            let out = Xbd::async_gcoap_get( // nns
+                                            "[fe80::20be:cdff:fe0e:44a1]:5684", "/.well-known/core").await; // WIP
+            println!("@@ debug out: {:?}", out);
+        }
     }
     //----
 
-    if 1 == 1 { return Ok(()); }
+    if 0 == 1 { return Ok(()); }
 
     // first, make sure non-blockwise get works
     println!("!! debug NEW [non-blockwise-1]");
     println!("@@ debug out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
     println!("!! debug NEW [non-blockwise-2]");
     println!("@@ debug out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
-    //if 1 == 1 { panic!("!!"); }
+    if 1 == 1 { panic!("!!"); }
 
     //
 

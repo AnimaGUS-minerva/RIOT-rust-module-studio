@@ -73,8 +73,8 @@ pub async fn process_shell_stream() -> Result<(), i8> {
     prompt();
 
     while let Some(mut line) = stream.next().await {
-        // println!("[async shell] (null terminated) line: {} (len: {} SHELL_BUFSIZE: {})",
-        //          line, line.len(), SHELL_BUFSIZE);
+        println!("[async shell] (null terminated) line: {} (len: {} SHELL_BUFSIZE: {})",
+                 line, line.len(), SHELL_BUFSIZE);
         //println!("  line.as_bytes(): {:?}", line.as_bytes());
         //println!("  line: {:?}", line);
 
