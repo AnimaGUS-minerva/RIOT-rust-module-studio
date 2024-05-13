@@ -73,19 +73,14 @@ pub async fn process_shell_stream() -> Result<(), i8> {
     prompt();
 
     while let Some(mut line) = stream.next().await {
+        assert!(line.ends_with("\0"));
         println!("[async shell] (null terminated) line: {} (len: {} SHELL_BUFSIZE: {})",
                  line, line.len(), SHELL_BUFSIZE);
         //println!("  line.as_bytes(): {:?}", line.as_bytes());
-        //println!("  line: {:?}", line);
+        println!("  line: {:?}", line);
 
-        match line.as_str() { // alias handling
-            "h\0" => {
-                line.clear();
-                line.push_str("help\0").unwrap();
-            },
-            // ...
-            _ => (),
-        }
+        filter_alias(&mut line);
+        assert!(line.ends_with("\0"));
 
         unsafe { handle_input_line_minerva(shell_commands, line.as_ptr()); }
 
@@ -95,6 +90,27 @@ pub async fn process_shell_stream() -> Result<(), i8> {
     }
 
     Ok(())
+}
+
+fn filter_alias(line: &mut ShellBuf) {
+    assert!(line.ends_with("\0"));
+
+    let expand = |line: &mut ShellBuf, alias| {
+        line.clear();
+        line.push_str(alias).unwrap();
+        line.push('\0').unwrap();
+    };
+
+    match &line[..line.len() - 1] { // chars that precede '\0'
+        "alias" | "a" => {
+            println!("aliases: <list> ..."); // TODO
+            expand(line, "");
+        },
+        "h" => expand(line, "help"),
+        "1" => expand(line, "gcoap get [::1] /riot/board"),
+        "2" => expand(line, "gcoap get [::1] /const/song.txt"),
+        _ => (),
+    }
 }
 
 fn prompt() {
