@@ -13,9 +13,7 @@ pub use shell::process_shell_stream;
 mod stream;
 
 mod blockwise;
-use blockwise::{
-    BlockwiseStream, BlockwiseData,
-    BLOCKWISE_ADDR_MAX, BLOCKWISE_URI_MAX, BLOCKWISE_HDR_MAX};
+use blockwise::{BlockwiseStream, BlockwiseData, BLOCKWISE_HDR_MAX};
 pub use blockwise::{
     BlockwiseError, BLOCKWISE_STATES_MAX,
     blockwise_states_print, blockwise_states_debug};
@@ -24,14 +22,14 @@ mod timeout;
 use timeout::Timeout;
 
 mod gcoap;
-use gcoap::COAP_METHOD_GET;
+use gcoap::{COAP_METHOD_GET, REQ_ADDR_MAX, REQ_URI_MAX};
 pub use gcoap::GcoapMemoState;
 
 use core::future::Future;
 use conquer_once::spin::OnceCell;
 use mcu_if::{
     alloc::{boxed::Box, vec::Vec, collections::BTreeMap, string::{String, ToString}},
-    c_types::c_void, null_terminate_str, utils::u8_slice_from};
+    c_types::c_void, utils::u8_slice_from};
 //use crate::println;
 
 extern "C" {
@@ -128,6 +126,12 @@ impl Xbd {
         let payload_ptr = payload.map_or(core::ptr::null(), |payload| payload.as_ptr());
         let payload_len = payload.map_or(0, |payload| payload.len());
 
+        let mut addr_cstr = [0u8; REQ_ADDR_MAX + 1];
+        addr_cstr[..addr.len()].copy_from_slice(addr.as_bytes());
+
+        let mut uri_cstr = [0u8; REQ_URI_MAX + 1];
+        uri_cstr[..uri.len()].copy_from_slice(uri.as_bytes());
+
         type Ty = unsafe extern "C" fn(
             *const u8, *const u8, u8,
             *const u8, usize, bool, usize, *const c_void, *const c_void);
@@ -135,8 +139,8 @@ impl Xbd {
         assert_eq!(blockwise, blockwise_state_index.is_some());
         unsafe {
             (get_xbd_fn!("xbd_gcoap_req_send", Ty))(
-                null_terminate_str!(addr).as_ptr(),
-                null_terminate_str!(uri).as_ptr(),
+                addr_cstr.as_ptr(),
+                uri_cstr.as_ptr(),
                 method, payload_ptr, payload_len,
                 blockwise, blockwise_state_index.unwrap_or(0 /* to be ignored */),
                 callback::into_raw(cb), // context

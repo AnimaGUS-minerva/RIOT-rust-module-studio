@@ -1,4 +1,4 @@
-use mcu_if::{println, alloc::boxed::Box, c_types::c_void, null_terminate_str};
+use mcu_if::{println, alloc::boxed::Box, c_types::c_void};
 use super::callback::{Ptr32Send, arg_from};
 use super::stream::{XbdStream, StreamData, stream_uninit, StreamExt};
 
@@ -127,9 +127,9 @@ pub extern fn xbd_riot_stats_handler(
 #[no_mangle]
 pub extern fn xbd_riot_board_handler(
     pdu: *const c_void, buf: *const c_void, len: usize, ctx: *const c_void) -> isize {
-    let board = null_terminate_str!("minerva");
 
-    let pdu_len = unsafe { riot_board_handler_minerva(pdu, buf, len, ctx, board.as_ptr()) };
+    let pdu_len = unsafe { riot_board_handler_minerva(
+        pdu, buf, len, ctx, "minerva\0".as_ptr()) };
     println!("@@ xbd_riot_board_handler(): pdu_len: {:?}", pdu_len);
 
     pdu_len

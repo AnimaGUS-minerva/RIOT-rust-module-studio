@@ -1,8 +1,10 @@
 use core::{future::Future, pin::Pin, task::{Context, Poll}, cell::RefCell};
 use futures_util::task::AtomicWaker;
 use mcu_if::{alloc::{vec::Vec, rc::Rc}}; // !!!!
-use super::{BlockwiseData, BLOCKWISE_ADDR_MAX, BLOCKWISE_URI_MAX, BLOCKWISE_HDR_MAX};
+use super::{BlockwiseData, BLOCKWISE_HDR_MAX};
 
+pub const REQ_ADDR_MAX: usize = 64;
+pub const REQ_URI_MAX: usize = 64;
 const REQ_PAYLOAD_MAX: usize = 48;
 
 //
@@ -107,8 +109,8 @@ impl Future for Req {
 #[derive(Debug)]
 pub struct ReqInner {
     method: CoapMethod,
-    addr: heapless::String<{ BLOCKWISE_ADDR_MAX }>,
-    uri: heapless::String<{ BLOCKWISE_URI_MAX }>,
+    addr: heapless::String<{ REQ_ADDR_MAX }>,
+    uri: heapless::String<{ REQ_URI_MAX }>,
     payload: Option<heapless::Vec<u8, REQ_PAYLOAD_MAX>>,
     blockwise: bool,
     blockwise_state_index: Option<usize>,

@@ -3,7 +3,7 @@ use mcu_if::utils::{u8_slice_from, u8_slice_mut_from};
 use core::{str::from_utf8, pin::Pin, task::{Context, Poll}};
 use futures_util::stream::Stream;
 use super::stream::{XbdStream, StreamData, stream_uninit};
-use super::gcoap::{ReqInner, COAP_METHOD_GET};
+use super::gcoap::{ReqInner, COAP_METHOD_GET, REQ_ADDR_MAX, REQ_URI_MAX};
 
 #[no_mangle]
 pub extern fn xbd_blockwise_state_index() -> usize {
@@ -63,17 +63,15 @@ pub enum BlockwiseError {
 //
 
 pub const BLOCKWISE_STATES_MAX: usize = 4;
-pub const BLOCKWISE_ADDR_MAX: usize = 64;
-pub const BLOCKWISE_URI_MAX: usize = 64;
 pub const BLOCKWISE_HDR_MAX: usize = 64;
 
 static mut BLOCKWISE_STATE_INDEX: Option<usize> = None;
 
-type GridAddr = [[u8; BLOCKWISE_ADDR_MAX]; BLOCKWISE_STATES_MAX];
-static mut GRID_ADDR: &'static mut GridAddr = &mut [[0; BLOCKWISE_ADDR_MAX]; BLOCKWISE_STATES_MAX];
+type GridAddr = [[u8; REQ_ADDR_MAX]; BLOCKWISE_STATES_MAX];
+static mut GRID_ADDR: &'static mut GridAddr = &mut [[0; REQ_ADDR_MAX]; BLOCKWISE_STATES_MAX];
 
-type GridUri = [[u8; BLOCKWISE_URI_MAX]; BLOCKWISE_STATES_MAX];
-static mut GRID_URI: &'static mut GridUri = &mut [[0; BLOCKWISE_URI_MAX]; BLOCKWISE_STATES_MAX];
+type GridUri = [[u8; REQ_URI_MAX]; BLOCKWISE_STATES_MAX];
+static mut GRID_URI: &'static mut GridUri = &mut [[0; REQ_URI_MAX]; BLOCKWISE_STATES_MAX];
 
 type GridHdr = [(usize, [u8; BLOCKWISE_HDR_MAX]); BLOCKWISE_STATES_MAX];
 static mut GRID_HDR: &'static mut GridHdr = &mut [(0, [0; BLOCKWISE_HDR_MAX]); BLOCKWISE_STATES_MAX];
