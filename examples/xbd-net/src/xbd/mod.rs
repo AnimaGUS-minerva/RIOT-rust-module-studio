@@ -126,11 +126,13 @@ impl Xbd {
         let payload_ptr = payload.map_or(core::ptr::null(), |payload| payload.as_ptr());
         let payload_len = payload.map_or(0, |payload| payload.len());
 
-        let mut addr_cstr = [0u8; REQ_ADDR_MAX + 1];
-        addr_cstr[..addr.len()].copy_from_slice(addr.as_bytes());
+        let mut addr_cstr = heapless::String::<{ REQ_ADDR_MAX + 1 }>::new();
+        addr_cstr.push_str(addr).unwrap();
+        addr_cstr.push('\0').unwrap();
 
-        let mut uri_cstr = [0u8; REQ_URI_MAX + 1];
-        uri_cstr[..uri.len()].copy_from_slice(uri.as_bytes());
+        let mut uri_cstr = heapless::String::<{ REQ_URI_MAX + 1 }>::new();
+        uri_cstr.push_str(uri).unwrap();
+        uri_cstr.push('\0').unwrap();
 
         type Ty = unsafe extern "C" fn(
             *const u8, *const u8, u8,
