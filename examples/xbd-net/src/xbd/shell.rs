@@ -98,8 +98,17 @@ pub async fn process_shell_stream() -> Result<(), i8> {
 }
 
 fn prompt() {
-    //unsafe { xbd_async_shell_prompt(core::ptr::null(), false); }
-    unsafe { xbd_async_shell_prompt("async\0".as_ptr(), true); }
+    //let tag: Option<&str> = None;
+    let tag = Some("(async)\0");
+
+    let tag = if let Some(x) = tag {
+        assert!(x.ends_with("\0"));
+        x.as_ptr()
+    } else {
+        core::ptr::null()
+    };
+
+    unsafe { xbd_async_shell_prompt(tag, true); }
 }
 
 fn prompt_is_ready() -> Option<XbdStream<ShellBuf>> {
