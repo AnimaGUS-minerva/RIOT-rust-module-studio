@@ -6,7 +6,7 @@ extern "C" {
     fn xbd_shell_get_commands() -> *const c_void;
     fn xbd_async_shell_init() -> i8;
     fn xbd_async_shell_bufsize() -> usize;
-    fn xbd_async_shell_prompt();
+    fn xbd_async_shell_prompt(tag_cstr: *const u8, highlight: bool);
     fn handle_input_line_minerva(command_list: *const c_void, line: *const u8);
 }
 
@@ -73,8 +73,8 @@ pub async fn process_shell_stream() -> Result<(), i8> {
     prompt();
 
     while let Some(mut line) = stream.next().await {
-        println!("[async shell] (null terminated) line: {} (len: {} SHELL_BUFSIZE: {})",
-                 line, line.len(), SHELL_BUFSIZE);
+        // println!("[async shell] (null terminated) line: {} (len: {} SHELL_BUFSIZE: {})",
+        //          line, line.len(), SHELL_BUFSIZE);
         //println!("  line.as_bytes(): {:?}", line.as_bytes());
         //println!("  line: {:?}", line);
 
@@ -98,7 +98,8 @@ pub async fn process_shell_stream() -> Result<(), i8> {
 }
 
 fn prompt() {
-    unsafe { xbd_async_shell_prompt(); }
+    //unsafe { xbd_async_shell_prompt(core::ptr::null(), false); }
+    unsafe { xbd_async_shell_prompt("async\0".as_ptr(), true); }
 }
 
 fn prompt_is_ready() -> Option<XbdStream<ShellBuf>> {

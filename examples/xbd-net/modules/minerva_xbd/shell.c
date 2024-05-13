@@ -75,8 +75,14 @@ size_t xbd_async_shell_bufsize(void) {
     return SHELL_DEFAULT_BUFSIZE;
 }
 
-void xbd_async_shell_prompt(void) {
-    printf("a> ");
+void xbd_async_shell_prompt(char *tag, bool highlight) {
+    char *tg = tag == NULL ? "" : tag;
+
+    if (highlight) {
+        printf("\033[01;31m%s>\033[00m ", tg);
+    } else {
+        printf("%s> ", tg);
+    }
 }
 
 //

@@ -338,7 +338,7 @@ coapc <uri>
         goto_sync_shell();
     }
 
-    if (0) {
+    if (1) {
         rustmod_start(xbd_fns, xbd_fns_sz);
     } else {
         goto_sync_shell();
