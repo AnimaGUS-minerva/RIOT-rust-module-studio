@@ -75,18 +75,21 @@ pub async fn process_shell_stream() -> Result<(), i8> {
 
     while let Some(mut line) = stream.next().await {
         assert!(line.ends_with("\0"));
+
         println!("[async shell] (null terminated) line: {} (len: {} SHELL_BUFSIZE: {})",
                  line, line.len(), SHELL_BUFSIZE);
         //println!("  line.as_bytes(): {:?}", line.as_bytes());
         //println!("  line: {:?}", line);
 
-        if match_alias(&mut line) {
-            assert!(line.ends_with("\0"));
+        if line.trim() != "\0" {
+            if match_alias(&mut line) {
+                assert!(line.ends_with("\0"));
+            }
+
+            unsafe { handle_input_line_minerva(shell_commands, line.as_ptr()); }
+
+            if 0 == 1 { crate::Xbd::async_sleep(1_000).await; } // debug, ok
         }
-
-        unsafe { handle_input_line_minerva(shell_commands, line.as_ptr()); }
-
-        if 0 == 1 { crate::Xbd::async_sleep(1_000).await; } // debug, ok
 
         prompt();
     }
