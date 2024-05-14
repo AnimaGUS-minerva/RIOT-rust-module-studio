@@ -18,7 +18,8 @@ build-native: get-crate-embassy libcoap-riot-pkg
 	make native-build-module
 	make native-build-riot
 
-run: run-native
+run:
+	make native-run-riot
 
 #====!!!!temp
 run-native-tap-first: build-native
