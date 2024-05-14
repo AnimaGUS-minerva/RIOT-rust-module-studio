@@ -70,6 +70,7 @@ pub async fn process_shell_stream() -> Result<(), i8> {
     let shell_commands = unsafe { xbd_shell_get_commands() };
 
     let mut stream = XbdStream::new_with_cap(&SD, 1);
+    print_aliases();
     prompt();
 
     while let Some(mut line) = stream.next().await {
@@ -133,6 +134,20 @@ const ARRAY_ALIAS_ENUMERATED: &[&str] = &[
     "gcoap get [::1] /const/song.txt",
 ];
 
+fn print_aliases() {
+    println!("---- named aliases ----");
+    ARRAY_ALIAS_NAMED.iter()
+        .for_each(|(name, cmd)| println!("[{}] {}", name, cmd));
+
+    println!("---- function aliases ----");
+    ARRAY_ALIAS_FUNCTION.iter()
+        .for_each(|(name, f)| println!("[{}] {:?}", name, f));
+
+    println!("---- enumerated aliases ----");
+    ARRAY_ALIAS_ENUMERATED.iter().enumerate()
+        .for_each(|(idx, cmd)| println!("[{}] {}", idx, cmd));
+}
+
 fn match_alias(line: &mut ShellBuf) -> bool {
     assert!(line.ends_with("\0"));
 
@@ -147,24 +162,12 @@ fn match_alias(line: &mut ShellBuf) -> bool {
     let ln = &line[..line.len() - 1]; // chars that precede '\0'
 
     if ln == "alias" || ln == "a" {
-        println!("---- named aliases ----");
-        ARRAY_ALIAS_NAMED.iter()
-            .for_each(|(name, cmd)| println!("[{}] {}", name, cmd));
-
-        println!("---- function aliases ----");
-        ARRAY_ALIAS_FUNCTION.iter()
-            .for_each(|(name, f)| println!("[{}] {:?}", name, f));
-
-        println!("---- enumerated aliases ----");
-        ARRAY_ALIAS_ENUMERATED.iter().enumerate()
-            .for_each(|(idx, cmd)| println!("[{}] {}", idx, cmd));
-
+        print_aliases();
         return expand(line, "");
     } else if let Some(item) = ARRAY_ALIAS_NAMED.iter().find(|item| item.0 == ln) {
         return expand(line, item.1);
     } else if let Some(item) = ARRAY_ALIAS_FUNCTION.iter().find(|item| item.0 == ln) {
         item.1();
-
         return expand(line, "");
     } else if let Ok(x) = ln.parse::<usize>() {
         if x < ARRAY_ALIAS_ENUMERATED.len() {
