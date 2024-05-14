@@ -77,10 +77,11 @@ pub async fn process_shell_stream() -> Result<(), i8> {
         println!("[async shell] (null terminated) line: {} (len: {} SHELL_BUFSIZE: {})",
                  line, line.len(), SHELL_BUFSIZE);
         //println!("  line.as_bytes(): {:?}", line.as_bytes());
-        println!("  line: {:?}", line);
+        //println!("  line: {:?}", line);
 
-        filter_alias(&mut line);
-        assert!(line.ends_with("\0"));
+        if match_alias(&mut line) {
+            assert!(line.ends_with("\0"));
+        }
 
         unsafe { handle_input_line_minerva(shell_commands, line.as_ptr()); }
 
@@ -90,27 +91,6 @@ pub async fn process_shell_stream() -> Result<(), i8> {
     }
 
     Ok(())
-}
-
-fn filter_alias(line: &mut ShellBuf) {
-    assert!(line.ends_with("\0"));
-
-    let expand = |line: &mut ShellBuf, alias| {
-        line.clear();
-        line.push_str(alias).unwrap();
-        line.push('\0').unwrap();
-    };
-
-    match &line[..line.len() - 1] { // chars that precede '\0'
-        "alias" | "a" => {
-            println!("aliases: <list> ..."); // TODO
-            expand(line, "");
-        },
-        "h" => expand(line, "help"),
-        "1" => expand(line, "gcoap get [::1] /riot/board"),
-        "2" => expand(line, "gcoap get [::1] /const/song.txt"),
-        _ => (),
-    }
 }
 
 fn prompt() {
@@ -133,4 +113,64 @@ fn prompt_is_ready() -> Option<XbdStream<ShellBuf>> {
     if xs.len() == 0 { // no pending items
         Some(xs)
     } else { None }
+}
+
+//
+
+const ARRAY_ALIAS_NAMED: &[(&str, &str)] = &[
+    ("a", "alias"),
+    ("h", "help"),
+];
+
+const ARRAY_ALIAS_FUNCTION: &[(&str, fn())] = &[
+    ("xx", || println!("hello world!")),
+];
+
+const ARRAY_ALIAS_ENUMERATED: &[&str] = &[
+    "version",
+    "ifconfig",
+    "gcoap get [::1] /riot/board",
+    "gcoap get [::1] /const/song.txt",
+];
+
+fn match_alias(line: &mut ShellBuf) -> bool {
+    assert!(line.ends_with("\0"));
+
+    let expand = |line: &mut ShellBuf, alias| {
+        line.clear();
+        line.push_str(alias).unwrap();
+        line.push('\0').unwrap();
+
+        true // `line` updated
+    };
+
+    let ln = &line[..line.len() - 1]; // chars that precede '\0'
+
+    if ln == "alias" || ln == "a" {
+        println!("---- named aliases ----");
+        ARRAY_ALIAS_NAMED.iter()
+            .for_each(|(name, cmd)| println!("[{}] {}", name, cmd));
+
+        println!("---- function aliases ----");
+        ARRAY_ALIAS_FUNCTION.iter()
+            .for_each(|(name, f)| println!("[{}] {:?}", name, f));
+
+        println!("---- enumerated aliases ----");
+        ARRAY_ALIAS_ENUMERATED.iter().enumerate()
+            .for_each(|(idx, cmd)| println!("[{}] {}", idx, cmd));
+
+        return expand(line, "");
+    } else if let Some(item) = ARRAY_ALIAS_NAMED.iter().find(|item| item.0 == ln) {
+        return expand(line, item.1);
+    } else if let Some(item) = ARRAY_ALIAS_FUNCTION.iter().find(|item| item.0 == ln) {
+        item.1();
+
+        return expand(line, "");
+    } else if let Ok(x) = ln.parse::<usize>() {
+        if x < ARRAY_ALIAS_ENUMERATED.len() {
+            return expand(line, ARRAY_ALIAS_ENUMERATED[x]);
+        }
+    }
+
+    false
 }
