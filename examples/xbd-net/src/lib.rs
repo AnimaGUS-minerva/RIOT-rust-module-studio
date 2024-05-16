@@ -47,12 +47,15 @@ pub extern fn rustmod_start(
     if 0 == 1 { // debug
         Xbd::usleep(1_000_000);
         blogos12::test_misc();
-        return;
+        panic!("ok");
     }
 
     if 1 == 1 {
         println!("@@ [debug] `xbd_main()` with `embassy::Runtime` ...");
-        embassy::Runtime::new_static().unwrap().run();
+        embassy::get_static(&mut embassy::Runtime::new())
+            .run(); // -> !
+
+        // should be never reached
     } else {
         println!("@@ [debug] `xbd_main()` with `blogos12::Runtime` ...");
         let _ = blogos12::Runtime::new()

@@ -1,4 +1,3 @@
-use mcu_if::alloc::boxed::Box;
 use super::xbd::{self, Xbd};
 
 mod executor;
@@ -30,19 +29,21 @@ async fn task_shell_stream() {
     xbd::process_shell_stream().await.unwrap();
 }
 
-pub struct Runtime(&'static mut Executor);
+fn to_raw<T>(x: &mut T) -> *mut () { x as *mut _ as _ }
+fn static_from_raw<T>(p: *mut ()) -> &'static mut T { unsafe { core::mem::transmute(p) } }
+pub fn get_static<T>(x: &mut T) -> &'static mut T { static_from_raw(to_raw(x)) }
+/* deprecated
+pub fn get_static<T>(x: &mut T) -> &'static mut T {
+    use mcu_if::alloc::boxed::Box;
+    Box::leak(Box::new(x))
+}
+*/
+
+pub struct Runtime(Executor);
 
 impl Runtime {
-    pub fn new_static() -> Result<&'static mut Self, ()> {
-        Ok(Self::get_static(Self::new()))
-    }
-
-    fn new() -> Self {
-        Self(Self::get_static(Executor::new()))
-    }
-
-    fn get_static<T>(x: T) -> &'static mut T {
-        Box::leak(Box::new(x))
+    pub fn new() -> Self {
+        Self(Executor::new())
     }
 
     pub fn run(&'static mut self) -> ! {
