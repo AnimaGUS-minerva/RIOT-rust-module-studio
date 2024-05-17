@@ -32,7 +32,11 @@ impl Executor {
     pub fn run(&'static mut self, init: impl FnOnce(Spawner)) -> ! {
         init(self.executor.spawner());
 
+        let throttle = 100;
+        crate::println!("@@ Executor::run(): throttle: {} ms", throttle);
+
         loop {
+            crate::Xbd::msleep(throttle, false);
             unsafe { self.executor.poll() };
         }
     }
