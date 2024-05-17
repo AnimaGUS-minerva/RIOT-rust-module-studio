@@ -77,10 +77,11 @@ impl<T> Stream for XbdStream<T> {
             .try_get()
             .expect("queue not initialized");
 
-        // fast path
-        if let Some(item) = queue.pop() {
+        if let Some(item) = queue.pop() { // fast path
+            //crate::println!("!! fast path");
             return Poll::Ready(Some(item));
         }
+        //crate::println!("!! NOT fast path");
 
         self.waker.register(&cx.waker());
         match queue.pop() {

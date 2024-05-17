@@ -32,6 +32,7 @@ pub async fn process_api_stream() -> Result<(), i8> {
     let mut stream = XbdStream::new(&SD);
 
     while let Some(cb) = stream.next().await {
+        //crate::println!("!! got cb");
         match cb {
             ApiCallback::Timeout(arg_ptr) => {
                 let (cb_ptr, timeout_pp): (CVoidPtr, *mut CVoidPtr) = arg_from(arg_ptr);
