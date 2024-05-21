@@ -10,6 +10,9 @@ fn panic(info: &core::panic::PanicInfo) -> ! { mcu_if::panic(info) }
 #[alloc_error_handler]
 fn alloc_error(layout: mcu_if::alloc::alloc::Layout) -> ! { mcu_if::alloc_error(layout) }
 
+#[macro_export]
+macro_rules! static_borrow_mut { ($x:expr) => (unsafe { &mut *core::ptr::addr_of_mut!($x) }) }
+
 use mcu_if::{println, alloc::boxed::Box};
 
 mod xbd;
