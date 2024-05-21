@@ -1,4 +1,4 @@
-use super::stream::{XbdStream, StreamData, stream_uninit, StreamExt};
+use super::stream::{XStream, XStreamData, StreamExt};
 use crate::println;
 use mcu_if::c_types::c_void;
 
@@ -14,13 +14,13 @@ const SHELL_BUFSIZE: usize = 128;
 type ShellBuf = heapless::String<SHELL_BUFSIZE>;
 
 static mut SHELL_BUF: ShellBuf = heapless::String::new();
-static SD: StreamData<ShellBuf> = stream_uninit();
+static mut SD: XStreamData<ShellBuf> = XStream::init();
 
 #[no_mangle]
 pub extern fn xbd_async_shell_on_char(ch: u8) {
     //println!("@@ xbd_async_shell_on_char(): {}", ch);
 
-    if let Some(xs) = prompt_is_ready() {
+    if let Some(mut xs) = prompt_is_ready() {
         let ch = ch as char;
         match ch {
             '\0' => { // end of input
@@ -69,7 +69,7 @@ pub async fn process_shell_stream() -> Result<(), i8> {
     //let shell_commands = core::ptr::null(); // system commands only
     let shell_commands = unsafe { xbd_shell_get_commands() };
 
-    let mut stream = XbdStream::new_with_cap(&SD, 1);
+    let mut stream = XStream::get(static_borrow_mut!(SD));
     print_aliases();
     prompt();
 
@@ -82,7 +82,7 @@ pub async fn process_shell_stream() -> Result<(), i8> {
         //println!("  line: {:?}", line);
 
         if line.trim() != "\0" {
-            if match_alias(&mut line) {
+            if match_alias(&mut line).await {
                 assert!(line.ends_with("\0"));
             }
 
@@ -111,12 +111,32 @@ fn prompt() {
     unsafe { xbd_async_shell_prompt(tag, true); }
 }
 
-fn prompt_is_ready() -> Option<XbdStream<ShellBuf>> {
-    let xs = XbdStream::get(&SD).unwrap();
+fn prompt_is_ready() -> Option<XStream<ShellBuf>> {
+    let xs = XStream::get(static_borrow_mut!(SD));
 
     if xs.len() == 0 { // no pending items
         Some(xs)
     } else { None }
+}
+
+//
+
+async fn test_async_sleep() {
+    println!("test_async_sleep(): ^^");
+    crate::Xbd::async_sleep(2_000).await;
+    println!("test_async_sleep(): $$");
+}
+
+async fn test_async_blockwise_get() {
+    println!("test_async_blockwise_get(): ^^");
+
+    let mut bs = crate::Xbd::async_gcoap_get_blockwise(
+        "[::1]:5683", "/const/song.txt").unwrap();
+    while let Some(req) = bs.next().await {
+        println!("@@ out: {:?}", req.await);
+    }
+
+    println!("test_async_blockwise_get(): $$");
 }
 
 //
@@ -127,7 +147,9 @@ const ARRAY_ALIAS_NAMED: &[(&str, &str)] = &[
 ];
 
 const ARRAY_ALIAS_FUNCTION: &[(&str, fn())] = &[
-    ("xx", || println!("hello world!")),
+    ("f0", || println!("hello world!")),
+    ("f1", || println!("kludge: for async fn test_async_sleep()")),
+    ("f2", || println!("kludge: for async fn test_async_blockwise_get()")),
 ];
 
 const ARRAY_ALIAS_ENUMERATED: &[&str] = &[
@@ -138,20 +160,20 @@ const ARRAY_ALIAS_ENUMERATED: &[&str] = &[
 ];
 
 fn print_aliases() {
-    println!("---- named aliases ----");
+    println!("---- named alias ----");
     ARRAY_ALIAS_NAMED.iter()
         .for_each(|(name, cmd)| println!("[{}] {}", name, cmd));
 
-    println!("---- function aliases ----");
+    println!("---- function alias ----");
     ARRAY_ALIAS_FUNCTION.iter()
         .for_each(|(name, f)| println!("[{}] {:?}", name, f));
 
-    println!("---- enumerated aliases ----");
+    println!("---- enumerated alias ----");
     ARRAY_ALIAS_ENUMERATED.iter().enumerate()
         .for_each(|(idx, cmd)| println!("[{}] {}", idx, cmd));
 }
 
-fn match_alias(line: &mut ShellBuf) -> bool {
+async fn match_alias(line: &mut ShellBuf) -> bool {
     assert!(line.ends_with("\0"));
 
     let expand = |line: &mut ShellBuf, alias| {
@@ -170,7 +192,12 @@ fn match_alias(line: &mut ShellBuf) -> bool {
     } else if let Some(item) = ARRAY_ALIAS_NAMED.iter().find(|item| item.0 == ln) {
         return expand(line, item.1);
     } else if let Some(item) = ARRAY_ALIAS_FUNCTION.iter().find(|item| item.0 == ln) {
-        item.1();
+        match item.0 {
+            "f1" => test_async_sleep().await, // kludge
+            "f2" => test_async_blockwise_get().await, // kludge
+            _ => item.1(),
+        }
+
         return expand(line, "");
     } else if let Ok(x) = ln.parse::<usize>() {
         if x < ARRAY_ALIAS_ENUMERATED.len() {
