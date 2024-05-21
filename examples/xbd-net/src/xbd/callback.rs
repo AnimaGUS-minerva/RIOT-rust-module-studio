@@ -1,6 +1,6 @@
 use mcu_if::{alloc::boxed::Box, c_types::c_void};
 use super::gcoap::GcoapMemoState;
-use super::stream::{XbdStream, StreamData, stream_uninit, StreamExt};
+use super::stream::{XStream, XStreamData, StreamExt};
 
 extern "C" {
     fn free(ptr: *mut c_void);
@@ -15,10 +15,10 @@ enum ApiCallback {
     GcoapReq(Ptr32Send),
 }
 
-static SD: StreamData<ApiCallback> = stream_uninit();
+static mut SD: XStreamData<ApiCallback, 64> = XStream::init();
 
 fn add_api_callback(cb: ApiCallback) {
-    XbdStream::get(&SD).unwrap().add(cb);
+    XStream::get(static_borrow_mut!(SD)).add(cb);
 }
 
 pub fn add_xbd_timeout_callback(arg_ptr: CVoidPtr) {
@@ -29,10 +29,9 @@ pub fn add_xbd_gcoap_req_callback(arg_ptr: CVoidPtr) {
 }
 
 pub async fn process_api_stream() -> Result<(), i8> {
-    let mut stream = XbdStream::new(&SD);
+    let mut xs = XStream::get(static_borrow_mut!(SD));
 
-    while let Some(cb) = stream.next().await {
-        //crate::println!("!! got cb");
+    while let Some(cb) = xs.next().await {
         match cb {
             ApiCallback::Timeout(arg_ptr) => {
                 let (cb_ptr, timeout_pp): (CVoidPtr, *mut CVoidPtr) = arg_from(arg_ptr);
