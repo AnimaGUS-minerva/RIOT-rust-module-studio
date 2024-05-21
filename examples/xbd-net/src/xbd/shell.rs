@@ -12,9 +12,10 @@ extern "C" {
 
 const SHELL_BUFSIZE: usize = 128;
 type ShellBuf = heapless::String<SHELL_BUFSIZE>;
-
 static mut SHELL_BUF: ShellBuf = heapless::String::new();
-static mut SD: XStreamData<ShellBuf> = XStream::init();
+
+const SHELL_STREAM_SIZE: usize = 2;
+static mut SD: XStreamData<ShellBuf, SHELL_STREAM_SIZE> = XStream::init();
 
 #[no_mangle]
 pub extern fn xbd_async_shell_on_char(ch: u8) {
@@ -69,11 +70,11 @@ pub async fn process_shell_stream() -> Result<(), i8> {
     //let shell_commands = core::ptr::null(); // system commands only
     let shell_commands = unsafe { xbd_shell_get_commands() };
 
-    let mut stream = XStream::get(static_borrow_mut!(SD));
+    let mut xs = XStream::get(static_borrow_mut!(SD));
     print_aliases();
     prompt();
 
-    while let Some(mut line) = stream.next().await {
+    while let Some(mut line) = xs.next().await {
         assert!(line.ends_with("\0"));
 
         println!("[async shell] (null terminated) line: {} (len: {} SHELL_BUFSIZE: {})",
@@ -111,7 +112,7 @@ fn prompt() {
     unsafe { xbd_async_shell_prompt(tag, true); }
 }
 
-fn prompt_is_ready() -> Option<XStream<ShellBuf>> {
+fn prompt_is_ready() -> Option<XStream<ShellBuf, SHELL_STREAM_SIZE>> {
     let xs = XStream::get(static_borrow_mut!(SD));
 
     if xs.len() == 0 { // no pending items
