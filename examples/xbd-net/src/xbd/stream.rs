@@ -21,21 +21,19 @@ pub struct XbdStream<T: 'static> {
 //----
 
 #[derive(Debug)]
-pub struct XStream<T: 'static> {
-    queue: &'static mut Queue<T, 4>,
+pub struct XStream<T: 'static, const N: usize> {
+    queue: &'static mut Queue<T, N>,
     waker: &'static AtomicWaker,
 }
 
-const QUEUE_CAP_DEFAULT: usize = 64;
+pub type XStreamData<T, const N: usize> = (Queue<T, N>, AtomicWaker);
 
-pub type XStreamData<T> = (Queue<T, 4>, AtomicWaker);
-
-impl<T> XStream<T> {
-    pub const fn init() -> XStreamData<T> {
-        (Queue::<T, 4>::new(), AtomicWaker::new()) // TODO do sth about (cap=) 4
+impl<T, const N: usize> XStream<T, N> {
+    pub const fn init() -> XStreamData<T, N> {
+        (Queue::<T, N>::new(), AtomicWaker::new())
     }
 
-    pub fn get(sd: &'static mut XStreamData<T>) -> Self {
+    pub fn get(sd: &'static mut XStreamData<T, N>) -> Self {
         let (queue, waker) = sd;
 
         XStream { queue, waker }
@@ -58,7 +56,7 @@ impl<T> XStream<T> {
     }
 }
 
-impl<T> Stream for XStream<T> {
+impl<T, const N: usize> Stream for XStream<T, N> {
     type Item = T;
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
@@ -77,6 +75,8 @@ impl<T> Stream for XStream<T> {
 }
 
 //---- to deprecate
+const QUEUE_CAP_DEFAULT: usize = 64;
+
 impl<T> XbdStream<T> {
     pub fn new(sd: &'static StreamData<T>) -> Self {
         Self::new_with_cap(sd, QUEUE_CAP_DEFAULT)
