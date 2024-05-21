@@ -1,6 +1,6 @@
 use mcu_if::{println, alloc::boxed::Box, c_types::c_void};
 use super::callback::{Ptr32Send, arg_from};
-use super::stream::{XbdStream, StreamData, stream_uninit, StreamExt};
+use super::stream::{XStream, XStreamData, StreamExt};
 
 extern "C" {
     fn server_init() -> i8;
@@ -22,16 +22,16 @@ enum ServerCallback {
     //ServeStats(Ptr32Send),
 }
 
-static SD: StreamData<ServerCallback> = stream_uninit();
+static mut SD: XStreamData<ServerCallback, 64> = XStream::init();
 
 pub async fn process_gcoap_server_stream() -> Result<(), i8> {
     let ret = unsafe { server_init() };
     if ret != 0 { return Err(ret); }
 
-    let mut stream = XbdStream::new(&SD);
+    let mut xs = XStream::get(static_borrow_mut!(SD));
     let unpack = |arg_ptr| arg_from::<(*const c_void, usize, *const c_void)>(arg_ptr);
 
-    while let Some(cb) = stream.next().await {
+    while let Some(cb) = xs.next().await {
         if 0 == 1 { crate::Xbd::async_sleep(1_000).await; } // debug, ok
 
         match cb {
@@ -89,18 +89,16 @@ fn on_sock_evt(is_dtls: bool, sock: *const c_void, flags: usize, arg: *const c_v
         unsafe { _on_sock_udp_evt_minerva(sock, flags, arg) };
     };
 
-    if let Some(stream) = XbdStream::get(&SD) {
-        if flags & SOCK_ASYNC_MSG_RECV > 0 {
-            let arg_ptr = into_arg_ptr(sock, flags, arg) as _;
-            stream.add(if is_dtls {
-                ServerCallback::GcoapServerSockDtlsMsgRecv(arg_ptr)
-            } else {
-                ServerCallback::GcoapServerSockUdpMsgRecv(arg_ptr)
-            });
-        } else { // avoid handshake (timing/ordering) issues, directly process `SOCK_ASYNC_CONN_*`
-            bypass_async_server();
-        }
-    } else { // async server not available
+    if flags & SOCK_ASYNC_MSG_RECV > 0 {
+        let mut xs = XStream::get(static_borrow_mut!(SD));
+        let arg_ptr = into_arg_ptr(sock, flags, arg) as _;
+
+        xs.add(if is_dtls {
+            ServerCallback::GcoapServerSockDtlsMsgRecv(arg_ptr)
+        } else {
+            ServerCallback::GcoapServerSockUdpMsgRecv(arg_ptr)
+        });
+    } else { // avoid handshake (timing/ordering) issues, directly process `SOCK_ASYNC_CONN_*`
         bypass_async_server();
     }
 }
