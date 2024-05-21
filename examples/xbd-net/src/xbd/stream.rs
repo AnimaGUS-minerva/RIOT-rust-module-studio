@@ -1,9 +1,13 @@
 use core::{pin::Pin, task::{Context, Poll}};
 use conquer_once::spin::OnceCell;
-use crossbeam_queue::ArrayQueue;
+
+use crossbeam_queue::ArrayQueue; // lock-free, requires `alloc`
+use heapless::spsc::Queue; // lock-free
+
 use futures_util::{stream::Stream, task::AtomicWaker};
 pub use futures_util::StreamExt;
 
+//---- to deprecate
 pub type StreamData<T> = (OnceCell<ArrayQueue<T>>, AtomicWaker);
 pub const fn stream_uninit<T>() -> StreamData<T> {
     (OnceCell::uninit(), AtomicWaker::new())
@@ -14,9 +18,65 @@ pub struct XbdStream<T: 'static> {
     queue: &'static OnceCell<ArrayQueue<T>>,
     waker: &'static AtomicWaker,
 }
+//----
 
-const QUEUE_CAP_DEFAULT: usize = 100;
+#[derive(Debug)]
+pub struct XStream<T: 'static> {
+    queue: &'static mut Queue<T, 4>,
+    waker: &'static AtomicWaker,
+}
 
+const QUEUE_CAP_DEFAULT: usize = 64;
+
+pub type XStreamData<T> = (Queue<T, 4>, AtomicWaker);
+
+impl<T> XStream<T> {
+    pub const fn init() -> XStreamData<T> {
+        (Queue::<T, 4>::new(), AtomicWaker::new()) // TODO do sth about (cap=) 4
+    }
+
+    pub fn get(sd: &'static mut XStreamData<T>) -> Self {
+        let (queue, waker) = sd;
+
+        XStream { queue, waker }
+    }
+
+    pub fn add(&mut self, item: T) {
+        if self.queue.enqueue(item).is_ok() {
+            self.waker.wake();
+        } else {
+            panic!("queue is full");
+        }
+    }
+
+    pub fn empty(&mut self) {
+        while let Some(_) = self.queue.dequeue() {}
+    }
+
+    pub fn len(&self) -> usize {
+        self.queue.len()
+    }
+}
+
+impl<T> Stream for XStream<T> {
+    type Item = T;
+
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
+        if let Some(item) = self.queue.dequeue() { // fast path
+            return Poll::Ready(Some(item));
+        }
+
+        self.waker.register(&cx.waker());
+        if let Some(item) = self.queue.dequeue() {
+            self.waker.take();
+            Poll::Ready(Some(item))
+        } else {
+            Poll::Pending
+        }
+    }
+}
+
+//---- to deprecate
 impl<T> XbdStream<T> {
     pub fn new(sd: &'static StreamData<T>) -> Self {
         Self::new_with_cap(sd, QUEUE_CAP_DEFAULT)
@@ -93,3 +153,4 @@ impl<T> Stream for XbdStream<T> {
         }
     }
 }
+//----
