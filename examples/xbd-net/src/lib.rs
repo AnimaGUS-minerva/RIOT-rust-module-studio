@@ -183,7 +183,7 @@ use xbd::{BlockwiseError, BLOCKWISE_STATES_MAX, blockwise_states_print, blockwis
 async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
 
     if 0 == 1 { // !! do test with alias='nns'
-        println!("!! debug NEW [gcoap-dtls]");
+        println!("🧪 debug NEW [gcoap-dtls]");
 
         //---- ok <-- gcoap: authentication timed out
         //println!("@@ debug out: {:?}", Xbd::async_gcoap_get("[::1]:5684", "/cli/stats").await);
@@ -228,11 +228,11 @@ $ libcoap/local/bin/coap-client -m get coaps://[::1]/.well-known/core -k "secret
     if 0 == 1 { return Ok(()); }
 
     // first, make sure non-blockwise get works
-    println!("!! debug NEW [non-blockwise-1]");
+    println!("🧪 debug NEW [non-blockwise-1]");
     println!("@@ debug out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
-    println!("!! debug NEW [non-blockwise-2]");
+    println!("🧪 debug NEW [non-blockwise-2]");
     println!("@@ debug out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
-    if 1 == 1 { panic!("!!"); }
+    if 0 == 1 { panic!("!!"); }
 
     //
 
@@ -240,7 +240,7 @@ $ libcoap/local/bin/coap-client -m get coaps://[::1]/.well-known/core -k "secret
 
     //
 
-    println!("!! debug NEW [blockwise-1]");
+    println!("🧪 debug NEW [blockwise-1]");
     let mut bs = get_blockwise()?;
     assert!(blockwise_states_debug()[0].is_some(), "debug");
 
@@ -254,7 +254,7 @@ $ libcoap/local/bin/coap-client -m get coaps://[::1]/.well-known/core -k "secret
 
         if debug_count == 3 {
         //if debug_count == 9 { // right after [blockwise-1] done
-            println!("!! debug NEW [blockwise-2]");
+            println!("🧪 debug NEW [blockwise-2]");
             let mut bs = get_blockwise()?;
             assert!(blockwise_states_debug()[1].is_some(), "debug");
 
@@ -273,7 +273,7 @@ $ libcoap/local/bin/coap-client -m get coaps://[::1]/.well-known/core -k "secret
 
     //
 
-    println!("!! debug NEW [blockwise-3]");
+    println!("🧪 debug NEW [blockwise-3]");
     let mut bs = get_blockwise()?;
     assert!(blockwise_states_debug()[0].is_some(), "debug");
 
@@ -288,6 +288,7 @@ $ libcoap/local/bin/coap-client -m get coaps://[::1]/.well-known/core -k "secret
 
     //
 
+    println!("🧪 debug NEW [blockwise-close]");
     let mut bss = heapless::Vec::<_, BLOCKWISE_STATES_MAX>::new();
     for _ in 0..BLOCKWISE_STATES_MAX {
         bss.push(get_blockwise()?).unwrap();
@@ -305,7 +306,7 @@ $ libcoap/local/bin/coap-client -m get coaps://[::1]/.well-known/core -k "secret
         _ => false,
     });
 
-    bss.iter().for_each(|bs| bs.close());
+    bss.iter_mut().for_each(|bs| bs.close());
     blockwise_states_debug().iter().for_each(|x| assert!(x.is_none()));
 
     // after `.close()`
@@ -315,7 +316,7 @@ $ libcoap/local/bin/coap-client -m get coaps://[::1]/.well-known/core -k "secret
 
     //
 
-    println!("!! debug NEW [blockwise-timeout]");
+    println!("🧪 debug NEW [blockwise-timeout]");
     let get_blockwise_timeout = || Xbd::async_gcoap_get_blockwise(
         "[::1]:5680", "/const/song.txt"); // induce `Timeout`, not 5683
 
@@ -329,7 +330,7 @@ $ libcoap/local/bin/coap-client -m get coaps://[::1]/.well-known/core -k "secret
 
     //
 
-    println!("!! debug NEW [blockwise-resp-none]");
+    println!("🧪 debug NEW [blockwise-resp-none]");
     let get_blockwise_resp_none = || Xbd::async_gcoap_get_blockwise(
         "[::1]:5683", "/const/song2.txt"); // induce `Resp(None)`
 
