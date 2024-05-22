@@ -2,7 +2,7 @@ use mcu_if::c_types::c_void;
 use mcu_if::utils::{u8_slice_from, u8_slice_mut_from};
 use core::{str::from_utf8, pin::Pin, task::{Context, Poll}};
 use futures_util::stream::Stream;
-use super::stream::{XbdStream, StreamData, stream_uninit};
+use super::stream::{XStream, XStreamData};
 use super::gcoap::{ReqInner, COAP_METHOD_GET, REQ_ADDR_MAX, REQ_URI_MAX};
 
 #[no_mangle]
@@ -76,8 +76,8 @@ static mut GRID_URI: &'static mut GridUri = &mut [[0; REQ_URI_MAX]; BLOCKWISE_ST
 type GridHdr = [(usize, [u8; BLOCKWISE_HDR_MAX]); BLOCKWISE_STATES_MAX];
 static mut GRID_HDR: &'static mut GridHdr = &mut [(0, [0; BLOCKWISE_HDR_MAX]); BLOCKWISE_STATES_MAX];
 
-type BlockwiseStreamData = StreamData<Option<ReqInner>>;
-const ARRAY_REPEAT_VALUE_SD: BlockwiseStreamData = stream_uninit();
+type BlockwiseStreamData = XStreamData<Option<ReqInner>, 2>;
+const ARRAY_REPEAT_VALUE_SD: BlockwiseStreamData = XStream::init();
 static mut BLOCKWISE_SD: &'static mut [BlockwiseStreamData; BLOCKWISE_STATES_MAX] =
     &mut [ARRAY_REPEAT_VALUE_SD; BLOCKWISE_STATES_MAX];
 
@@ -156,7 +156,8 @@ impl BlockwiseData {
 
     pub fn send_blockwise_req(idx: Option<usize>, addr_uri: Option<(&str, &str)>, hdr: Option<&[u8]>) -> Result<BlockwiseStream, BlockwiseError> {
         if let Some(idx) = idx {
-            let bs = Self::state(&idx).unwrap().get_stream();
+            let BlockwiseState { bsd, .. } = BlockwiseState::get(idx);
+            let mut bs = BlockwiseStream::get(idx, bsd);
 
             if let Some((addr, uri)) = addr_uri { // <blockwise NEXT>
                 let hdr = heapless::Vec::from_slice(hdr.unwrap()).unwrap();
@@ -176,15 +177,17 @@ impl BlockwiseData {
         // <blockwise NEW>
 
         if let Some((idx, slot)) = Self::find_state_available() {
-            let state = BlockwiseState::get(idx);
+            *slot = Some(BlockwiseState::get(idx));
 
-            *slot = Some(state.clone());
             crate::println!("debug <blockwise NEW>, via idx={}/{}", idx, BLOCKWISE_STATES_MAX);
             //blockwise_states_print(); // debug
 
             let (addr, uri) = addr_uri.unwrap();
             let req = ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx), None);
-            let bs = state.get_stream();
+
+            let BlockwiseState { bsd, .. } = BlockwiseState::get(idx);
+            let mut bs = BlockwiseStream::get(idx, bsd);
+            bs.empty(); // a `None` item could be left over afer .close()
             bs.add(Some(req));
 
             Ok(bs)
@@ -198,41 +201,23 @@ impl BlockwiseData {
 
 #[derive(Debug)]
 struct BlockwiseState {
-    idx: usize,
-    bsd: &'static BlockwiseStreamData,
+    bsd: &'static mut BlockwiseStreamData,
     addr: &'static mut [u8],
     uri: &'static mut [u8],
     hdr: &'static mut [u8],
     hdr_len: usize,
 }
 
-impl Clone for BlockwiseState {
-    fn clone(&self) -> BlockwiseState {
-        Self {
-            idx: self.idx,
-            bsd: self.bsd,
-            addr: unsafe { &mut GRID_ADDR[self.idx] },
-            uri: unsafe { &mut GRID_URI[self.idx] },
-            hdr: unsafe { &mut GRID_HDR[self.idx].1 },
-            hdr_len: unsafe { GRID_HDR[self.idx].0 },
-        }
-    }
-}
-
 impl BlockwiseState {
     fn get(idx: usize) -> Self {
-        let bsd = unsafe { &BLOCKWISE_SD[idx] };
+        let bsd = static_borrow_mut!(BLOCKWISE_SD[idx]);
 
-        Self { bsd, idx,
+        Self { bsd,
             addr: unsafe { &mut GRID_ADDR[idx] },
             uri: unsafe { &mut GRID_URI[idx] },
             hdr: unsafe { &mut GRID_HDR[idx].1 },
             hdr_len: unsafe { GRID_HDR[idx].0 },
         }
-    }
-
-    fn get_stream(&self) -> BlockwiseStream {
-        BlockwiseStream::get(self.idx, self.bsd)
     }
 
     fn update_metadata(data_in: &[u8], data: &mut [u8], data_max: usize) -> usize {
@@ -251,27 +236,26 @@ impl BlockwiseState {
 #[derive(Debug)]
 pub struct BlockwiseStream {
     idx: usize,
-    xs: XbdStream<Option<ReqInner>>,
+    xs: XStream<Option<ReqInner>, 2>,
 }
 
 impl BlockwiseStream {
-    fn get(idx: usize, bsd: &'static BlockwiseStreamData) -> Self {
-        let xs = XbdStream::get(bsd)
-            .unwrap_or_else(|| XbdStream::new_with_cap(&bsd, 1));
+    fn get(idx: usize, mut bsd: &'static mut BlockwiseStreamData) -> Self {
+        let xs = XStream::get(static_borrow_mut!(bsd));
 
         Self { idx, xs }
     }
 
-    fn add(&self, req: Option<ReqInner>) {
+    fn add(&mut self, req: Option<ReqInner>) {
         assert_eq!(self.xs.len(), 0);
         self.xs.add(req);
     }
 
-    fn empty(&self) {
+    fn empty(&mut self) {
         self.xs.empty();
     }
 
-    pub fn close(&self) {
+    pub fn close(&mut self) {
         BlockwiseData::clear_state(self.idx);
         BlockwiseData::invalidate_state(self.idx);
 
