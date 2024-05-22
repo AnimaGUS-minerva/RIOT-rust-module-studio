@@ -88,8 +88,6 @@ pub async fn process_shell_stream() -> Result<(), i8> {
             }
 
             unsafe { handle_input_line_minerva(shell_commands, line.as_ptr()); }
-
-            if 0 == 1 { crate::Xbd::async_sleep(1_000).await; } // debug, ok
         }
 
         prompt();
@@ -149,8 +147,11 @@ const ARRAY_ALIAS_NAMED: &[(&str, &str)] = &[
 
 const ARRAY_ALIAS_FUNCTION: &[(&str, fn())] = &[
     ("f0", || println!("hello world!")),
-    ("f1", || println!("kludge: for async fn test_async_sleep()")),
-    ("f2", || println!("kludge: for async fn test_async_blockwise_get()")),
+    //---- kludge
+    ("f1", || println!("async fn test_async_sleep()")),
+    ("f2", || println!("async fn test_async_blockwise_get()")),
+    ("f3", || println!("async fn crate::test_blockwise()")),
+    //----
 ];
 
 const ARRAY_ALIAS_ENUMERATED: &[&str] = &[
@@ -194,8 +195,11 @@ async fn match_alias(line: &mut ShellBuf) -> bool {
         return expand(line, item.1);
     } else if let Some(item) = ARRAY_ALIAS_FUNCTION.iter().find(|item| item.0 == ln) {
         match item.0 {
-            "f1" => test_async_sleep().await, // kludge
-            "f2" => test_async_blockwise_get().await, // kludge
+            //---- kludge
+            "f1" => test_async_sleep().await,
+            "f2" => test_async_blockwise_get().await,
+            "f3" => crate::test_blockwise("[::1]:5683").await.unwrap(),
+            //----
             _ => item.1(),
         }
 
