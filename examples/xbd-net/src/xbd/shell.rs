@@ -145,21 +145,30 @@ const ARRAY_ALIAS_NAMED: &[(&str, &str)] = &[
     ("h", "help"),
 ];
 
-const ARRAY_ALIAS_FUNCTION: &[(&str, fn())] = &[
-    ("f0", || println!("hello world!")),
-    //---- kludge
-    ("f1", || println!("async fn test_async_sleep()")),
-    ("f2", || println!("async fn test_async_blockwise_get()")),
-    ("f3", || println!("async fn crate::test_blockwise()")),
-    //----
-];
-
 const ARRAY_ALIAS_ENUMERATED: &[&str] = &[
     "version",
     "ifconfig",
     "gcoap get [::1] /riot/board",
     "gcoap get [::1] /const/song.txt",
 ];
+
+const ARRAY_ALIAS_FUNCTION: &[&str] = &[
+    "f0",
+    "f1",
+    "f2",
+    "f3",
+    //"f99", // test undefined
+];
+
+async fn run_function_alias(name: &str) {
+    match name {
+        "f0" => (|| println!("hello world!"))(),
+        "f1" => test_async_sleep().await,
+        "f2" => test_async_blockwise_get().await,
+        "f3" => crate::test_blockwise("[::1]:5683").await.unwrap(),
+        _ => println!("function alias [{}] is not defined!", name),
+    }
+}
 
 fn print_aliases() {
     println!("---- named alias ----");
@@ -168,7 +177,7 @@ fn print_aliases() {
 
     println!("---- function alias ----");
     ARRAY_ALIAS_FUNCTION.iter()
-        .for_each(|(name, f)| println!("[{}] {:?}", name, f));
+        .for_each(|name| println!("[{}] <function>", name));
 
     println!("---- enumerated alias ----");
     ARRAY_ALIAS_ENUMERATED.iter().enumerate()
@@ -193,16 +202,8 @@ async fn match_alias(line: &mut ShellBuf) -> bool {
         return expand(line, "");
     } else if let Some(item) = ARRAY_ALIAS_NAMED.iter().find(|item| item.0 == ln) {
         return expand(line, item.1);
-    } else if let Some(item) = ARRAY_ALIAS_FUNCTION.iter().find(|item| item.0 == ln) {
-        match item.0 {
-            //---- kludge
-            "f1" => test_async_sleep().await,
-            "f2" => test_async_blockwise_get().await,
-            "f3" => crate::test_blockwise("[::1]:5683").await.unwrap(),
-            //----
-            _ => item.1(),
-        }
-
+    } else if let Some(item) = ARRAY_ALIAS_FUNCTION.iter().find(|item| **item == ln) {
+        run_function_alias(item).await;
         return expand(line, "");
     } else if let Ok(x) = ln.parse::<usize>() {
         if x < ARRAY_ALIAS_ENUMERATED.len() {
