@@ -1,13 +1,12 @@
 use super::stream::{XStream, XStreamData, StreamExt};
 use crate::println;
-use mcu_if::c_types::c_void;
 
 extern "C" {
-    fn xbd_shell_get_commands() -> *const c_void;
+    fn xbd_shell_get_commands() -> *const ();
     fn xbd_async_shell_init() -> i8;
     fn xbd_async_shell_bufsize() -> usize;
     fn xbd_async_shell_prompt(tag_cstr: *const u8, highlight: bool);
-    fn handle_input_line_minerva(command_list: *const c_void, line: *const u8);
+    fn handle_input_line_minerva(command_list: *const (), line: *const u8);
 }
 
 const SHELL_BUFSIZE: usize = 128;
