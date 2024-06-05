@@ -1,43 +1,64 @@
-use embassy_executor::{Spawner, raw::Executor as RawExecutor};
-use super::{to_raw, static_from_raw};
+use riot_wrappers::{println, ztimer};
+use embassy_executor::{Spawner, raw};
+use conquer_once::spin::OnceCell;
+use crate::util::static_from_raw;
 
-// https://github.com/embassy-rs/embassy/blob/b6fc682117a41e8e63a9632e06da5a17f46d9ab0/embassy-executor/src/raw/mod.rs#L465
 #[export_name = "__pender"]
 fn pender(context: *mut ()) {
-    //@@ let signaler: &'static Signaler = unsafe { core::mem::transmute(context) };
     let signaler: &'static Signaler = static_from_raw(context);
-    if 0 == 1 { crate::println!("@@ pender(): signaler: {:?}", signaler); }
+    assert_eq!(signaler.dummy, SIGNALER_DUMMY_DATA);
+}
+
+const SIGNALER_DUMMY_DATA: u8 = 42;
+static SIGNALER: OnceCell<Signaler> = OnceCell::uninit();
+
+struct Signaler {
+    dummy: u8,
+}
+
+impl Signaler {
+    fn new() -> Self {
+        Self {
+            dummy: SIGNALER_DUMMY_DATA,
+        }
+    }
 }
 
 pub struct Executor {
-    executor: RawExecutor,
-    //@@ _signaler: &'static Signaler, // c.f. embassy/embassy-executor/src/arch/std.rs
-    _signaler: Signaler,
+    inner: raw::Executor,
+    signaler: &'static Signaler,
+    throttle: Option<u32>,
 }
 
-#[derive(Debug)]
-struct Signaler(()); // TODO
-
 impl Executor {
-    pub fn new() -> Self {
-        //@@ let signaler = Box::leak(Box::new(Signaler(())));
-        let mut signaler = Signaler(());
+    pub fn new(throttle: Option<u32>) -> Self {
+        SIGNALER.try_init_once(|| Signaler::new()).unwrap();
+        let signaler: &'static Signaler = SIGNALER.get().unwrap();
 
         Self {
-            executor: RawExecutor::new(to_raw(&mut signaler)),
-            _signaler: signaler,
+            inner: raw::Executor::new(signaler as *const Signaler as *mut ()),
+            signaler,
+            throttle,
         }
     }
 
     pub fn run(&'static mut self, init: impl FnOnce(Spawner)) -> ! {
-        init(self.executor.spawner());
+        init(self.inner.spawner());
 
-        let throttle = 100;
-        crate::println!("@@ Executor::run(): throttle: {} ms", throttle);
+        assert_eq!(self.signaler.dummy, SIGNALER_DUMMY_DATA);
 
-        loop {
-            crate::Xbd::msleep(throttle, false);
-            unsafe { self.executor.poll() };
+        if let Some(ms) = self.throttle {
+            println!("Executor::run(): throttle: {:?} ms", ms);
+            let timer = ztimer::Clock::msec();
+
+            loop {
+                unsafe { self.inner.poll() };
+                timer.sleep_ticks(ms);
+            }
+        } else {
+            loop {
+                unsafe { self.inner.poll() };
+            }
         }
     }
 }
