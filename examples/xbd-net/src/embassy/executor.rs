@@ -1,4 +1,4 @@
-use riot_wrappers::{println, ztimer};
+//use riot_wrappers::{println, ztimer};
 use embassy_executor::{Spawner, raw};
 use conquer_once::spin::OnceCell;
 use crate::util::static_from_raw;
@@ -48,12 +48,13 @@ impl Executor {
         assert_eq!(self.signaler.dummy, SIGNALER_DUMMY_DATA);
 
         if let Some(ms) = self.throttle {
-            println!("Executor::run(): throttle: {:?} ms", ms);
-            let timer = ztimer::Clock::msec();
+            crate::println!("Executor::run(): throttle: {:?} ms", ms);
+//            let timer = ztimer::Clock::msec();
 
             loop {
                 unsafe { self.inner.poll() };
-                timer.sleep_ticks(ms);
+//                timer.sleep_ticks(ms);
+                crate::Xbd::msleep(ms, false);
             }
         } else {
             loop {

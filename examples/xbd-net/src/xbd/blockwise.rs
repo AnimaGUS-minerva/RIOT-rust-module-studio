@@ -4,6 +4,7 @@ use core::{str::from_utf8, pin::Pin, task::{Context, Poll}};
 use futures_util::stream::Stream;
 use super::stream::{XStream, XStreamData};
 use super::gcoap::{ReqInner, COAP_METHOD_GET, REQ_ADDR_MAX, REQ_URI_MAX};
+use crate::static_borrow_mut;
 
 #[no_mangle]
 pub extern fn xbd_blockwise_state_index() -> usize {

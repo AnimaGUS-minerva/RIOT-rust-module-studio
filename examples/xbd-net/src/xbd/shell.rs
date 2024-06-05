@@ -1,5 +1,6 @@
 use super::stream::{XStream, XStreamData, StreamExt};
 use crate::println;
+use crate::static_borrow_mut;
 
 extern "C" {
     fn xbd_shell_get_commands() -> *const ();

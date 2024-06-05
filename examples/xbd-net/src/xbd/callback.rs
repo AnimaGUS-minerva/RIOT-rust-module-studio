@@ -1,6 +1,7 @@
 use mcu_if::{alloc::boxed::Box, c_types::c_void};
 use super::gcoap::GcoapMemoState;
 use super::stream::{XStream, XStreamData, StreamExt};
+use crate::static_borrow_mut;
 
 extern "C" {
     fn free(ptr: *mut c_void);

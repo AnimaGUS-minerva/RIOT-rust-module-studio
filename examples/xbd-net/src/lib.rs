@@ -10,9 +10,6 @@ fn panic(info: &core::panic::PanicInfo) -> ! { mcu_if::panic(info) }
 #[alloc_error_handler]
 fn alloc_error(layout: mcu_if::alloc::alloc::Layout) -> ! { mcu_if::alloc_error(layout) }
 
-#[macro_export]
-macro_rules! static_borrow_mut { ($x:expr) => (unsafe { &mut *core::ptr::addr_of_mut!($x) }) }
-
 use mcu_if::{println, alloc::boxed::Box};
 
 mod xbd;
@@ -20,6 +17,15 @@ use xbd::{Xbd, XbdFnsEnt, GcoapMemoState};
 
 mod blogos12;
 mod embassy;
+
+mod util;
+use util::get_static;
+/* deprecated
+fn get_static<T>(x: &mut T) -> &'static mut T {
+    use mcu_if::alloc::boxed::Box;
+    Box::leak(Box::new(x))
+}
+*/
 
 //
 
@@ -55,7 +61,7 @@ pub extern fn rustmod_start(
 
     if 1 == 1 {
         println!("@@ [debug] `xbd_main()` with `embassy::Runtime` ...");
-        embassy::get_static(&mut embassy::Runtime::new())
+        get_static(&mut embassy::Runtime::new())
             .run(); // -> !
 
         // should be never reached

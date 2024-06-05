@@ -1,6 +1,7 @@
 use mcu_if::{println, alloc::boxed::Box, c_types::c_void};
 use super::callback::{Ptr32Send, arg_from};
 use super::stream::{XStream, XStreamData, StreamExt};
+use crate::static_borrow_mut;
 
 extern "C" {
     fn server_init() -> i8;
