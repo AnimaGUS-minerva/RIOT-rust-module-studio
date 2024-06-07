@@ -61,9 +61,12 @@ pub extern fn rustmod_start(
 
     if 1 == 1 {
         println!("@@ [debug] `xbd_main()` with `embassy::Runtime` ...");
-        get_static(&mut embassy::Runtime::new())
-            .run(); // -> !
 
+        // TODO While we will eventually migrate to RIOT's Rust build system,
+        //      not for now, since keeping our esp32 setup stuff isn't trivial.
+        println!("!!!! OBSOLETE -- 'src/<stream,shell>.rs'");
+
+        get_static(&mut embassy::Runtime::new()).run(); // -> !
         // should be never reached
     } else {
         println!("@@ [debug] `xbd_main()` with `blogos12::Runtime` ...");
