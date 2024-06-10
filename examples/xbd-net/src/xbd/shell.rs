@@ -77,8 +77,8 @@ pub async fn process_shell_stream() -> Result<(), i8> {
     while let Some(mut line) = xs.next().await {
         assert!(line.ends_with("\0"));
 
-        println!("[async shell] (null terminated) line: {} (len: {} SHELL_BUFSIZE: {})",
-                 line, line.len(), SHELL_BUFSIZE);
+        // println!("[async shell] (null terminated) line: {} (len: {} SHELL_BUFSIZE: {})",
+        //          line, line.len(), SHELL_BUFSIZE);
         //println!("  line.as_bytes(): {:?}", line.as_bytes());
         //println!("  line: {:?}", line);
 
@@ -98,7 +98,7 @@ pub async fn process_shell_stream() -> Result<(), i8> {
 
 fn prompt() {
     //let tag: Option<&str> = None;
-    let tag = Some("(async)\0");
+    let tag = Some("(v0.0.1)\0");
 
     let tag = if let Some(x) = tag {
         assert!(x.ends_with("\0"));
@@ -138,6 +138,13 @@ async fn test_async_blockwise_get() {
     println!("test_async_blockwise_get(): $$");
 }
 
+async fn test_heapless_req() {
+    println!("test_heapless_req(): ^^");
+    let out = crate::Xbd::async_gcoap_get("[::1]", "/.well-known/core").await;
+    println!("@@ out: {:?}", out);
+    println!("test_heapless_req(): $$");
+}
+
 //
 
 const ARRAY_ALIAS_NAMED: &[(&str, &str)] = &[
@@ -148,11 +155,13 @@ const ARRAY_ALIAS_NAMED: &[(&str, &str)] = &[
 const ARRAY_ALIAS_ENUMERATED: &[&str] = &[
     "version",
     "ifconfig",
+    "gcoap get [::1] /.well-known/core",
     "gcoap get [::1] /riot/board",
     "gcoap get [::1] /const/song.txt",
 ];
 
 const ARRAY_ALIAS_FUNCTION: &[&str] = &[
+    "f",
     "f0",
     "f1",
     "f2",
@@ -162,6 +171,7 @@ const ARRAY_ALIAS_FUNCTION: &[&str] = &[
 
 async fn run_function_alias(name: &str) {
     match name {
+        "f" => test_heapless_req().await,
         "f0" => (|| println!("hello world!"))(),
         "f1" => test_async_sleep().await,
         "f2" => test_async_blockwise_get().await,
