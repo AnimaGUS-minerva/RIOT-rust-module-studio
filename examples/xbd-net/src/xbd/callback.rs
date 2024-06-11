@@ -13,7 +13,7 @@ pub type Ptr32Send = u32;
 enum ApiCallback {
     Timeout(Ptr32Send),
     _GcoapPing(Ptr32Send),
-    GcoapReq(Ptr32Send),
+//    GcoapReq(Ptr32Send),
 }
 
 static mut SD: XStreamData<ApiCallback, 64> = XStream::init();
@@ -25,9 +25,9 @@ fn add_api_callback(cb: ApiCallback) {
 pub fn add_xbd_timeout_callback(arg_ptr: CVoidPtr) {
     add_api_callback(ApiCallback::Timeout(arg_ptr as Ptr32Send));
 }
-pub fn add_xbd_gcoap_req_callback(arg_ptr: CVoidPtr) {
-    add_api_callback(ApiCallback::GcoapReq(arg_ptr as Ptr32Send));
-}
+// pub fn add_xbd_gcoap_req_callback(arg_ptr: CVoidPtr) {
+//     add_api_callback(ApiCallback::GcoapReq(arg_ptr as Ptr32Send));
+// }
 
 pub async fn process_api_stream() -> Result<(), i8> {
     let mut xs = XStream::get(static_borrow_mut!(SD));
@@ -44,10 +44,10 @@ pub async fn process_api_stream() -> Result<(), i8> {
                 call(cb_ptr, ());
             },
             ApiCallback::_GcoapPing(_) => todo!(),
-            ApiCallback::GcoapReq(arg_ptr) => {
-                let (cb_ptr, out) = arg_from::<GcoapMemoState>(arg_ptr);
-                call(cb_ptr, out);
-            },
+            // ApiCallback::GcoapReq(arg_ptr) => {
+            //     let (cb_ptr, out) = arg_from::<GcoapMemoState>(arg_ptr);
+            //     call(cb_ptr, out);
+            // },
         }
     }
 

@@ -2,7 +2,8 @@ mod callback;
 pub use callback::process_api_stream;
 use callback::{
     add_xbd_timeout_callback,
-    add_xbd_gcoap_req_callback};
+//    add_xbd_gcoap_req_callback
+};
 
 mod server;
 pub use server::process_gcoap_server_stream;
@@ -171,26 +172,25 @@ impl Xbd {
             *const u8, *const u8, u8,
             *const u8, usize, bool, usize, *const c_void, *const c_void);
 
-        if 1 == 1 {// ok
+        if 0 == 1 {// waypoint, ok
             let (waker, hv) = unsafe { &mut *finale_ptr };
             hv.push(42).unwrap();
             hv.push(42+1).unwrap();
             hv.push(42+2).unwrap();
             waker.wake();
+            return;
         }
-        if 0 == 1 {
-            assert_eq!(blockwise, blockwise_state_index.is_some());
-            unsafe {
-                (get_xbd_fn!("xbd_gcoap_req_send", Ty))(
-                    addr_cstr.as_ptr(),
-                    uri_cstr.as_ptr(),
-                    method, payload_ptr, payload_len,
-                    blockwise, blockwise_state_index.unwrap_or(0 /* to be ignored */),
-//                callback::into_raw(cb), // context !!!!!!!!! push `waker` how??????????
-//                    waker_ptr as *const c_void, // !!!!
-                    finale_ptr as *const c_void, // !!!!
-                    Self::gcoap_req_resp_handler as *const c_void);
-            }
+
+        assert_eq!(blockwise, blockwise_state_index.is_some());
+        unsafe {
+            (get_xbd_fn!("xbd_gcoap_req_send", Ty))(
+                addr_cstr.as_ptr(),
+                uri_cstr.as_ptr(),
+                method, payload_ptr, payload_len,
+                blockwise, blockwise_state_index.unwrap_or(0 /* to be ignored */),
+                //callback::into_raw(cb), // context !!!!
+                finale_ptr as *const c_void, // context !!!! WIP
+                Self::gcoap_req_resp_handler as *const c_void);
         }
     }
 
@@ -214,8 +214,14 @@ impl Xbd {
         };
         let out = GcoapMemoState::new(memo_state, payload);
 
-        add_xbd_gcoap_req_callback(
-            Box::into_raw(Box::new((context /* cb_ptr */, out))) as *const c_void); // arg_ptr
+        // add_xbd_gcoap_req_callback(
+        //     Box::into_raw(Box::new((context /* cb_ptr */, out))) as *const c_void); // arg_ptr
+        //==== !!!! TODO hv <<<< out, heepless--ly
+        let (waker, hv) = unsafe { &mut *(context as *mut Finale) };
+        hv.push(42).unwrap();
+        hv.push(42+1).unwrap();
+        hv.push(42+2).unwrap();
+        waker.wake();
     }
 
     pub fn async_sleep(msec: u32) -> impl Future<Output = ()> + 'static {

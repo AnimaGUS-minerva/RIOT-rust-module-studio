@@ -118,7 +118,7 @@ pub struct ReqInner {
     blockwise: bool,
     blockwise_state_index: Option<usize>,
     blockwise_hdr: Option<heapless::Vec<u8, BLOCKWISE_HDR_MAX>>,
-    out: Rc<RefCell<Option<GcoapMemoState>>>,
+//    out: Rc<RefCell<Option<GcoapMemoState>>>,
     _waker: Option<AtomicWaker>,
     finale: Option<Finale>,// !!!! !!!!
 }
@@ -137,7 +137,7 @@ impl ReqInner {
             blockwise,
             blockwise_state_index,
             blockwise_hdr,
-            out: Rc::new(RefCell::new(None)),
+//            out: Rc::new(RefCell::new(None)),
             _waker: Some(AtomicWaker::new()),
             finale: None,// !!!! !!!!
         }
@@ -151,16 +151,12 @@ impl Future for ReqInner {
         if let Some(_waker) = self._waker.take() {
             _waker.register(&cx.waker());
 
-            /*let outc = self.out.clone();
-            let cb = move |out| {
-                outc.borrow_mut().replace(out);
-                _waker.wake();
-            };*/
-            let cb = |_out| {
-                //outc.borrow_mut().replace(out);
+            //let outc = self.out.clone();
+            let cb = move |_out| {
+                //outc.borrow_mut().replace(_out);
                 //_waker.wake();
                 //==== !!!!
-                panic!("mmm");
+                panic!("debug");
             };
             match self.method {
                 COAP_METHOD_GET => {
@@ -197,9 +193,13 @@ impl Future for ReqInner {
 
             Poll::Pending
         } else {
+            //Poll::Ready(self.out.take().unwrap())
+            //==== !!!!
             crate::println!("!!!! before Poll::Ready !!!! finale: {:?}", self.finale);
-
-            Poll::Ready(self.out.take().unwrap())
+            let out = GcoapMemoState::new(// TODO heapless represent `out` from `gcoap_req_resp_handler`
+                GCOAP_MEMO_RESP,
+                Some(self.finale.as_ref().unwrap().1.as_slice().to_vec())); // dummy
+            Poll::Ready(out)
         }
     }
 }
