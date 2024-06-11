@@ -6,6 +6,7 @@ use super::{BlockwiseData, BLOCKWISE_HDR_MAX};
 pub const REQ_ADDR_MAX: usize = 64;
 pub const REQ_URI_MAX: usize = 64;
 const REQ_PAYLOAD_MAX: usize = 48;
+const REQ_OUT_MAX: usize = 128; // !!!!
 
 //
 // gcoap client
@@ -106,6 +107,8 @@ impl Future for Req {
 
 //
 
+pub type Finale = (AtomicWaker, heapless::Vec<u8, REQ_OUT_MAX>);
+
 #[derive(Debug)]
 pub struct ReqInner {
     method: CoapMethod,
@@ -117,6 +120,7 @@ pub struct ReqInner {
     blockwise_hdr: Option<heapless::Vec<u8, BLOCKWISE_HDR_MAX>>,
     out: Rc<RefCell<Option<GcoapMemoState>>>,
     _waker: Option<AtomicWaker>,
+    finale: Option<Finale>,// !!!! !!!!
 }
 
 impl ReqInner {
@@ -135,6 +139,7 @@ impl ReqInner {
             blockwise_hdr,
             out: Rc::new(RefCell::new(None)),
             _waker: Some(AtomicWaker::new()),
+            finale: None,// !!!! !!!!
         }
     }
 }
@@ -146,10 +151,16 @@ impl Future for ReqInner {
         if let Some(_waker) = self._waker.take() {
             _waker.register(&cx.waker());
 
-            let outc = self.out.clone();
+            /*let outc = self.out.clone();
             let cb = move |out| {
                 outc.borrow_mut().replace(out);
                 _waker.wake();
+            };*/
+            let cb = |_out| {
+                //outc.borrow_mut().replace(out);
+                //_waker.wake();
+                //==== !!!!
+                panic!("mmm");
             };
             match self.method {
                 COAP_METHOD_GET => {
@@ -170,7 +181,15 @@ impl Future for ReqInner {
                             return Poll::Ready(GcoapMemoState::Err)
                         }
                     } else {
-                        super::Xbd::gcoap_get(&self.addr, &self.uri, cb);
+                        //super::Xbd::gcoap_get(&self.addr, &self.uri, cb);
+                        //==== !!!!
+//                        use mcu_if::c_types::c_void;
+                        self.finale.replace((_waker, heapless::Vec::new()));
+                        super::Xbd::gcoap_get_v2(&self.addr, &self.uri,
+//                                                /* move */_waker); // !!!!
+//                            self._waker.as_ref() as *const _); // !!!!
+//                            self.finale.as_ref().unwrap() as *const _ as *const c_void); // !!!! `&(AtomicWaker, heapless::Vec<u8, 2>)`
+                            self.finale.as_ref().unwrap() as *const Finale as *mut _); // !!!!
                     }
                 },
                 COAP_METHOD_POST => super::Xbd::gcoap_post(
@@ -182,6 +201,8 @@ impl Future for ReqInner {
 
             Poll::Pending
         } else {
+            crate::println!("!!!! before Poll::Ready !!!! finale: {:?}", self.finale);
+
             Poll::Ready(self.out.take().unwrap())
         }
     }

@@ -22,7 +22,7 @@ mod timeout;
 use timeout::Timeout;
 
 mod gcoap;
-use gcoap::{COAP_METHOD_GET, REQ_ADDR_MAX, REQ_URI_MAX};
+use gcoap::{COAP_METHOD_GET, REQ_ADDR_MAX, REQ_URI_MAX, Finale};
 pub use gcoap::GcoapMemoState;
 
 use core::future::Future;
@@ -105,7 +105,14 @@ impl Xbd {
     }
 
     pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
+//    pub fn gcoap_get(addr: &str, uri: &str, cb: fn(GcoapMemoState)) { // !!!!
         Self::gcoap_req(addr, uri, COAP_METHOD_GET, None, false, None, cb);
+    }
+//    pub fn gcoap_get_v2(addr: &str, uri: &str, waker: futures_util::task::AtomicWaker) { // !!!!
+//    pub fn gcoap_get_v2(addr: &str, uri: &str, waker_ptr: *const futures_util::task::AtomicWaker) { // !!!!
+//    pub fn gcoap_get_v2(addr: &str, uri: &str, finale_ptr: *const c_void) { // !!!!
+    pub fn gcoap_get_v2(addr: &str, uri: &str, finale_ptr: *mut Finale) { // !!!!
+        Self::gcoap_req_v2(addr, uri, COAP_METHOD_GET, None, false, None, finale_ptr);
     }
 
     pub fn gcoap_get_blockwise<F>(addr: &str, uri: &str, blockwise_state_index: usize, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
@@ -149,6 +156,52 @@ impl Xbd {
                 Self::gcoap_req_resp_handler as *const c_void);
         }
     }
+    fn gcoap_req_v2(addr: &str, uri: &str, method: gcoap::CoapMethod,
+                   payload: Option<&[u8]>, blockwise: bool, blockwise_state_index: Option<usize>,
+//                   waker: futures_util::task::AtomicWaker) { // !!!!
+//                   waker_ptr: *const futures_util::task::AtomicWaker) { // !!!!
+//                   finale_ptr: *const c_void) { // !!!!
+                   finale_ptr: *mut Finale) { // !!!!
+        let payload_ptr = payload.map_or(core::ptr::null(), |payload| payload.as_ptr());
+        let payload_len = payload.map_or(0, |payload| payload.len());
+
+        let mut addr_cstr = heapless::String::<{ REQ_ADDR_MAX + 1 }>::new();
+        addr_cstr.push_str(addr).unwrap();
+        addr_cstr.push('\0').unwrap();
+
+        let mut uri_cstr = heapless::String::<{ REQ_URI_MAX + 1 }>::new();
+        uri_cstr.push_str(uri).unwrap();
+        uri_cstr.push('\0').unwrap();
+
+        type Ty = unsafe extern "C" fn(
+            *const u8, *const u8, u8,
+            *const u8, usize, bool, usize, *const c_void, *const c_void);
+
+        if 1 == 1 {// ok
+//            use futures_util::task::AtomicWaker;
+
+            let (waker, vec) = unsafe {
+                &mut *(finale_ptr as *mut Finale) };
+            vec.push(42).unwrap();
+            vec.push(42+1).unwrap();
+            vec.push(42+2).unwrap();
+            waker.wake();
+        }
+        if 0 == 1 {
+            assert_eq!(blockwise, blockwise_state_index.is_some());
+            unsafe {
+                (get_xbd_fn!("xbd_gcoap_req_send", Ty))(
+                    addr_cstr.as_ptr(),
+                    uri_cstr.as_ptr(),
+                    method, payload_ptr, payload_len,
+                    blockwise, blockwise_state_index.unwrap_or(0 /* to be ignored */),
+//                callback::into_raw(cb), // context !!!!!!!!! push `waker` how??????????
+//                    waker_ptr as *const c_void, // !!!!
+                    finale_ptr as *const c_void, // !!!!
+                    Self::gcoap_req_resp_handler as *const c_void);
+            }
+        }
+    }
 
     fn gcoap_req_resp_handler(memo: *const c_void, pdu: *const c_void, remote: *const c_void) {
         let mut context: *const c_void = core::ptr::null_mut();
@@ -163,7 +216,7 @@ impl Xbd {
                 (&mut context) as *mut *const c_void as *mut c_void) };
 
         let payload = if payload_len > 0 {
-            Some(u8_slice_from(payload_ptr, payload_len).to_vec())
+            Some(u8_slice_from(payload_ptr, payload_len).to_vec()) // !!!!
         } else {
             assert_eq!(payload_ptr, core::ptr::null_mut());
             None
