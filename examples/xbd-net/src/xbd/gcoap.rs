@@ -182,14 +182,10 @@ impl Future for ReqInner {
                         }
                     } else {
                         //super::Xbd::gcoap_get(&self.addr, &self.uri, cb);
-                        //==== !!!!
-//                        use mcu_if::c_types::c_void;
+                        //==== !!!! WIP
                         self.finale.replace((_waker, heapless::Vec::new()));
                         super::Xbd::gcoap_get_v2(&self.addr, &self.uri,
-//                                                /* move */_waker); // !!!!
-//                            self._waker.as_ref() as *const _); // !!!!
-//                            self.finale.as_ref().unwrap() as *const _ as *const c_void); // !!!! `&(AtomicWaker, heapless::Vec<u8, 2>)`
-                            self.finale.as_ref().unwrap() as *const Finale as *mut _); // !!!!
+                            self.finale.as_ref().unwrap() as *const Finale as *mut _);
                     }
                 },
                 COAP_METHOD_POST => super::Xbd::gcoap_post(

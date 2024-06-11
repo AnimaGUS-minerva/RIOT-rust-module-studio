@@ -105,12 +105,9 @@ impl Xbd {
     }
 
     pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
-//    pub fn gcoap_get(addr: &str, uri: &str, cb: fn(GcoapMemoState)) { // !!!!
         Self::gcoap_req(addr, uri, COAP_METHOD_GET, None, false, None, cb);
     }
-//    pub fn gcoap_get_v2(addr: &str, uri: &str, waker: futures_util::task::AtomicWaker) { // !!!!
-//    pub fn gcoap_get_v2(addr: &str, uri: &str, waker_ptr: *const futures_util::task::AtomicWaker) { // !!!!
-//    pub fn gcoap_get_v2(addr: &str, uri: &str, finale_ptr: *const c_void) { // !!!!
+
     pub fn gcoap_get_v2(addr: &str, uri: &str, finale_ptr: *mut Finale) { // !!!!
         Self::gcoap_req_v2(addr, uri, COAP_METHOD_GET, None, false, None, finale_ptr);
     }
@@ -158,9 +155,6 @@ impl Xbd {
     }
     fn gcoap_req_v2(addr: &str, uri: &str, method: gcoap::CoapMethod,
                    payload: Option<&[u8]>, blockwise: bool, blockwise_state_index: Option<usize>,
-//                   waker: futures_util::task::AtomicWaker) { // !!!!
-//                   waker_ptr: *const futures_util::task::AtomicWaker) { // !!!!
-//                   finale_ptr: *const c_void) { // !!!!
                    finale_ptr: *mut Finale) { // !!!!
         let payload_ptr = payload.map_or(core::ptr::null(), |payload| payload.as_ptr());
         let payload_len = payload.map_or(0, |payload| payload.len());
@@ -178,13 +172,10 @@ impl Xbd {
             *const u8, usize, bool, usize, *const c_void, *const c_void);
 
         if 1 == 1 {// ok
-//            use futures_util::task::AtomicWaker;
-
-            let (waker, vec) = unsafe {
-                &mut *(finale_ptr as *mut Finale) };
-            vec.push(42).unwrap();
-            vec.push(42+1).unwrap();
-            vec.push(42+2).unwrap();
+            let (waker, hv) = unsafe { &mut *finale_ptr };
+            hv.push(42).unwrap();
+            hv.push(42+1).unwrap();
+            hv.push(42+2).unwrap();
             waker.wake();
         }
         if 0 == 1 {
