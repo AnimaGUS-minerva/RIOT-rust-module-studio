@@ -171,7 +171,7 @@ const ARRAY_ALIAS_FUNCTION: &[&str] = &[
 
 async fn run_function_alias(name: &str) {
     match name {
-        "f" => test_heapless_req().await,
+        "f" => test_heapless_req().await, // !!!!
         "f0" => (|| println!("hello world!"))(),
         "f1" => test_async_sleep().await,
         "f2" => test_async_blockwise_get().await,

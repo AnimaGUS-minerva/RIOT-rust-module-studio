@@ -1,5 +1,4 @@
 use mcu_if::{alloc::boxed::Box, c_types::c_void};
-use super::gcoap::GcoapMemoState;
 use super::stream::{XStream, XStreamData, StreamExt};
 use crate::static_borrow_mut;
 
@@ -45,6 +44,7 @@ pub async fn process_api_stream() -> Result<(), i8> {
             },
             ApiCallback::_GcoapPing(_) => todo!(),
             // ApiCallback::GcoapReq(arg_ptr) => {
+            //     use super::gcoap::GcoapMemoState;
             //     let (cb_ptr, out) = arg_from::<GcoapMemoState>(arg_ptr);
             //     call(cb_ptr, out);
             // },

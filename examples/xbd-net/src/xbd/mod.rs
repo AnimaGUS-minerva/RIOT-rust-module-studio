@@ -105,24 +105,28 @@ impl Xbd {
         }
     }
 
+    // todo REMOVE
     pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
         Self::gcoap_req(addr, uri, COAP_METHOD_GET, None, false, None, cb);
     }
 
-    pub fn gcoap_get_v2(addr: &str, uri: &str, finale_ptr: *mut Finale) { // !!!!
+    pub fn gcoap_get_v2(addr: &str, uri: &str, finale_ptr: *mut Finale) {
         Self::gcoap_req_v2(addr, uri, COAP_METHOD_GET, None, false, None, finale_ptr);
     }
 
     pub fn gcoap_get_blockwise<F>(addr: &str, uri: &str, blockwise_state_index: usize, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
         Self::gcoap_req(addr, uri, COAP_METHOD_GET, None, true, Some(blockwise_state_index), cb);
+        // TODO -> v2
     }
 
     pub fn gcoap_post<F>(addr: &str, uri: &str, payload: &[u8], cb: F) where F: FnOnce(GcoapMemoState) + 'static {
         Self::gcoap_req(addr, uri, gcoap::COAP_METHOD_POST, Some(payload), false, None, cb);
+        // TODO -> v2
     }
 
     pub fn gcoap_put<F>(addr: &str, uri: &str, payload: &[u8], cb: F) where F: FnOnce(GcoapMemoState) + 'static {
         Self::gcoap_req(addr, uri, gcoap::COAP_METHOD_PUT, Some(payload), false, None, cb);
+        // TODO -> v2
     }
 
     fn gcoap_req<F>(addr: &str, uri: &str, method: gcoap::CoapMethod,
@@ -154,9 +158,10 @@ impl Xbd {
                 Self::gcoap_req_resp_handler as *const c_void);
         }
     }
+
     fn gcoap_req_v2(addr: &str, uri: &str, method: gcoap::CoapMethod,
                    payload: Option<&[u8]>, blockwise: bool, blockwise_state_index: Option<usize>,
-                   finale_ptr: *mut Finale) { // !!!!
+                   finale_ptr: *mut Finale) {
         let payload_ptr = payload.map_or(core::ptr::null(), |payload| payload.as_ptr());
         let payload_len = payload.map_or(0, |payload| payload.len());
 
@@ -172,15 +177,6 @@ impl Xbd {
             *const u8, *const u8, u8,
             *const u8, usize, bool, usize, *const c_void, *const c_void);
 
-        if 0 == 1 {// waypoint, ok
-            let (waker, hv) = unsafe { &mut *finale_ptr };
-            hv.push(42).unwrap();
-            hv.push(42+1).unwrap();
-            hv.push(42+2).unwrap();
-            waker.wake();
-            return;
-        }
-
         assert_eq!(blockwise, blockwise_state_index.is_some());
         unsafe {
             (get_xbd_fn!("xbd_gcoap_req_send", Ty))(
@@ -188,13 +184,16 @@ impl Xbd {
                 uri_cstr.as_ptr(),
                 method, payload_ptr, payload_len,
                 blockwise, blockwise_state_index.unwrap_or(0 /* to be ignored */),
-                //callback::into_raw(cb), // context !!!!
-                finale_ptr as *const c_void, // context !!!! WIP
-                Self::gcoap_req_resp_handler as *const c_void);
+                finale_ptr as *const c_void, // context
+                Self::gcoap_req_resp_handler_v2 as *const c_void);
         }
     }
 
-    fn gcoap_req_resp_handler(memo: *const c_void, pdu: *const c_void, remote: *const c_void) {
+    fn gcoap_req_resp_handler(_memo: *const c_void, _pdu: *const c_void, _remote: *const c_void) {
+        panic!("BUILD SHIM");
+    }
+
+    fn gcoap_req_resp_handler_v2(memo: *const c_void, pdu: *const c_void, remote: *const c_void) {
         let mut context: *const c_void = core::ptr::null_mut();
         let mut payload_ptr: *const u8 = core::ptr::null_mut();
         let mut payload_len: usize = 0;
@@ -207,20 +206,20 @@ impl Xbd {
                 (&mut context) as *mut *const c_void as *mut c_void) };
 
         let payload = if payload_len > 0 {
-            Some(u8_slice_from(payload_ptr, payload_len).to_vec()) // !!!!
+            let hvec: gcoap::PayloadOut = heapless::Vec::from_slice(
+                u8_slice_from(payload_ptr, payload_len)).unwrap();
+            Some(hvec)
         } else {
             assert_eq!(payload_ptr, core::ptr::null_mut());
             None
         };
-        let out = GcoapMemoState::new(memo_state, payload);
+        let memo = GcoapMemoState::new(memo_state, payload);
 
         // add_xbd_gcoap_req_callback(
         //     Box::into_raw(Box::new((context /* cb_ptr */, out))) as *const c_void); // arg_ptr
-        //==== !!!! TODO hv <<<< out, heepless--ly
-        let (waker, hv) = unsafe { &mut *(context as *mut Finale) };
-        hv.push(42).unwrap();
-        hv.push(42+1).unwrap();
-        hv.push(42+2).unwrap();
+        //==== !!!! v2
+        let (waker, out) = unsafe { &mut *(context as *mut Finale) };
+        out.replace(memo);
         waker.wake();
     }
 
