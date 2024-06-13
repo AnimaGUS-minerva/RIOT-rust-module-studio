@@ -126,8 +126,14 @@ async fn test_async_sleep() {
     println!("test_async_sleep(): $$");
 }
 
-async fn test_async_blockwise_get() {
-    println!("test_async_blockwise_get(): ^^");
+async fn test_blockwise_all() {
+    println!("test_blockwise_all(): ^^");
+    crate::test_blockwise("[::1]:5683").await.unwrap();
+    println!("test_blockwise_all(): $$");
+}
+
+async fn test_async_blockwise() {
+    println!("test_async_blockwise(): ^^");
 
     let mut bs = crate::Xbd::async_gcoap_get_blockwise(
         "[::1]:5683", "/const/song.txt").unwrap();
@@ -135,13 +141,15 @@ async fn test_async_blockwise_get() {
         println!("@@ out: {:?}", req.await);
     }
 
-    println!("test_async_blockwise_get(): $$");
+    println!("test_async_blockwise(): $$");
 }
 
 async fn test_heapless_req() {
     println!("test_heapless_req(): ^^");
-    let out = crate::Xbd::async_gcoap_get("[::1]", "/.well-known/core").await;
-    println!("@@ out: {:?}", out);
+    println!("-------- out-0:");
+    println!("{:?}", crate::Xbd::async_gcoap_get("[::1]", "/.well-known/core").await);
+    println!("-------- out-1:");
+    println!("{:?}", crate::Xbd::async_gcoap_get("[::1]", "/cli/stats").await);
     println!("test_heapless_req(): $$");
 }
 
@@ -162,6 +170,7 @@ const ARRAY_ALIAS_ENUMERATED: &[&str] = &[
 
 const ARRAY_ALIAS_FUNCTION: &[&str] = &[
     "f",
+    "b",
     "f0",
     "f1",
     "f2",
@@ -172,9 +181,10 @@ const ARRAY_ALIAS_FUNCTION: &[&str] = &[
 async fn run_function_alias(name: &str) {
     match name {
         "f" => test_heapless_req().await, // !!!!
+        "b" => test_blockwise_all().await, // nn | a debug, b
         "f0" => (|| println!("hello world!"))(),
         "f1" => test_async_sleep().await,
-        "f2" => test_async_blockwise_get().await,
+        "f2" => test_async_blockwise().await,
         "f3" => crate::test_blockwise("[::1]:5683").await.unwrap(),
         _ => println!("function alias [{}] is not defined!", name),
     }
