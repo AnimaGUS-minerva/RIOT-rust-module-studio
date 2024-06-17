@@ -111,9 +111,9 @@ impl Future for Req {
 //
 
 #[derive(Debug)]// !!!! V1
-pub struct Progress(Option<AtomicWaker>, pub Option<AtomicWaker>, pub Option<GcoapMemoState>);
+pub struct Progress<T>(Option<AtomicWaker>, pub Option<AtomicWaker>, pub Option<T>);
 
-impl Progress {
+impl<T> Progress<T> {
     pub fn new() -> Self {
         Self(Some(AtomicWaker::new()), None, None)
     }
@@ -130,18 +130,24 @@ impl Progress {
         self.1.replace(waker);
     }
 
-    pub fn finish(&mut self, memo: GcoapMemoState) {
+    pub fn resolve(&mut self, ret: T) {
         assert!(self.0.is_none() && self.1.is_some() && self.2.is_none()); // registered
 
-        self.2.replace(memo);
+        self.2.replace(ret);
         self.1.take().unwrap().wake();
+    }
+
+    pub fn take(&mut self) -> T {
+        assert!(self.0.is_none() && self.1.is_none() && self.2.is_some()); // resolved
+
+        self.2.take().unwrap()
     }
 
     pub fn as_mut_ptr(&self) -> *mut Self {
         self as *const _ as *mut _
     }
 
-    pub fn get_ref_mut(ptr: *mut Self) -> &'static mut Self {
+    pub fn get_mut_ref(ptr: *mut Self) -> &'static mut Self {
         unsafe { &mut *ptr }
     }
 }
@@ -155,7 +161,7 @@ pub struct ReqInner {
     blockwise: bool,
     blockwise_state_index: Option<usize>,
     blockwise_hdr: Option<heapless::Vec<u8, BLOCKWISE_HDR_MAX>>,
-    progress: Progress,
+    progress: Progress<GcoapMemoState>,
 }
 
 impl ReqInner {
@@ -177,12 +183,12 @@ impl ReqInner {
     }
 }
 
-fn gcoap_get(addr: &str, uri: &str, progress_ptr: *mut Progress) {
+fn gcoap_get(addr: &str, uri: &str, progress_ptr: *mut Progress<GcoapMemoState>) {
     super::Xbd::gcoap_req_v2(addr, uri, COAP_METHOD_GET, None, false,
                              None, progress_ptr);
 }
 
-fn gcoap_get_blockwise(addr: &str, uri: &str, blockwise_state_index: usize, progress_ptr: *mut Progress) {
+fn gcoap_get_blockwise(addr: &str, uri: &str, blockwise_state_index: usize, progress_ptr: *mut Progress<GcoapMemoState>) {
     super::Xbd::gcoap_req_v2(addr, uri, COAP_METHOD_GET, None, true,
                              Some(blockwise_state_index), progress_ptr);
 }
@@ -239,8 +245,7 @@ impl Future for ReqInner {
 
             Poll::Pending
         } else {
-            let out = self.progress.2.take().unwrap();
-            Poll::Ready(out)
+            Poll::Ready(self.progress.take())
         }
     }
 }

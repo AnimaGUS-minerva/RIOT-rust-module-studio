@@ -108,7 +108,7 @@ impl Xbd {
     // TODO move to 'gcoap.rs'
     fn gcoap_req_v2(addr: &str, uri: &str, method: gcoap::CoapMethod,
                    payload: Option<&[u8]>, blockwise: bool, blockwise_state_index: Option<usize>,
-                   progress_ptr: *mut Progress) {
+                   progress_ptr: *mut Progress<GcoapMemoState>) {
         let payload_ptr = payload.map_or(core::ptr::null(), |payload| payload.as_ptr());
         let payload_len = payload.map_or(0, |payload| payload.len());
 
@@ -159,7 +159,7 @@ impl Xbd {
         };
 
         let memo = GcoapMemoState::new(memo_state, payload);
-        Progress::get_ref_mut(context as *mut _).finish(memo);
+        Progress::get_mut_ref(context as *mut _).resolve(memo);
     }
 
     pub fn async_sleep(msec: u32) -> impl Future<Output = ()> + 'static {
