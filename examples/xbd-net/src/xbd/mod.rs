@@ -23,7 +23,7 @@ mod timeout;
 use timeout::Timeout;
 
 mod gcoap;
-use gcoap::{COAP_METHOD_GET, REQ_ADDR_MAX, REQ_URI_MAX, Finale};
+use gcoap::{COAP_METHOD_GET, REQ_ADDR_MAX, REQ_URI_MAX, Progress};
 pub use gcoap::GcoapMemoState;
 
 use core::future::Future;
@@ -105,63 +105,10 @@ impl Xbd {
         }
     }
 
-    // todo REMOVE
-    pub fn gcoap_get<F>(addr: &str, uri: &str, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
-        Self::gcoap_req(addr, uri, COAP_METHOD_GET, None, false, None, cb);
-    }
-
-    pub fn gcoap_get_v2(addr: &str, uri: &str, finale_ptr: *mut Finale) {
-        Self::gcoap_req_v2(addr, uri, COAP_METHOD_GET, None, false, None, finale_ptr);
-    }
-
-    pub fn gcoap_get_blockwise<F>(addr: &str, uri: &str, blockwise_state_index: usize, cb: F) where F: FnOnce(GcoapMemoState) + 'static {
-        Self::gcoap_req(addr, uri, COAP_METHOD_GET, None, true, Some(blockwise_state_index), cb);
-        // TODO -> v2
-    }
-
-    pub fn gcoap_post<F>(addr: &str, uri: &str, payload: &[u8], cb: F) where F: FnOnce(GcoapMemoState) + 'static {
-        Self::gcoap_req(addr, uri, gcoap::COAP_METHOD_POST, Some(payload), false, None, cb);
-        // TODO -> v2
-    }
-
-    pub fn gcoap_put<F>(addr: &str, uri: &str, payload: &[u8], cb: F) where F: FnOnce(GcoapMemoState) + 'static {
-        Self::gcoap_req(addr, uri, gcoap::COAP_METHOD_PUT, Some(payload), false, None, cb);
-        // TODO -> v2
-    }
-
-    fn gcoap_req<F>(addr: &str, uri: &str, method: gcoap::CoapMethod,
-                    payload: Option<&[u8]>, blockwise: bool, blockwise_state_index: Option<usize>, cb: F)
-        where F: FnOnce(GcoapMemoState) + 'static {
-        let payload_ptr = payload.map_or(core::ptr::null(), |payload| payload.as_ptr());
-        let payload_len = payload.map_or(0, |payload| payload.len());
-
-        let mut addr_cstr = heapless::String::<{ REQ_ADDR_MAX + 1 }>::new();
-        addr_cstr.push_str(addr).unwrap();
-        addr_cstr.push('\0').unwrap();
-
-        let mut uri_cstr = heapless::String::<{ REQ_URI_MAX + 1 }>::new();
-        uri_cstr.push_str(uri).unwrap();
-        uri_cstr.push('\0').unwrap();
-
-        type Ty = unsafe extern "C" fn(
-            *const u8, *const u8, u8,
-            *const u8, usize, bool, usize, *const c_void, *const c_void);
-
-        assert_eq!(blockwise, blockwise_state_index.is_some());
-        unsafe {
-            (get_xbd_fn!("xbd_gcoap_req_send", Ty))(
-                addr_cstr.as_ptr(),
-                uri_cstr.as_ptr(),
-                method, payload_ptr, payload_len,
-                blockwise, blockwise_state_index.unwrap_or(0 /* to be ignored */),
-                callback::into_raw(cb), // context
-                Self::gcoap_req_resp_handler as *const c_void);
-        }
-    }
-
+    // TODO move to 'gcoap.rs'
     fn gcoap_req_v2(addr: &str, uri: &str, method: gcoap::CoapMethod,
                    payload: Option<&[u8]>, blockwise: bool, blockwise_state_index: Option<usize>,
-                   finale_ptr: *mut Finale) {
+                   progress_ptr: *mut Progress) {
         let payload_ptr = payload.map_or(core::ptr::null(), |payload| payload.as_ptr());
         let payload_len = payload.map_or(0, |payload| payload.len());
 
@@ -184,15 +131,12 @@ impl Xbd {
                 uri_cstr.as_ptr(),
                 method, payload_ptr, payload_len,
                 blockwise, blockwise_state_index.unwrap_or(0 /* to be ignored */),
-                finale_ptr as *const c_void, // context
+                progress_ptr as *const c_void, // context
                 Self::gcoap_req_resp_handler_v2 as *const c_void);
         }
     }
 
-    fn gcoap_req_resp_handler(_memo: *const c_void, _pdu: *const c_void, _remote: *const c_void) {
-        panic!("BUILD SHIM");
-    }
-
+    // TODO move to 'gcoap.rs'
     fn gcoap_req_resp_handler_v2(memo: *const c_void, pdu: *const c_void, remote: *const c_void) {
         let mut context: *const c_void = core::ptr::null_mut();
         let mut payload_ptr: *const u8 = core::ptr::null_mut();
@@ -213,14 +157,9 @@ impl Xbd {
             assert_eq!(payload_ptr, core::ptr::null_mut());
             None
         };
-        let memo = GcoapMemoState::new(memo_state, payload);
 
-        // add_xbd_gcoap_req_callback(
-        //     Box::into_raw(Box::new((context /* cb_ptr */, out))) as *const c_void); // arg_ptr
-        //==== !!!! v2
-        let (waker, out) = unsafe { &mut *(context as *mut Finale) };
-        out.replace(memo);
-        waker.wake();
+        let memo = GcoapMemoState::new(memo_state, payload);
+        Progress::get_ref_mut(context as *mut _).finish(memo);
     }
 
     pub fn async_sleep(msec: u32) -> impl Future<Output = ()> + 'static {

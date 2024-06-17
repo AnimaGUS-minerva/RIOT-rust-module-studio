@@ -1,4 +1,4 @@
-use core::{future::Future, pin::Pin, task::{Context, Poll}};
+use core::{future::Future, pin::Pin, task::{Context, Poll, Waker}};
 use futures_util::task::AtomicWaker;
 use super::{BlockwiseData, BLOCKWISE_HDR_MAX};
 
@@ -110,7 +110,41 @@ impl Future for Req {
 
 //
 
-pub type Finale = (AtomicWaker, Option<GcoapMemoState>);
+#[derive(Debug)]// !!!! V1
+pub struct Progress(Option<AtomicWaker>, pub Option<AtomicWaker>, pub Option<GcoapMemoState>);
+
+impl Progress {
+    pub fn new() -> Self {
+        Self(Some(AtomicWaker::new()), None, None)
+    }
+
+    pub fn is_new(&self) -> bool {
+        self.0.is_some() && self.1.is_none() && self.2.is_none()
+    }
+
+    pub fn register(&mut self, cx_waker: &Waker) {
+        assert!(self.is_new());
+
+        let waker = self.0.take().unwrap();
+        waker.register(cx_waker);
+        self.1.replace(waker);
+    }
+
+    pub fn finish(&mut self, memo: GcoapMemoState) {
+        assert!(self.0.is_none() && self.1.is_some() && self.2.is_none()); // registered
+
+        self.2.replace(memo);
+        self.1.take().unwrap().wake();
+    }
+
+    pub fn as_mut_ptr(&self) -> *mut Self {
+        self as *const _ as *mut _
+    }
+
+    pub fn get_ref_mut(ptr: *mut Self) -> &'static mut Self {
+        unsafe { &mut *ptr }
+    }
+}
 
 #[derive(Debug)]
 pub struct ReqInner {
@@ -121,8 +155,7 @@ pub struct ReqInner {
     blockwise: bool,
     blockwise_state_index: Option<usize>,
     blockwise_hdr: Option<heapless::Vec<u8, BLOCKWISE_HDR_MAX>>,
-    _waker: Option<AtomicWaker>,
-    finale: Option<Finale>,
+    progress: Progress,
 }
 
 impl ReqInner {
@@ -139,26 +172,41 @@ impl ReqInner {
             blockwise,
             blockwise_state_index,
             blockwise_hdr,
-            _waker: Some(AtomicWaker::new()),
-            finale: None,
+            progress: Progress::new(),
         }
     }
+}
+
+fn gcoap_get(addr: &str, uri: &str, progress_ptr: *mut Progress) {
+    super::Xbd::gcoap_req_v2(addr, uri, COAP_METHOD_GET, None, false,
+                             None, progress_ptr);
+}
+
+fn gcoap_get_blockwise(addr: &str, uri: &str, blockwise_state_index: usize, progress_ptr: *mut Progress) {
+    super::Xbd::gcoap_req_v2(addr, uri, COAP_METHOD_GET, None, true,
+                             Some(blockwise_state_index), progress_ptr);
+}
+
+fn gcoap_post<F>(addr: &str, uri: &str, payload: &[u8], cb: F) where F: FnOnce(GcoapMemoState) + 'static {
+    //Self::gcoap_req(addr, uri, COAP_METHOD_POST, Some(payload), false, None, cb);
+    // 11TODO -> v2; plus test via [shell.rs] `test_heapless_req().await` now at ????
+//    super::Xbd::gcoap_req_v2(addr, uri, xxxx);
+}
+
+fn gcoap_put<F>(addr: &str, uri: &str, payload: &[u8], cb: F) where F: FnOnce(GcoapMemoState) + 'static {
+    //Self::gcoap_req(addr, uri, COAP_METHOD_PUT, Some(payload), false, None, cb);
+    // 11TODO -> v2; plus test via [shell.rs] `test_heapless_req().await` now at ????
+//    super::Xbd::gcoap_req_v2(addr, uri, xxxx);
 }
 
 impl Future for ReqInner {
     type Output = GcoapMemoState;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<<Self as Future>::Output> {
-        if let Some(_waker) = self._waker.take() {
-            _waker.register(&cx.waker());
+        if self.progress.is_new() {
+            self.progress.register(&cx.waker());
 
-            //let outc = self.out.clone();
-            let cb = move |_out| {
-                //outc.borrow_mut().replace(_out);
-                //_waker.wake();
-                //==== !!!!
-                panic!("BUILD SHIM");
-            };
+            let cb = |_| panic!("BUILD SHIM"); // !!!! !!!!
             match self.method {
                 COAP_METHOD_GET => {
                     if self.blockwise {
@@ -171,33 +219,28 @@ impl Future for ReqInner {
                                 self.uri.as_bytes(),
                                 self.blockwise_hdr.as_deref());
 
-                            super::Xbd::gcoap_get_blockwise(&self.addr, &self.uri, idx, cb);
+                            gcoap_get_blockwise(&self.addr, &self.uri, idx,
+                                                self.progress.as_mut_ptr());
                         } else { // blockwise stream could be already closed
                             BlockwiseData::set_state_last(None);
 
                             return Poll::Ready(GcoapMemoState::Err)
                         }
                     } else {
-                        //super::Xbd::gcoap_get(&self.addr, &self.uri, cb);
-                        //==== !!!! v2
-                        self.finale.replace((_waker, None));
-                        super::Xbd::gcoap_get_v2(&self.addr, &self.uri,
-                            self.finale.as_ref().unwrap() as *const Finale as *mut _);
+                        gcoap_get(&self.addr, &self.uri, self.progress.as_mut_ptr());
                     }
                 },
-                COAP_METHOD_POST => super::Xbd::gcoap_post(// TODO -> v2
+                COAP_METHOD_POST => gcoap_post(// 11TODO -> v2
                     &self.addr, &self.uri, self.payload.as_ref().unwrap().as_slice(), cb),
-                COAP_METHOD_PUT => super::Xbd::gcoap_put(// TODO -> v2
+                COAP_METHOD_PUT => gcoap_put(// 11TODO -> v2
                     &self.addr, &self.uri, self.payload.as_ref().unwrap().as_slice(), cb),
                 _ => todo!(),
             }
 
             Poll::Pending
         } else {
-            //Poll::Ready(self.out.take().unwrap())
-            //==== v2
-            let (_, out) = self.finale.take().unwrap();
-            Poll::Ready(out.unwrap())
+            let out = self.progress.2.take().unwrap();
+            Poll::Ready(out)
         }
     }
 }
