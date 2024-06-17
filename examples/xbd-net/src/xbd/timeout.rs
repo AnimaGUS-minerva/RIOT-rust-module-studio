@@ -21,7 +21,7 @@ impl Future for Timeout {
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<<Self as Future>::Output> {
         if let Some(_waker) = self._waker.take() {
-            _waker.register(&cx.waker());
+            _waker.register(cx.waker());
 
             super::Xbd::set_timeout(self.msec, move |_| {
                 _waker.wake();

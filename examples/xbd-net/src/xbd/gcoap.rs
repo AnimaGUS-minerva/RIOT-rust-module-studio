@@ -204,7 +204,7 @@ impl Future for ReqInner {
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<<Self as Future>::Output> {
         if self.progress.is_new() {
-            self.progress.register(&cx.waker());
+            self.progress.register(cx.waker());
 
             let cb = |_| panic!("BUILD SHIM"); // !!!! !!!!
             match self.method {
