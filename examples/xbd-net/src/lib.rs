@@ -119,30 +119,6 @@ async fn xbd_main() -> Result<(), i8> {
             panic!("ok");
         }
 
-        if 10 == 1 {
-            let _out = Xbd::async_gcoap_post(addr_self, "/cli/stats", b"3000").await; // static lifetime payload
-            //--
-            use mcu_if::alloc::string::ToString;
-            let payload = "4000".to_string(); // non-static lifetime payload
-            //--
-            let _out = Xbd::async_gcoap_post(addr_self, "/cli/stats", payload.as_bytes()).await;
-            println!("@@ out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
-            panic!("ok");
-        }
-
-        if 10 == 1 {
-            let _out = Xbd::async_gcoap_put(addr_self, "/cli/stats", b"1000").await; // static lifetime payload
-            //--
-            use mcu_if::alloc::string::ToString;
-            let payload = "2000".to_string(); // non-static lifetime payload
-            //--
-            let _out = Xbd::async_gcoap_put(addr_self, "/cli/stats", payload.as_bytes()).await;
-            println!("@@ out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
-            panic!("ok");
-        }
-
-        // TODO async gcoap ping
-
         if 0 == 1 { // fileserver, blockwise, stream
             test_blockwise(addr_self).await.unwrap();
             panic!("debug ok"); // !!!!

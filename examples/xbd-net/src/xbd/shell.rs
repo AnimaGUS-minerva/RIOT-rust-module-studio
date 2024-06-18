@@ -120,41 +120,6 @@ fn prompt_is_ready() -> Option<XStream<ShellBuf, SHELL_STREAM_SIZE>> {
 
 //
 
-async fn test_async_sleep() {
-    println!("test_async_sleep(): ^^");
-    crate::Xbd::async_sleep(2_000).await;
-    println!("test_async_sleep(): $$");
-}
-
-async fn test_blockwise_all() {
-    println!("test_blockwise_all(): ^^");
-    crate::test_blockwise("[::1]:5683").await.unwrap();
-    println!("test_blockwise_all(): $$");
-}
-
-async fn test_async_blockwise() {
-    println!("test_async_blockwise(): ^^");
-
-    let mut bs = crate::Xbd::async_gcoap_get_blockwise(
-        "[::1]:5683", "/const/song.txt").unwrap();
-    while let Some(req) = bs.next().await {
-        println!("@@ out: {:?}", req.await);
-    }
-
-    println!("test_async_blockwise(): $$");
-}
-
-async fn test_heapless_req() {
-    println!("test_heapless_req(): ^^");
-    println!("-------- out-0:");
-    println!("{:?}", crate::Xbd::async_gcoap_get("[::1]", "/.well-known/core").await);
-    println!("-------- out-1:");
-    println!("{:?}", crate::Xbd::async_gcoap_get("[::1]", "/cli/stats").await);
-    println!("test_heapless_req(): $$");
-}
-
-//
-
 const ARRAY_ALIAS_NAMED: &[(&str, &str)] = &[
     ("a", "alias"),
     ("h", "help"),
@@ -232,4 +197,53 @@ async fn match_alias(line: &mut ShellBuf) -> bool {
     }
 
     false
+}
+
+//
+
+async fn test_async_sleep() {
+    println!("test_async_sleep(): ^^");
+    crate::Xbd::async_sleep(2_000).await;
+    println!("test_async_sleep(): $$");
+}
+
+async fn test_blockwise_all() {
+    println!("test_blockwise_all(): ^^");
+    crate::test_blockwise("[::1]:5683").await.unwrap();
+    println!("test_blockwise_all(): $$");
+}
+
+async fn test_async_blockwise() {
+    println!("test_async_blockwise(): ^^");
+
+    let mut bs = crate::Xbd::async_gcoap_get_blockwise(
+        "[::1]:5683", "/const/song.txt").unwrap();
+    while let Some(req) = bs.next().await {
+        println!("@@ out: {:?}", req.await);
+    }
+
+    println!("test_async_blockwise(): $$");
+}
+
+async fn test_heapless_req() {
+    println!("test_heapless_req(): ^^");
+
+    use crate::Xbd;
+
+    println!("-------- out-0:");
+    println!("{:?}", Xbd::async_gcoap_get("[::1]", "/.well-known/core").await);
+    println!("-------- out-1:");
+    println!("{:?}", Xbd::async_gcoap_get("[::1]", "/cli/stats").await);
+
+    let addr_self = "[::1]:5683";
+    println!("-------- out-2:");
+    let _ = Xbd::async_gcoap_post(addr_self, "/cli/stats", b"3000").await;
+    println!("{:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
+    println!("-------- out-3:");
+    let _ = Xbd::async_gcoap_put(addr_self, "/cli/stats", b"1000").await;
+    println!("{:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
+
+    // TODO async gcoap ping
+
+    println!("test_heapless_req(): $$");
 }
