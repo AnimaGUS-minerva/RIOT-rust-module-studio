@@ -13,7 +13,7 @@ fn alloc_error(layout: mcu_if::alloc::alloc::Layout) -> ! { mcu_if::alloc_error(
 use mcu_if::{println, alloc::boxed::Box};
 
 mod xbd;
-use xbd::{Xbd, XbdFnsEnt, GcoapMemoState};
+use xbd::{Xbd, XbdFnsEnt, gcoap::GcoapMemoState};
 
 mod blogos12;
 mod embassy;

@@ -1,6 +1,8 @@
 use core::{future::Future, pin::Pin, task::{Context, Poll, Waker}};
+use core::ffi::c_void;
 use futures_util::task::AtomicWaker;
 use super::{BlockwiseData, BLOCKWISE_HDR_MAX};
+use mcu_if::utils::u8_slice_from;
 
 pub const REQ_ADDR_MAX: usize = 64;
 pub const REQ_URI_MAX: usize = 64;
@@ -9,7 +11,7 @@ const PAYLOAD_REQ_MAX: usize = 48;
 const PAYLOAD_OUT_MAX: usize = 128;
 
 type PayloadReq = heapless::Vec<u8, PAYLOAD_REQ_MAX>;
-pub type PayloadOut = heapless::Vec<u8, PAYLOAD_OUT_MAX>;
+type PayloadOut = heapless::Vec<u8, PAYLOAD_OUT_MAX>;
 
 //
 // gcoap client
@@ -62,7 +64,7 @@ impl GcoapMemoState {
 #define COAP_METHOD_IPATCH      (7)
 */
 
-pub type CoapMethod = u8;
+type CoapMethod = u8;
 pub const COAP_METHOD_GET      : CoapMethod = 0x01;
 pub const COAP_METHOD_POST     : CoapMethod = 0x02;
 pub const COAP_METHOD_PUT      : CoapMethod = 0x03;
@@ -159,6 +161,8 @@ impl<T> Progress<T> {
     }
 }
 
+//
+
 #[derive(Debug)]
 pub struct ReqInner {
     method: CoapMethod,
@@ -188,26 +192,6 @@ impl ReqInner {
             progress: Progress::new(),
         }
     }
-}
-
-fn gcoap_get(addr: &str, uri: &str, progress_ptr: *mut Progress<GcoapMemoState>) {
-    super::Xbd::gcoap_req_v2(addr, uri, COAP_METHOD_GET, None, false,
-                             None, progress_ptr);
-}
-
-fn gcoap_get_blockwise(addr: &str, uri: &str, blockwise_state_index: usize, progress_ptr: *mut Progress<GcoapMemoState>) {
-    super::Xbd::gcoap_req_v2(addr, uri, COAP_METHOD_GET, None, true,
-                             Some(blockwise_state_index), progress_ptr);
-}
-
-fn gcoap_post(addr: &str, uri: &str, payload: &[u8], progress_ptr: *mut Progress<GcoapMemoState>) {
-    super::Xbd::gcoap_req_v2(addr, uri, COAP_METHOD_POST, Some(payload), false,
-                             None, progress_ptr);
-}
-
-fn gcoap_put(addr: &str, uri: &str, payload: &[u8], progress_ptr: *mut Progress<GcoapMemoState>) {
-    super::Xbd::gcoap_req_v2(addr, uri, COAP_METHOD_PUT, Some(payload), false,
-                             None, progress_ptr);
 }
 
 impl Future for ReqInner {
@@ -256,4 +240,83 @@ impl Future for ReqInner {
 
 unsafe impl Send for ReqInner {
     // !!!! !!!!
+}
+
+//
+
+fn gcoap_get(addr: &str, uri: &str, progress_ptr: *mut Progress<GcoapMemoState>) {
+    gcoap_req(addr, uri, COAP_METHOD_GET, None, false, None, progress_ptr);
+}
+
+fn gcoap_get_blockwise(addr: &str, uri: &str, blockwise_state_index: usize, progress_ptr: *mut Progress<GcoapMemoState>) {
+    gcoap_req(addr, uri, COAP_METHOD_GET, None, true, Some(blockwise_state_index), progress_ptr);
+}
+
+fn gcoap_post(addr: &str, uri: &str, payload: &[u8], progress_ptr: *mut Progress<GcoapMemoState>) {
+    gcoap_req(addr, uri, COAP_METHOD_POST, Some(payload), false, None, progress_ptr);
+}
+
+fn gcoap_put(addr: &str, uri: &str, payload: &[u8], progress_ptr: *mut Progress<GcoapMemoState>) {
+    gcoap_req(addr, uri, COAP_METHOD_PUT, Some(payload), false, None, progress_ptr);
+}
+
+fn gcoap_req(addr: &str, uri: &str, method: CoapMethod,
+    payload: Option<&[u8]>, blockwise: bool, blockwise_state_index: Option<usize>,
+    progress_ptr: *mut Progress<GcoapMemoState>) {
+    let payload_ptr = payload.map_or(core::ptr::null(), |payload| payload.as_ptr());
+    let payload_len = payload.map_or(0, |payload| payload.len());
+
+    let mut addr_cstr = heapless::String::<{ REQ_ADDR_MAX + 1 }>::new();
+    addr_cstr.push_str(addr).unwrap();
+    addr_cstr.push('\0').unwrap();
+
+    let mut uri_cstr = heapless::String::<{ REQ_URI_MAX + 1 }>::new();
+    uri_cstr.push_str(uri).unwrap();
+    uri_cstr.push('\0').unwrap();
+
+    type Ty = unsafe extern "C" fn(
+        *const u8, *const u8, u8,
+        *const u8, usize, bool, usize, *const c_void, *const c_void);
+
+    assert_eq!(blockwise, blockwise_state_index.is_some());
+    unsafe {
+        (crate::get_xbd_fn!("xbd_gcoap_req_send", Ty))(
+            addr_cstr.as_ptr(),
+            uri_cstr.as_ptr(),
+            method, payload_ptr, payload_len,
+            blockwise, blockwise_state_index.unwrap_or(0 /* to be ignored */),
+            progress_ptr as *const c_void, // context
+            gcoap_req_resp_handler as *const c_void);
+    }
+}
+
+fn gcoap_req_resp_handler(memo: *const c_void, pdu: *const c_void, remote: *const c_void) {
+    extern "C" {
+        fn xbd_resp_handler(
+            memo: *const c_void, pdu: *const c_void, remote: *const c_void,
+            payload: *mut c_void, payload_len: *mut c_void, context: *mut c_void) -> u8;
+    }
+
+    let mut context: *const c_void = core::ptr::null_mut();
+    let mut payload_ptr: *const u8 = core::ptr::null_mut();
+    let mut payload_len: usize = 0;
+
+    let memo_state = unsafe {
+        xbd_resp_handler(
+            memo, pdu, remote,
+            (&mut payload_ptr) as *mut *const u8 as *mut c_void,
+            (&mut payload_len) as *mut usize as *mut c_void,
+            (&mut context) as *mut *const c_void as *mut c_void) };
+
+    let payload = if payload_len > 0 {
+        let hvec: PayloadOut = heapless::Vec::from_slice(
+            u8_slice_from(payload_ptr, payload_len)).unwrap();
+        Some(hvec)
+    } else {
+        assert_eq!(payload_ptr, core::ptr::null_mut());
+        None
+    };
+
+    let memo = GcoapMemoState::new(memo_state, payload);
+    Progress::get_mut_ref(context as *mut _).resolve(memo);
 }
