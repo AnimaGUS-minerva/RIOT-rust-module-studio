@@ -110,8 +110,15 @@ impl Future for Req {
 
 //
 
-#[derive(Debug)]// !!!! V1
+#[derive(Debug)]
 pub struct Progress<T>(Option<AtomicWaker>, pub Option<AtomicWaker>, pub Option<T>);
+
+#[derive(Debug)]
+pub enum ProgressV2<T> {
+    New,
+    Registered,
+    Resolved(T),
+}
 
 impl<T> Progress<T> {
     pub fn new() -> Self {
@@ -193,16 +200,14 @@ fn gcoap_get_blockwise(addr: &str, uri: &str, blockwise_state_index: usize, prog
                              Some(blockwise_state_index), progress_ptr);
 }
 
-fn gcoap_post<F>(addr: &str, uri: &str, payload: &[u8], cb: F) where F: FnOnce(GcoapMemoState) + 'static {
-    //Self::gcoap_req(addr, uri, COAP_METHOD_POST, Some(payload), false, None, cb);
-    // 11TODO -> v2; plus test via [shell.rs] `test_heapless_req().await` now at ????
-//    super::Xbd::gcoap_req_v2(addr, uri, xxxx);
+fn gcoap_post(addr: &str, uri: &str, payload: &[u8], progress_ptr: *mut Progress<GcoapMemoState>) {
+    super::Xbd::gcoap_req_v2(addr, uri, COAP_METHOD_POST, Some(payload), false,
+                             None, progress_ptr);
 }
 
-fn gcoap_put<F>(addr: &str, uri: &str, payload: &[u8], cb: F) where F: FnOnce(GcoapMemoState) + 'static {
-    //Self::gcoap_req(addr, uri, COAP_METHOD_PUT, Some(payload), false, None, cb);
-    // 11TODO -> v2; plus test via [shell.rs] `test_heapless_req().await` now at ????
-//    super::Xbd::gcoap_req_v2(addr, uri, xxxx);
+fn gcoap_put(addr: &str, uri: &str, payload: &[u8], progress_ptr: *mut Progress<GcoapMemoState>) {
+    super::Xbd::gcoap_req_v2(addr, uri, COAP_METHOD_PUT, Some(payload), false,
+                             None, progress_ptr);
 }
 
 impl Future for ReqInner {
@@ -211,8 +216,8 @@ impl Future for ReqInner {
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<<Self as Future>::Output> {
         if self.progress.is_new() {
             self.progress.register(cx.waker());
+            let progress_ptr = self.progress.as_mut_ptr();
 
-            let cb = |_| panic!("BUILD SHIM"); // !!!! !!!!
             match self.method {
                 COAP_METHOD_GET => {
                     if self.blockwise {
@@ -225,21 +230,20 @@ impl Future for ReqInner {
                                 self.uri.as_bytes(),
                                 self.blockwise_hdr.as_deref());
 
-                            gcoap_get_blockwise(&self.addr, &self.uri, idx,
-                                                self.progress.as_mut_ptr());
+                            gcoap_get_blockwise(&self.addr, &self.uri, idx, progress_ptr);
                         } else { // blockwise stream could be already closed
                             BlockwiseData::set_state_last(None);
 
                             return Poll::Ready(GcoapMemoState::Err)
                         }
                     } else {
-                        gcoap_get(&self.addr, &self.uri, self.progress.as_mut_ptr());
+                        gcoap_get(&self.addr, &self.uri, progress_ptr);
                     }
                 },
-                COAP_METHOD_POST => gcoap_post(// 11TODO -> v2
-                    &self.addr, &self.uri, self.payload.as_ref().unwrap().as_slice(), cb),
-                COAP_METHOD_PUT => gcoap_put(// 11TODO -> v2
-                    &self.addr, &self.uri, self.payload.as_ref().unwrap().as_slice(), cb),
+                COAP_METHOD_POST => gcoap_post(
+                    &self.addr, &self.uri, self.payload.as_ref().unwrap().as_slice(), progress_ptr),
+                COAP_METHOD_PUT => gcoap_put(
+                    &self.addr, &self.uri, self.payload.as_ref().unwrap().as_slice(), progress_ptr),
                 _ => todo!(),
             }
 
