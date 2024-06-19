@@ -9,14 +9,15 @@ name = "rustmod"
 crate-type = ["staticlib"]
 
 [dependencies]
-mcu-if = { git = "https://github.com/AnimaGUS-minerva/mcu-if", rev = "254de7d", features=["allocator"] }
-#mcu-if = { path = "crates/mcu-if--debug-alloc", features=["allocator"] }
-crossbeam-queue = { version = "0.3.8", default-features = false, features=["alloc"] }
+mcu-if = { git = "https://github.com/AnimaGUS-minerva/mcu-if", rev = "da77a48", features = [ "allocator" ] }
+#mcu-if = { path = "crates/mcu-if--debug-alloc", features = [ "allocator" ] }
+crossbeam-queue = { version = "0.3.8", default-features = false, features = [ "alloc" ] }
 conquer-once = { version = "0.4.0", default-features = false }
 futures-util = { version = "0.3.4", default-features = false }
 heapless = "0.8"
-embassy-executor = { path = "crates/embassy/embassy-executor", default-features = false, features=["nightly"] }
 
-##embassy-executor = "0.5" ##TODO## undefined reference to `_critical_section_1_0_acquire'
+critical-section = "1.0"
+embassy-executor = { version = "0.5", features = [ "task-arena-size-16384" ] }
+
 ##NG## bindgen fails regarding macros ...  RIOT_CC=clang  RIOT_CFLAGS=   make build-native
   ##riot-wrappers = { version = "0.8", features = [ "set_panic_handler", "provide_critical_section_1_0" ] }

@@ -39,3 +39,28 @@ impl Runtime {
         });
     }
 }
+
+//
+// dummy `critical_section` cf. 'rust-riot-wrappers/src/impl_critical_section.rs'
+//
+
+use critical_section::RawRestoreState;
+
+#[allow(dead_code)]// @@
+struct CriticalSection(usize);
+critical_section::set_impl!(CriticalSection);
+
+unsafe impl critical_section::Impl for CriticalSection {
+    unsafe fn acquire() -> RawRestoreState {
+        // If this fails to compile (because Rust-on-RIOT has gained support for non-32bit
+        // architectures), by that time hopefully critical-section > 1.1.2 has been released, which
+        // has restore-state-usize. Just increment the dependency version and set its feature from
+        // restore-state-u32 to restore-state-usize.
+//@@        unsafe { riot_sys::irq_disable() }
+    }
+
+    #[allow(unused_variables)]// @@
+    unsafe fn release(token: RawRestoreState) {
+//@@        unsafe { riot_sys::irq_restore(token) };
+    }
+}
