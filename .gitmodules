@@ -16,6 +16,3 @@
 [submodule "examples/xbd-net/libcoap"]
 	path = examples/xbd-net/libcoap
 	url = https://github.com/AnimaGUS-minerva/libcoap
-[submodule "examples/xbd-net/crates/embassy"]
-	path = examples/xbd-net/crates/embassy
-	url = https://github.com/AnimaGUS-minerva/embassy
