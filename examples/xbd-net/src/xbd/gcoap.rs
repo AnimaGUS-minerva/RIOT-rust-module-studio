@@ -1,7 +1,6 @@
 use core::{future::Future, pin::Pin, task::{Context, Poll, Waker}};
 use core::ffi::c_void;
 use futures_util::task::AtomicWaker;
-use super::{BlockwiseData, BLOCKWISE_HDR_MAX};
 use mcu_if::utils::u8_slice_from;
 
 pub const REQ_ADDR_MAX: usize = 64;
@@ -75,6 +74,14 @@ const COAP_METHOD_PUT      : CoapMethod = 0x03;
 
 //
 
+pub use super::blockwise::{
+    BlockwiseError, BLOCKWISE_STATES_MAX,
+    blockwise_states_print, blockwise_states_debug};
+
+use super::blockwise::{BlockwiseStream, BlockwiseData, BLOCKWISE_HDR_MAX};
+pub fn gcoap_get_blockwise(addr: &str, uri: &str) -> Result<BlockwiseStream, BlockwiseError> {
+    BlockwiseData::send_blockwise_req(None, Some((addr, uri)), None)
+}
 
 pub fn gcoap_get(addr: &str, uri: &str) -> impl Future<Output = GcoapMemoState> + 'static {
     Req::new(COAP_METHOD_GET, addr, uri, None)

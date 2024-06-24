@@ -216,7 +216,7 @@ async fn test_blockwise_all() {
 async fn test_async_blockwise() {
     println!("test_async_blockwise(): ^^");
 
-    let mut bs = crate::Xbd::async_gcoap_get_blockwise(
+    let mut bs = crate::xbd::gcoap::gcoap_get_blockwise(
         "[::1]:5683", "/const/song.txt").unwrap();
     while let Some(req) = bs.next().await {
         println!("@@ out: {:?}", req.await);

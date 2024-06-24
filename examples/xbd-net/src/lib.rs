@@ -151,11 +151,13 @@ async fn xbd_main() -> Result<(), i8> {
     Ok(())
 }
 
-use futures_util::stream::StreamExt;
-use xbd::{BlockwiseError, BLOCKWISE_STATES_MAX, blockwise_states_print, blockwise_states_debug};
+use xbd::gcoap::{
+    BlockwiseError, BLOCKWISE_STATES_MAX,
+    blockwise_states_print, blockwise_states_debug};
 
 async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
-    use xbd::gcoap::{gcoap_get, GcoapMemoState};
+    use xbd::gcoap::{gcoap_get, gcoap_get_blockwise, GcoapMemoState};
+    use futures_util::StreamExt;
 
     if 0 == 1 { // !! do test with alias='nns'
         println!("🧪 debug NEW [gcoap-dtls]");
@@ -211,7 +213,7 @@ $ libcoap/local/bin/coap-client -m get coaps://[::1]/.well-known/core -k "secret
 
     //
 
-    let get_blockwise = || Xbd::async_gcoap_get_blockwise(addr_self, "/const/song.txt");
+    let get_blockwise = || gcoap_get_blockwise(addr_self, "/const/song.txt");
 
     //
 
@@ -292,7 +294,7 @@ $ libcoap/local/bin/coap-client -m get coaps://[::1]/.well-known/core -k "secret
     //
 
     println!("🧪 debug NEW [blockwise-timeout]");
-    let get_blockwise_timeout = || Xbd::async_gcoap_get_blockwise(
+    let get_blockwise_timeout = || gcoap_get_blockwise(
         "[::1]:5680", "/const/song.txt"); // induce `Timeout`, not 5683
 
     let mut bs = get_blockwise_timeout()?;
@@ -306,7 +308,7 @@ $ libcoap/local/bin/coap-client -m get coaps://[::1]/.well-known/core -k "secret
     //
 
     println!("🧪 debug NEW [blockwise-resp-none]");
-    let get_blockwise_resp_none = || Xbd::async_gcoap_get_blockwise(
+    let get_blockwise_resp_none = || gcoap_get_blockwise(
         "[::1]:5683", "/const/song2.txt"); // induce `Resp(None)`
 
     let mut bs = get_blockwise_resp_none()?;

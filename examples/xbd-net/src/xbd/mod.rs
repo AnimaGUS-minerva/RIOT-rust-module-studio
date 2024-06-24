@@ -13,15 +13,10 @@ pub use shell::process_shell_stream;
 
 mod stream;
 
-mod blockwise;
-use blockwise::{BlockwiseStream, BlockwiseData, BLOCKWISE_HDR_MAX};
-pub use blockwise::{
-    BlockwiseError, BLOCKWISE_STATES_MAX,
-    blockwise_states_print, blockwise_states_debug};
-
 mod timeout;
 use timeout::Timeout;
 
+mod blockwise;
 pub mod gcoap;
 
 use core::future::Future;
@@ -106,10 +101,5 @@ impl Xbd {
 
     pub fn async_set_timeout<F>(msec: u32, cb: F) -> impl Future<Output = ()> + 'static where F: FnOnce() + 'static {
         Timeout::new(msec, Some(Box::new(cb)))
-    }
-
-    // !!!!
-    pub fn async_gcoap_get_blockwise(addr: &str, uri: &str) -> Result<BlockwiseStream, BlockwiseError> {
-        BlockwiseData::send_blockwise_req(None, Some((addr, uri)), None)
     }
 }
