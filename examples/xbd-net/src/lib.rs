@@ -13,7 +13,7 @@ fn alloc_error(layout: mcu_if::alloc::alloc::Layout) -> ! { mcu_if::alloc_error(
 use mcu_if::{println, alloc::boxed::Box};
 
 mod xbd;
-use xbd::{Xbd, XbdFnsEnt, gcoap::GcoapMemoState};
+use xbd::{Xbd, XbdFnsEnt};
 
 mod blogos12;
 mod embassy;
@@ -108,14 +108,16 @@ async fn xbd_main() -> Result<(), i8> {
     //==== native, external server -- LD_LIBRARY_PATH=./libcoap/local/lib libcoap-minimal/server 5683 fe80::20be:cdff:fe0e:44a1%tap1 &
     //let (addr, uri) = req_external_native;
 
+    use xbd::gcoap::gcoap_get;
+
     if 1 == 1 { // async, dev, server !!!!
         let addr_self = "[::1]:5683";
 
         if 10 == 1 {
-            let out = Xbd::async_gcoap_get(addr_self, "/.well-known/core").await; println!("@@ out: {:?}", out);
-            let out = Xbd::async_gcoap_get(addr_self, "/cli/stats").await; /* 1 */ println!("@@ out: {:?}", out);
-            let out = Xbd::async_gcoap_get(addr_self, "/riot/board").await; println!("@@ out: {:?}", out);
-            let out = Xbd::async_gcoap_get(addr_self, "/cli/stats").await; /* 3 */ println!("@@ out: {:?}", out);
+            let out = gcoap_get(addr_self, "/.well-known/core").await; println!("@@ out: {:?}", out);
+            let out = gcoap_get(addr_self, "/cli/stats").await; /* 1 */ println!("@@ out: {:?}", out);
+            let out = gcoap_get(addr_self, "/riot/board").await; println!("@@ out: {:?}", out);
+            let out = gcoap_get(addr_self, "/cli/stats").await; /* 3 */ println!("@@ out: {:?}", out);
             panic!("ok");
         }
 
@@ -130,19 +132,19 @@ async fn xbd_main() -> Result<(), i8> {
         let (addr, uri) = req_internal_native;
 
         // test case invalid `addr`
-        let out = Xbd::async_gcoap_get("[fe80::78ec:5fff:febd:aaaa]:5683", uri).await;
+        let out = gcoap_get("[fe80::78ec:5fff:febd:aaaa]:5683", uri).await;
         println!("@@ out: {:?}", out);
 
         // test case invalid `uri`
-        let out = Xbd::async_gcoap_get(addr, "/.well-known/cccc").await;
+        let out = gcoap_get(addr, "/.well-known/cccc").await;
         println!("@@ out: {:?}", out);
 
         // test hitting the internal server, native-only!!
-        let out = Xbd::async_gcoap_get(addr, uri).await;
+        let out = gcoap_get(addr, uri).await;
         println!("@@ out: {:?}", out);
 
         // test hitting the external server
-        let out = Xbd::async_gcoap_get(req_external_native.0, req_external_native.1).await;
+        let out = gcoap_get(req_external_native.0, req_external_native.1).await;
         println!("@@ out: {:?}", out);
     }
 
@@ -153,12 +155,13 @@ use futures_util::stream::StreamExt;
 use xbd::{BlockwiseError, BLOCKWISE_STATES_MAX, blockwise_states_print, blockwise_states_debug};
 
 async fn test_blockwise(addr_self: &str) -> Result<(), BlockwiseError> {
+    use xbd::gcoap::{gcoap_get, GcoapMemoState};
 
     if 0 == 1 { // !! do test with alias='nns'
         println!("🧪 debug NEW [gcoap-dtls]");
 
         //---- ok <-- gcoap: authentication timed out
-        //println!("@@ debug out: {:?}", Xbd::async_gcoap_get("[::1]:5684", "/cli/stats").await);
+        //println!("@@ debug out: {:?}", gcoap_get("[::1]:5684", "/cli/stats").await);
         //---- ok
         // $ libcoap/local/bin/coap-client -m get coaps://[fe80::10ef:d5ff:fe61:c7c%tap1]/cli/stats -k "secretPSK" -u "Client_identity"
         // $ libcoap/local/bin/coap-client -m get coaps://[fe80::10ef:d5ff:fe61:c7c%tap1]/const/song.txt -k "secretPSK" -u "Client_identity"
@@ -185,12 +188,12 @@ $ libcoap/local/bin/coap-client -m get coaps://[::1]/.well-known/core -k "secret
 
             //---- w.r.t. $ libcoap/local/bin/coap-server
             //         or $ libcoap/local/bin/coap-server -k "secretPSK"
-            // let out = Xbd::async_gcoap_get( // nn
+            // let out = gcoap_get( // nn
             //     "[fe80::20be:cdff:fe0e:44a1]:5683", "/.well-known/core").await; // ok
             //---- w.r.t. $ libcoap/local/bin/coap-server -k "secretPSK"
             // !!!! TODO integrate 'libcoap/examples/riot/examples_libcoap_client'
             // !!!! TODO error return on **auth** timeout
-            let out = Xbd::async_gcoap_get( // nns
+            let out = gcoap_get( // nns
                                             "[fe80::20be:cdff:fe0e:44a1]:5684", "/.well-known/core").await; // WIP
             println!("@@ debug out: {:?}", out);
         }
@@ -201,9 +204,9 @@ $ libcoap/local/bin/coap-client -m get coaps://[::1]/.well-known/core -k "secret
 
     // first, make sure non-blockwise get works
     println!("🧪 debug NEW [non-blockwise-1]");
-    println!("@@ debug out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
+    println!("@@ debug out: {:?}", gcoap_get(addr_self, "/cli/stats").await);
     println!("🧪 debug NEW [non-blockwise-2]");
-    println!("@@ debug out: {:?}", Xbd::async_gcoap_get(addr_self, "/cli/stats").await);
+    println!("@@ debug out: {:?}", gcoap_get(addr_self, "/cli/stats").await);
     if 0 == 1 { panic!("!!"); }
 
     //

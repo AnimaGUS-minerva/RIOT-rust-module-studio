@@ -108,19 +108,8 @@ impl Xbd {
         Timeout::new(msec, Some(Box::new(cb)))
     }
 
-    pub fn async_gcoap_get(addr: &str, uri: &str) -> impl Future<Output = gcoap::GcoapMemoState> + 'static {
-        gcoap::Req::new(gcoap::COAP_METHOD_GET, addr, uri, None)
-    }
-
+    // !!!!
     pub fn async_gcoap_get_blockwise(addr: &str, uri: &str) -> Result<BlockwiseStream, BlockwiseError> {
         BlockwiseData::send_blockwise_req(None, Some((addr, uri)), None)
-    }
-
-    pub fn async_gcoap_post(addr: &str, uri: &str, payload: &[u8]) -> impl Future<Output = gcoap::GcoapMemoState> + 'static {
-        gcoap::Req::new(gcoap::COAP_METHOD_POST, addr, uri, Some(heapless::Vec::from_slice(payload).unwrap()))
-    }
-
-    pub fn async_gcoap_put(addr: &str, uri: &str, payload: &[u8]) -> impl Future<Output = gcoap::GcoapMemoState> + 'static {
-        gcoap::Req::new(gcoap::COAP_METHOD_PUT, addr, uri, Some(heapless::Vec::from_slice(payload).unwrap()))
     }
 }

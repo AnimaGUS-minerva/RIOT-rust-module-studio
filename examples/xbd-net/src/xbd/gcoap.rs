@@ -66,8 +66,8 @@ impl GcoapMemoState {
 
 type CoapMethod = u8;
 pub const COAP_METHOD_GET      : CoapMethod = 0x01;
-pub const COAP_METHOD_POST     : CoapMethod = 0x02;
-pub const COAP_METHOD_PUT      : CoapMethod = 0x03;
+const COAP_METHOD_POST     : CoapMethod = 0x02;
+const COAP_METHOD_PUT      : CoapMethod = 0x03;
 // pub const COAP_METHOD_DELETE   : CoapMethod = 0x04;
 // pub const COAP_METHOD_FETCH    : CoapMethod = 0x05;
 // pub const COAP_METHOD_PATCH    : CoapMethod = 0x06;
@@ -75,9 +75,24 @@ pub const COAP_METHOD_PUT      : CoapMethod = 0x03;
 
 //
 
+
+pub fn gcoap_get(addr: &str, uri: &str) -> impl Future<Output = GcoapMemoState> + 'static {
+    Req::new(COAP_METHOD_GET, addr, uri, None)
+}
+
+pub fn gcoap_post(addr: &str, uri: &str, payload: &[u8]) -> impl Future<Output = GcoapMemoState> + 'static {
+    Req::new(COAP_METHOD_POST, addr, uri, Some(heapless::Vec::from_slice(payload).unwrap()))
+}
+
+pub fn gcoap_put(addr: &str, uri: &str, payload: &[u8]) -> impl Future<Output = GcoapMemoState> + 'static {
+    Req::new(COAP_METHOD_PUT, addr, uri, Some(heapless::Vec::from_slice(payload).unwrap()))
+}
+
+//
+
 #[repr(u8)]
 #[derive(Debug)]
-pub enum Req {
+enum Req {
     Get(ReqInner) = COAP_METHOD_GET,
     Post(ReqInner) = COAP_METHOD_POST,
     Put(ReqInner) = COAP_METHOD_PUT,
@@ -116,7 +131,7 @@ impl Future for Req {
 pub struct Progress<T>(Option<AtomicWaker>, pub Option<AtomicWaker>, pub Option<T>);
 
 #[derive(Debug)]
-pub enum ProgressV2<T> {
+pub enum ProgressV2<T> {// !!!!
     New,
     Registered,
     Resolved(T),
@@ -214,19 +229,19 @@ impl Future for ReqInner {
                                 self.uri.as_bytes(),
                                 self.blockwise_hdr.as_deref());
 
-                            gcoap_get_blockwise(&self.addr, &self.uri, idx, progress_ptr);
+                            gcoap_get_blockwise_inner(&self.addr, &self.uri, idx, progress_ptr);
                         } else { // blockwise stream could be already closed
                             BlockwiseData::set_state_last(None);
 
                             return Poll::Ready(GcoapMemoState::Err)
                         }
                     } else {
-                        gcoap_get(&self.addr, &self.uri, progress_ptr);
+                        gcoap_get_inner(&self.addr, &self.uri, progress_ptr);
                     }
                 },
-                COAP_METHOD_POST => gcoap_post(
+                COAP_METHOD_POST => gcoap_post_inner(
                     &self.addr, &self.uri, self.payload.as_ref().unwrap().as_slice(), progress_ptr),
-                COAP_METHOD_PUT => gcoap_put(
+                COAP_METHOD_PUT => gcoap_put_inner(
                     &self.addr, &self.uri, self.payload.as_ref().unwrap().as_slice(), progress_ptr),
                 _ => todo!(),
             }
@@ -244,19 +259,19 @@ unsafe impl Send for ReqInner {
 
 //
 
-fn gcoap_get(addr: &str, uri: &str, progress_ptr: *mut Progress<GcoapMemoState>) {
-    gcoap_req(addr, uri, COAP_METHOD_GET, None, false, None, progress_ptr);
-}
-
-fn gcoap_get_blockwise(addr: &str, uri: &str, blockwise_state_index: usize, progress_ptr: *mut Progress<GcoapMemoState>) {
+fn gcoap_get_blockwise_inner(addr: &str, uri: &str, blockwise_state_index: usize, progress_ptr: *mut Progress<GcoapMemoState>) {
     gcoap_req(addr, uri, COAP_METHOD_GET, None, true, Some(blockwise_state_index), progress_ptr);
 }
 
-fn gcoap_post(addr: &str, uri: &str, payload: &[u8], progress_ptr: *mut Progress<GcoapMemoState>) {
+fn gcoap_get_inner(addr: &str, uri: &str, progress_ptr: *mut Progress<GcoapMemoState>) {
+    gcoap_req(addr, uri, COAP_METHOD_GET, None, false, None, progress_ptr);
+}
+
+fn gcoap_post_inner(addr: &str, uri: &str, payload: &[u8], progress_ptr: *mut Progress<GcoapMemoState>) {
     gcoap_req(addr, uri, COAP_METHOD_POST, Some(payload), false, None, progress_ptr);
 }
 
-fn gcoap_put(addr: &str, uri: &str, payload: &[u8], progress_ptr: *mut Progress<GcoapMemoState>) {
+fn gcoap_put_inner(addr: &str, uri: &str, payload: &[u8], progress_ptr: *mut Progress<GcoapMemoState>) {
     gcoap_req(addr, uri, COAP_METHOD_PUT, Some(payload), false, None, progress_ptr);
 }
 
