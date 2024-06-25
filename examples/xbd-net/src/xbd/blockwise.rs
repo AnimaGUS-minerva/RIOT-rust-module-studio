@@ -1,6 +1,7 @@
 use mcu_if::c_types::c_void;
 use mcu_if::utils::{u8_slice_from, u8_slice_mut_from};
 use core::{str::from_utf8, pin::Pin, task::{Context, Poll}};
+use heapless::Vec;
 use futures_util::stream::Stream;
 use super::stream::{XStream, XStreamData};
 use super::gcoap::{ReqInner, COAP_METHOD_GET, REQ_ADDR_MAX, REQ_URI_MAX};
@@ -92,7 +93,7 @@ pub fn blockwise_states_print() {
     crate::println!("[debug] blockwise_states_print(): states: {:?}", BlockwiseData::states());
 }
 
-pub fn blockwise_states_debug() -> heapless::Vec<Option<()>, BLOCKWISE_STATES_MAX> {
+pub fn blockwise_states_debug() -> Vec<Option<()>, BLOCKWISE_STATES_MAX> {
     BlockwiseData::states()
         .iter()
         .map(|s| if s.is_some() { Some(()) } else { None })
@@ -161,7 +162,7 @@ impl BlockwiseData {
             let mut bs = BlockwiseStream::get(idx, bsd);
 
             if let Some((addr, uri)) = addr_uri { // <blockwise NEXT>
-                let hdr = heapless::Vec::from_slice(hdr.unwrap()).unwrap();
+                let hdr = Vec::from_slice(hdr.unwrap()).unwrap();
 
                 bs.add(Some(ReqInner::new(
                     COAP_METHOD_GET, addr, uri, None, true, Some(idx), Some(hdr))));

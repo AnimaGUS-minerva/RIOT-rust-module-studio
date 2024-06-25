@@ -1,6 +1,7 @@
 use core::{future::Future, pin::Pin, task::{Context, Poll, Waker}};
 use core::ffi::c_void;
 use futures_util::task::AtomicWaker;
+use heapless::{Vec, String};
 use mcu_if::utils::u8_slice_from;
 
 pub const REQ_ADDR_MAX: usize = 64;
@@ -9,8 +10,8 @@ pub const REQ_URI_MAX: usize = 64;
 const PAYLOAD_REQ_MAX: usize = 48;
 const PAYLOAD_OUT_MAX: usize = 128;
 
-type PayloadReq = heapless::Vec<u8, PAYLOAD_REQ_MAX>;
-type PayloadOut = heapless::Vec<u8, PAYLOAD_OUT_MAX>;
+type PayloadReq = Vec<u8, PAYLOAD_REQ_MAX>;
+type PayloadOut = Vec<u8, PAYLOAD_OUT_MAX>;
 
 //
 // gcoap client
@@ -88,11 +89,11 @@ pub fn gcoap_get(addr: &str, uri: &str) -> impl Future<Output = GcoapMemoState> 
 }
 
 pub fn gcoap_post(addr: &str, uri: &str, payload: &[u8]) -> impl Future<Output = GcoapMemoState> + 'static {
-    Req::new(COAP_METHOD_POST, addr, uri, Some(heapless::Vec::from_slice(payload).unwrap()))
+    Req::new(COAP_METHOD_POST, addr, uri, Some(Vec::from_slice(payload).unwrap()))
 }
 
 pub fn gcoap_put(addr: &str, uri: &str, payload: &[u8]) -> impl Future<Output = GcoapMemoState> + 'static {
-    Req::new(COAP_METHOD_PUT, addr, uri, Some(heapless::Vec::from_slice(payload).unwrap()))
+    Req::new(COAP_METHOD_PUT, addr, uri, Some(Vec::from_slice(payload).unwrap()))
 }
 
 //
@@ -100,9 +101,10 @@ pub fn gcoap_put(addr: &str, uri: &str, payload: &[u8]) -> impl Future<Output = 
 #[repr(u8)]
 #[derive(Debug)]
 enum Req {
-    Get(ReqInner) = COAP_METHOD_GET,
-    Post(ReqInner) = COAP_METHOD_POST,
-    Put(ReqInner) = COAP_METHOD_PUT,
+    //GetBlockwise(ReqInner),
+    Get(ReqInner),
+    Post(ReqInner),
+    Put(ReqInner),
 }
 
 impl Req {
@@ -188,12 +190,12 @@ impl<T> Progress<T> {
 #[derive(Debug)]
 pub struct ReqInner {
     method: CoapMethod,
-    addr: heapless::String<{ REQ_ADDR_MAX }>,
-    uri: heapless::String<{ REQ_URI_MAX }>,
+    addr: String<{ REQ_ADDR_MAX }>,
+    uri: String<{ REQ_URI_MAX }>,
     payload: Option<PayloadReq>,
     blockwise: bool,
     blockwise_state_index: Option<usize>,
-    blockwise_hdr: Option<heapless::Vec<u8, BLOCKWISE_HDR_MAX>>,
+    blockwise_hdr: Option<Vec<u8, BLOCKWISE_HDR_MAX>>,
     progress: Progress<GcoapMemoState>,
 }
 
@@ -202,11 +204,11 @@ impl ReqInner {
                payload: Option<PayloadReq>,
                blockwise: bool,
                blockwise_state_index: Option<usize>,
-               blockwise_hdr: Option<heapless::Vec<u8, BLOCKWISE_HDR_MAX>>) -> Self {
+               blockwise_hdr: Option<Vec<u8, BLOCKWISE_HDR_MAX>>) -> Self {
         ReqInner {
             method,
-            addr: heapless::String::try_from(addr).unwrap(),
-            uri: heapless::String::try_from(uri).unwrap(),
+            addr: String::try_from(addr).unwrap(),
+            uri: String::try_from(uri).unwrap(),
             payload,
             blockwise,
             blockwise_state_index,
@@ -288,11 +290,11 @@ fn gcoap_req(addr: &str, uri: &str, method: CoapMethod,
     let payload_ptr = payload.map_or(core::ptr::null(), |payload| payload.as_ptr());
     let payload_len = payload.map_or(0, |payload| payload.len());
 
-    let mut addr_cstr = heapless::String::<{ REQ_ADDR_MAX + 1 }>::new();
+    let mut addr_cstr = String::<{ REQ_ADDR_MAX + 1 }>::new();
     addr_cstr.push_str(addr).unwrap();
     addr_cstr.push('\0').unwrap();
 
-    let mut uri_cstr = heapless::String::<{ REQ_URI_MAX + 1 }>::new();
+    let mut uri_cstr = String::<{ REQ_URI_MAX + 1 }>::new();
     uri_cstr.push_str(uri).unwrap();
     uri_cstr.push('\0').unwrap();
 
@@ -331,7 +333,7 @@ fn gcoap_req_resp_handler(memo: *const c_void, pdu: *const c_void, remote: *cons
             (&mut context) as *mut *const c_void as *mut c_void) };
 
     let payload = if payload_len > 0 {
-        let hvec: PayloadOut = heapless::Vec::from_slice(
+        let hvec: PayloadOut = Vec::from_slice(
             u8_slice_from(payload_ptr, payload_len)).unwrap();
         Some(hvec)
     } else {
