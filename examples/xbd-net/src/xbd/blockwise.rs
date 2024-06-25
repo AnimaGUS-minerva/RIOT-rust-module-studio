@@ -1,8 +1,6 @@
 use mcu_if::c_types::c_void;
 use mcu_if::utils::{u8_slice_from, u8_slice_mut_from};
-use core::{str::from_utf8, pin::Pin, task::{Context, Poll}};
 use heapless::Vec;
-use futures_util::stream::Stream;
 use super::stream::{XStream, XStreamData};
 use super::gcoap::{Req, REQ_ADDR_MAX, REQ_URI_MAX};
 use crate::static_borrow_mut;
@@ -41,8 +39,9 @@ pub extern fn xbd_blockwise_async_gcoap_next(
     idx: usize,
     addr: *const c_void, addr_len: usize,
     uri: *const c_void, uri_len: usize,
-    hdr: *const c_void, hdr_len: usize)
-{
+    hdr: *const c_void, hdr_len: usize) {
+    use core::str::from_utf8;
+
     let _ = BlockwiseData::send_blockwise_req(
         Some(idx),
         Some((from_utf8(u8_slice_from(addr as *const u8, addr_len)).unwrap(),
@@ -265,7 +264,9 @@ impl BlockwiseStream {
     }
 }
 
-impl Stream for BlockwiseStream {
+use core::{pin::Pin, task::{Context, Poll}};
+
+impl futures_util::stream::Stream for BlockwiseStream {
     type Item = Req;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
