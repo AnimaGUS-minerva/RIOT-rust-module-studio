@@ -4,7 +4,7 @@ use core::{str::from_utf8, pin::Pin, task::{Context, Poll}};
 use heapless::Vec;
 use futures_util::stream::Stream;
 use super::stream::{XStream, XStreamData};
-use super::gcoap::{ReqInner, COAP_METHOD_GET, REQ_ADDR_MAX, REQ_URI_MAX};
+use super::gcoap::{Req, REQ_ADDR_MAX, REQ_URI_MAX};
 use crate::static_borrow_mut;
 
 #[no_mangle]
@@ -78,7 +78,7 @@ static mut GRID_URI: &'static mut GridUri = &mut [[0; REQ_URI_MAX]; BLOCKWISE_ST
 type GridHdr = [(usize, [u8; BLOCKWISE_HDR_MAX]); BLOCKWISE_STATES_MAX];
 static mut GRID_HDR: &'static mut GridHdr = &mut [(0, [0; BLOCKWISE_HDR_MAX]); BLOCKWISE_STATES_MAX];
 
-type BlockwiseStreamData = XStreamData<Option<ReqInner>, 2>;
+type BlockwiseStreamData = XStreamData<Option<Req>, 2>;
 const ARRAY_REPEAT_VALUE_SD: BlockwiseStreamData = XStream::init();
 static mut BLOCKWISE_SD: &'static mut [BlockwiseStreamData; BLOCKWISE_STATES_MAX] =
     &mut [ARRAY_REPEAT_VALUE_SD; BLOCKWISE_STATES_MAX];
@@ -164,8 +164,7 @@ impl BlockwiseData {
             if let Some((addr, uri)) = addr_uri { // <blockwise NEXT>
                 let hdr = Vec::from_slice(hdr.unwrap()).unwrap();
 
-                bs.add(Some(ReqInner::new(
-                    COAP_METHOD_GET, addr, uri, None, true, Some(idx), Some(hdr))));
+                bs.add(Some(Req::blockwise_get_next(addr, uri, idx, hdr)));
             } else { // <blockwise COMPLETE>
                 BlockwiseData::clear_state(idx);
                 BlockwiseData::invalidate_state(idx);
@@ -185,7 +184,7 @@ impl BlockwiseData {
             //blockwise_states_print(); // debug
 
             let (addr, uri) = addr_uri.unwrap();
-            let req = ReqInner::new(COAP_METHOD_GET, addr, uri, None, true, Some(idx), None);
+            let req = Req::blockwise_get_new(addr, uri, idx);
 
             let BlockwiseState { bsd, .. } = BlockwiseState::get(idx);
             let mut bs = BlockwiseStream::get(idx, bsd);
@@ -238,7 +237,7 @@ impl BlockwiseState {
 #[derive(Debug)]
 pub struct BlockwiseStream {
     idx: usize,
-    xs: XStream<Option<ReqInner>, 2>,
+    xs: XStream<Option<Req>, 2>,
 }
 
 impl BlockwiseStream {
@@ -248,7 +247,7 @@ impl BlockwiseStream {
         Self { idx, xs }
     }
 
-    fn add(&mut self, req: Option<ReqInner>) {
+    fn add(&mut self, req: Option<Req>) {
         assert_eq!(self.xs.len(), 0);
         self.xs.add(req);
     }
@@ -267,7 +266,7 @@ impl BlockwiseStream {
 }
 
 impl Stream for BlockwiseStream {
-    type Item = ReqInner;
+    type Item = Req;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
         unsafe {

@@ -100,16 +100,15 @@ pub fn gcoap_put(addr: &str, uri: &str, payload: &[u8]) -> impl Future<Output = 
 
 #[repr(u8)]
 #[derive(Debug)]
-enum Req {
-    //GetBlockwise(ReqInner),
+pub enum Req {
+    GetBlockwise(ReqInner),
     Get(ReqInner),
     Post(ReqInner),
     Put(ReqInner),
 }
 
 impl Req {
-    pub fn new(method: CoapMethod, addr: &str, uri: &str,
-               payload: Option<PayloadReq>) -> Self {
+    pub fn new(method: CoapMethod, addr: &str, uri: &str, payload: Option<PayloadReq>) -> Self {
         let inner = ReqInner::new(method, addr, uri, payload, false, None, None);
 
         match method {
@@ -118,6 +117,19 @@ impl Req {
             COAP_METHOD_PUT => Self::Put(inner),
             _ => todo!(),
         }
+    }
+
+    pub fn blockwise_get_new(addr: &str, uri: &str, blockwise_state_index: usize) -> Self {
+        let inner = ReqInner::new(COAP_METHOD_GET, addr, uri, None, true,
+                                  Some(blockwise_state_index), None);
+        Req::GetBlockwise(inner)
+    }
+
+    pub fn blockwise_get_next(addr: &str, uri: &str, blockwise_state_index: usize,
+                              blockwise_hdr: Vec<u8, BLOCKWISE_HDR_MAX>) -> Self {
+        let inner = ReqInner::new(COAP_METHOD_GET, addr, uri, None, true,
+                                  Some(blockwise_state_index), Some(blockwise_hdr));
+        Req::GetBlockwise(inner)
     }
 }
 
@@ -128,7 +140,8 @@ impl Future for Req {
         // https://internals.rust-lang.org/t/idea-enhance-match-ergonomics-to-match-on-pinned-enums-without-unsafe/9317
         unsafe {
             match Pin::get_unchecked_mut(self) {
-                Req::Get(req) | Req::Post(req) | Req::Put(req) => Pin::new_unchecked(req).poll(cx),
+                Req::GetBlockwise(req) | Req::Get(req) | Req::Post(req) | Req::Put(req) =>
+                    Pin::new_unchecked(req).poll(cx),
             }
         }
     }
