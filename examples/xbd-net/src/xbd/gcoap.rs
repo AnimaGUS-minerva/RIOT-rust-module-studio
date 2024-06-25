@@ -101,7 +101,7 @@ pub fn gcoap_put(addr: &str, uri: &str, payload: &[u8]) -> impl Future<Output = 
 #[repr(u8)]
 #[derive(Debug)]
 pub enum Req {
-    GetBlockwise(ReqInner),
+    BlockwiseGet(ReqInner),
     Get(ReqInner),
     Post(ReqInner),
     Put(ReqInner),
@@ -122,14 +122,14 @@ impl Req {
     pub fn blockwise_get_new(addr: &str, uri: &str, blockwise_state_index: usize) -> Self {
         let inner = ReqInner::new(COAP_METHOD_GET, addr, uri, None, true,
                                   Some(blockwise_state_index), None);
-        Req::GetBlockwise(inner)
+        Req::BlockwiseGet(inner)
     }
 
     pub fn blockwise_get_next(addr: &str, uri: &str, blockwise_state_index: usize,
                               blockwise_hdr: Vec<u8, BLOCKWISE_HDR_MAX>) -> Self {
         let inner = ReqInner::new(COAP_METHOD_GET, addr, uri, None, true,
                                   Some(blockwise_state_index), Some(blockwise_hdr));
-        Req::GetBlockwise(inner)
+        Req::BlockwiseGet(inner)
     }
 }
 
@@ -140,7 +140,7 @@ impl Future for Req {
         // https://internals.rust-lang.org/t/idea-enhance-match-ergonomics-to-match-on-pinned-enums-without-unsafe/9317
         unsafe {
             match Pin::get_unchecked_mut(self) {
-                Req::GetBlockwise(req) | Req::Get(req) | Req::Post(req) | Req::Put(req) =>
+                Req::BlockwiseGet(req) | Req::Get(req) | Req::Post(req) | Req::Put(req) =>
                     Pin::new_unchecked(req).poll(cx),
             }
         }
@@ -153,7 +153,7 @@ impl Future for Req {
 pub struct Progress<T>(Option<AtomicWaker>, pub Option<AtomicWaker>, pub Option<T>);
 
 #[derive(Debug)]
-pub enum ProgressV2<T> {// !!!!
+pub enum FutureState<T> {// !!!!
     New,
     Registered,
     Resolved(T),
@@ -210,6 +210,7 @@ pub struct ReqInner {
     blockwise_state_index: Option<usize>,
     blockwise_hdr: Option<Vec<u8, BLOCKWISE_HDR_MAX>>,
     progress: Progress<GcoapMemoState>,
+//    fstat: FutureState<GcoapMemoState>,
 }
 
 impl ReqInner {
