@@ -235,46 +235,37 @@ impl Future for ReqInner {
                 let fstat_ptr = self.fstat.as_mut_ptr();
 
                 match self.method {
-                    COAP_METHOD_GET => {
-                        if self.blockwise {
-                            let idx = self.blockwise_state_index.unwrap();
+                    COAP_METHOD_GET if self.blockwise => {
+                        let idx = self.blockwise_state_index.unwrap();
 
-                            if BlockwiseData::state_is_valid(idx) {
-                                BlockwiseData::set_state_last(Some(idx));
-                                BlockwiseData::update_state(idx,
-                                    self.addr.as_bytes(),
-                                    self.uri.as_bytes(),
-                                    self.blockwise_hdr.as_deref());
+                        if BlockwiseData::state_is_valid(idx) {
+                            BlockwiseData::set_state_last(Some(idx));
+                            BlockwiseData::update_state(idx,
+                                self.addr.as_bytes(),
+                                self.uri.as_bytes(),
+                                self.blockwise_hdr.as_deref());
 
-                                gcoap_get_blockwise_inner(&self.addr, &self.uri, idx, fstat_ptr);
-                            } else { // blockwise stream could be already closed
-                                BlockwiseData::set_state_last(None);
-
-                                return Poll::Ready(GcoapMemoState::Err)
-                            }
-                        } else {
-                            gcoap_get_inner(&self.addr, &self.uri, fstat_ptr);
+                            gcoap_get_blockwise_inner(&self.addr, &self.uri, idx, fstat_ptr);
+                        } else { // blockwise stream could be already closed
+                            BlockwiseData::set_state_last(None);
+                            return Poll::Ready(GcoapMemoState::Err)
                         }
                     },
+                    COAP_METHOD_GET if !self.blockwise => gcoap_get_inner(
+                        &self.addr, &self.uri, fstat_ptr),
                     COAP_METHOD_POST => gcoap_post_inner(
                         &self.addr, &self.uri, self.payload.as_ref().unwrap().as_slice(), fstat_ptr),
                     COAP_METHOD_PUT => gcoap_put_inner(
                         &self.addr, &self.uri, self.payload.as_ref().unwrap().as_slice(), fstat_ptr),
-                    _ => todo!(),
+                    _ => panic!(),
                 }
 
                 Poll::Pending
             },
-            FutureState::Resolved(_) => {
-                Poll::Ready(self.fstat.take())
-            },
+            FutureState::Resolved(_) => Poll::Ready(self.fstat.take()),
             _ => panic!(),
         }
     }
-}
-
-unsafe impl Send for ReqInner {
-    // !!!! !!!!
 }
 
 //
