@@ -289,6 +289,15 @@ fn gcoap_put_inner(addr: &str, uri: &str, payload: &[u8], fstat_ptr: *mut Future
 fn gcoap_req(addr: &str, uri: &str, method: CoapMethod,
     payload: Option<&[u8]>, blockwise: bool, blockwise_state_index: Option<usize>,
     fstat_ptr: *mut FutureState<GcoapMemoState>) {
+
+    extern "C" {
+        fn xbd_gcoap_req_send(
+            addr: *const u8, uri: *const u8, method: u8,
+            payload: *const u8, payload_len: usize,
+            blockwise: bool, idx: usize,
+            context: *const c_void, resp_handler: *const c_void);
+    }
+
     let payload_ptr = payload.map_or(core::ptr::null(), |payload| payload.as_ptr());
     let payload_len = payload.map_or(0, |payload| payload.len());
 
@@ -300,20 +309,14 @@ fn gcoap_req(addr: &str, uri: &str, method: CoapMethod,
     uri_cstr.push_str(uri).unwrap();
     uri_cstr.push('\0').unwrap();
 
-    type Ty = unsafe extern "C" fn(
-        *const u8, *const u8, u8,
-        *const u8, usize, bool, usize, *const c_void, *const c_void);
-
     assert_eq!(blockwise, blockwise_state_index.is_some());
-    unsafe {
-        (crate::get_xbd_fn!("xbd_gcoap_req_send", Ty))(
-            addr_cstr.as_ptr(),
-            uri_cstr.as_ptr(),
-            method, payload_ptr, payload_len,
-            blockwise, blockwise_state_index.unwrap_or(0 /* to be ignored */),
-            fstat_ptr as *const c_void, // context
-            gcoap_req_resp_handler as *const c_void);
-    }
+    unsafe { xbd_gcoap_req_send(
+        addr_cstr.as_ptr(),
+        uri_cstr.as_ptr(),
+        method, payload_ptr, payload_len,
+        blockwise, blockwise_state_index.unwrap_or(0 /* to be ignored */),
+        fstat_ptr as *const c_void, // context
+        gcoap_req_resp_handler as *const c_void); }
 }
 
 fn gcoap_req_resp_handler(memo: *const c_void, pdu: *const c_void, remote: *const c_void) {
