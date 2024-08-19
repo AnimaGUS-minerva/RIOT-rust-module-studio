@@ -9,7 +9,8 @@ ci:#!!!!WIP
 	make init
 	make ci-fixture-net
 	##make -C ./examples/xbd-py test
-	make -C ./examples/xbd-net test
+	##make -C ./examples/xbd-net test
+	make -C ./examples/xbd-psa test
 
 IP6_FIXTURE_BR0 := fe80::a00:27ff:fefd:b6f8
 IP6_FIXTURE_TAP1 := fe80::20be:cdff:fe0e:44a1
